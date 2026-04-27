@@ -718,9 +718,10 @@
        */
       const debounce = (fn, delay = 150) => {
         let timeout;
-        return (...args) => {
+        return function() {
+          var args = Array.prototype.slice.call(arguments);
           clearTimeout(timeout);
-          timeout = setTimeout(() => fn(...args), delay);
+          timeout = setTimeout(() => fn.apply(null, args), delay);
         };
       };
 
@@ -808,7 +809,7 @@
       function hexToHsl(hex) {
         const rgb = hexToRgb(hex);
         if (!rgb) return null;
-        return rgbToHsl(...rgb);
+        return rgbToHsl(rgb[0], rgb[1], rgb[2]);
       }
 
       function hexToHue(hex) {
@@ -851,7 +852,7 @@
       function hslToHex(h, s, l) {
         const rgb = hslToRgb(h, s, l);
         if (!rgb) return null;
-        return rgbToHex(...rgb);
+        return rgbToHex(rgb[0], rgb[1], rgb[2]);
       }
 
       function relLum(hex) {
@@ -914,7 +915,7 @@
         const userWeightNames = state.colorStepNames && state.colorStepNames.trim() ? state.colorStepNames.split(",").map((n) => n.trim()) : null;
         let stepNames = null;
         if (userWeightNames && userWeightNames.length > 0) {
-          const names = [...userWeightNames];
+          const names = userWeightNames.slice();
           while (names.length < count) names.push(String(names.length + 1));
           stepNames = names.slice(0, count);
         }
@@ -928,18 +929,13 @@
         return {
           name: state.designSystemName || "ctm316",
           colors: (state.colors || []).map((g) => ({ name: g.name, shortName: g.shortName, value: g.value })),
-          roles: Object.fromEntries(
-            (state.roles || []).map((role, idx) => [
-              idx,
-              {
-                name: role.name,
-                shortName: role.shortName || role.name.substring(0, 2).toLowerCase(),
-                minContrast: String(role.minContrast !== undefined ? role.minContrast : "4.5"),
-                spread: Math.max(1, parseInt(role.spread) || 1),
-                baseIndex: Math.max(0, (parseInt(role.baseWeight) || 1) - 1),
-              },
-            ]),
-          ),
+          roles: (state.roles || []).map((role) => ({
+            name: role.name,
+            shortName: role.shortName || role.name.substring(0, 2).toLowerCase(),
+            minContrast: String(role.minContrast !== undefined ? role.minContrast : "4.5"),
+            spread: Math.max(1, parseInt(role.spread) || 1),
+            baseIndex: Math.max(0, (parseInt(role.baseWeight) || 1) - 1),
+          })),
           colorSteps: count,
           rampType: state.colorStepMethod || "Balanced",
           roleMapping: state.roleMappingMethod || "Contrast Based",
@@ -1056,7 +1052,7 @@
             const clrName = color.name;
             const conGroup = Object.create(null);
             tokens[modeName][clrName] = conGroup;
-            const roleNames = Object.keys(roles);
+            const roleNames = roles.map((_, i) => i);
 
             for (const roleName of roleNames) {
               const role = roles[roleName];
@@ -1079,14 +1075,14 @@
                 const minC = parseFloat(role.minContrast);
                 if (isDark) {
                   for (let i = rampLength - 1; i >= 0; i--) {
-                    if ((clrRamps[clrName][stepNames[i]].contrast[modeName].ratio ?? 0) >= minC) {
+                    if ((clrRamps[clrName][stepNames[i]].contrast[modeName].ratio || 0) >= minC) {
                       baseIdx = i;
                       break;
                     }
                   }
                 } else {
                   for (let i = 0; i < rampLength; i++) {
-                    if ((clrRamps[clrName][stepNames[i]].contrast[modeName].ratio ?? 0) >= minC) {
+                    if ((clrRamps[clrName][stepNames[i]].contrast[modeName].ratio || 0) >= minC) {
                       baseIdx = i;
                       break;
                     }
@@ -1096,7 +1092,7 @@
                   let bestIdx = 0,
                     maxC = -1;
                   for (let i = 0; i < rampLength; i++) {
-                    const c = clrRamps[clrName][stepNames[i]].contrast[modeName].ratio ?? 0;
+                    const c = clrRamps[clrName][stepNames[i]].contrast[modeName].ratio || 0;
                     if (c > maxC) {
                       bestIdx = i;
                       maxC = c;
@@ -1173,8 +1169,8 @@
             const hexValue = normalizeHex(group.value) || "#8E8E93";
             const lightBgHex = normalizeHex(appState.themes[0].bg) || "#FFFFFF";
             const darkBgHex = normalizeHex(appState.themes[1].bg) || "#000000";
-            const lightC = contrastRatio(hexValue, lightBgHex) ?? 0;
-            const darkC = contrastRatio(hexValue, darkBgHex) ?? 0;
+            const lightC = contrastRatio(hexValue, lightBgHex) || 0;
+            const darkC = contrastRatio(hexValue, darkBgHex) || 0;
             const gId = `group-${idx}`;
 
             const card = document.createElement("div");
@@ -1461,7 +1457,7 @@
           const grid = document.createElement("div");
           grid.className = "preview-swatches-grid";
           for (const [weight, data] of Object.entries(ramp)) {
-            const textColor = (contrastRatio(data.value, "#FFFFFF") ?? 0) > (contrastRatio(data.value, "#000000") ?? 0) ? "#FFFFFF" : "#000000";
+            const textColor = (contrastRatio(data.value, "#FFFFFF") || 0) > (contrastRatio(data.value, "#000000") || 0) ? "#FFFFFF" : "#000000";
             const swatch = document.createElement("div");
             swatch.className = "preview-swatch";
             swatch.style.backgroundColor = data.value;
@@ -1470,7 +1466,7 @@
             swatch.innerHTML = `
               <div class="preview-swatch__hex">${data.value}</div>
               <div class="preview-swatch__name">${weight}</div>
-              <div class="preview-swatch__contrast">L:${(data.contrast.light.ratio ?? 0).toFixed(1)} D:${(data.contrast.dark.ratio ?? 0).toFixed(1)}</div>`;
+              <div class="preview-swatch__contrast">L:${(data.contrast.light.ratio || 0).toFixed(1)} D:${(data.contrast.dark.ratio || 0).toFixed(1)}</div>`;
             grid.appendChild(swatch);
           }
           groupEl.appendChild(grid);
@@ -1492,7 +1488,7 @@
               grid.className = "preview-token-grid";
               for (const [varKey, token] of Object.entries(variations)) {
                 if (!token) continue;
-                const textColor = (contrastRatio(token.value, "#FFFFFF") ?? 0) > (contrastRatio(token.value, "#000000") ?? 0) ? "#FFFFFF" : "#000000";
+                const textColor = (contrastRatio(token.value, "#FFFFFF") || 0) > (contrastRatio(token.value, "#000000") || 0) ? "#FFFFFF" : "#000000";
                 const swatch = document.createElement("div");
                 swatch.className = "preview-swatch";
                 swatch.style.backgroundColor = token.value;
@@ -1508,7 +1504,7 @@
                 swatch.innerHTML += `
                   <div class="preview-swatch__hex">${token.value}</div>
                   <div class="preview-swatch__name">${varKey}</div>
-                  <div class="preview-swatch__contrast">${(token.contrast.ratio ?? 0).toFixed(1)}:1 ${token.contrast.rating || ""}</div>`;
+                  <div class="preview-swatch__contrast">${(token.contrast.ratio || 0).toFixed(1)}:1 ${token.contrast.rating || ""}</div>`;
                 grid.appendChild(swatch);
               }
               roleEl.appendChild(grid);
@@ -1739,7 +1735,7 @@
 
       function applyImport(json) {
         // Merge with defaults to ensure missing settings (if any from older versions) are populated
-        appState = { ...JSON.parse(JSON.stringify(demoConfig)), ...json };
+        appState = Object.assign({}, JSON.parse(JSON.stringify(demoConfig)), json);
         renderColorGroups();
         renderRoles();
         syncInputsFromState();

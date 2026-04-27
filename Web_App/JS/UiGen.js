@@ -2,6 +2,7 @@
 // Builds the sidebar controls and main token display; delegates data work to ClrGen/DocGen.
 
 window.currentEditableScheme = null;
+window.sidebarExpandedState = window.sidebarExpandedState || {};
 
 function getOptimalTextColor(bg) {
   const b = normalizeHex(bg) || "#000000";
@@ -15,7 +16,7 @@ function filterErrorsByTheme(errors, theme) {
   const filtered = {
     critical: errors.critical?.filter((e) => e.theme === theme) || [],
     warnings: errors.warnings?.filter((e) => e.theme === theme) || [],
-    notices:  errors.notices?.filter((e) => e.theme === theme) || [],
+    notices: errors.notices?.filter((e) => e.theme === theme) || [],
   };
   if (filtered.critical.length > 0 || filtered.warnings.length > 0 || filtered.notices.length > 0) return filtered;
   return null;
@@ -29,7 +30,7 @@ function displayColorTokens(collection) {
   const rawPanel = document.createElement("div");
   rawPanel.id = "panel-colorRamps";
   rawPanel.classList.add("tab-panel");
-  rawPanel.appendChild(createRawSection(collection.colorRamps));
+  rawPanel.innerHTML = createRawSection(collection.colorRamps);
 
   const lightPanel = document.createElement("div");
   lightPanel.id = "panel-tokens-light";
@@ -86,16 +87,16 @@ function displayColorTokens(collection) {
 
 function createErrorSection(errors) {
   const createListHTML = (arr) =>
-    arr.map((e) => {
-      let ctxArray = [];
-      if (e.color) ctxArray.push(`Group: <strong>${e.color.toUpperCase()}</strong>`);
-      if (e.role) ctxArray.push(`Role: <strong>${e.role}</strong>`);
-      if (e.variation) ctxArray.push(`Var: <strong>${e.variation}</strong>`);
-      const prefixHTML = ctxArray.length
-        ? `<span style="opacity:0.85;margin-right:8px;">[ ${ctxArray.join(" | ")} ]</span>`
-        : "";
-      return `<div class="px-2 py-1.5 bg-[var(--bg-card)] rounded-[8px] font-mono text-[10px] text-[var(--text-muted)] mb-1 last:mb-0">${prefixHTML}${e.error || e.warning || e.notice}</div>`;
-    }).join("");
+    arr
+      .map((e) => {
+        let ctxArray = [];
+        if (e.color) ctxArray.push(`Group: <strong>${e.color.toUpperCase()}</strong>`);
+        if (e.role) ctxArray.push(`Role: <strong>${e.role}</strong>`);
+        if (e.variation) ctxArray.push(`Var: <strong>${e.variation}</strong>`);
+        const prefixHTML = ctxArray.length ? `<span style="opacity:0.85;margin-right:8px;">[ ${ctxArray.join(" | ")} ]</span>` : "";
+        return `<div class="px-2 py-1.5 bg-[var(--bg-card)] rounded-[8px] font-mono text-[10px] text-[var(--text-muted)] mb-1 last:mb-0">${prefixHTML}${e.error || e.warning || e.notice}</div>`;
+      })
+      .join("");
 
   const section = document.createElement("div");
   section.className = "bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.3)] mb-4 rounded-[10px] overflow-hidden";
@@ -106,23 +107,23 @@ function createErrorSection(errors) {
     </div>
     <div class="errors-content custom-scrollbar">
       <div class="px-3.5 py-2 border-t border-[rgba(245,158,11,0.15)]">
-        <div class="text-[var(--warning)] text-[11px] font-bold mb-1.5 uppercase tracking-[0.5px]">Critical (${errors.critical?.length || 0})</div>
+        <div class="text-[var(--warning)] text-[11px] font-bold mb-1.5 tracking-[0.5px]">Critical (${errors.critical?.length || 0})</div>
         ${createListHTML(errors.critical || [])}
       </div>
       <div class="px-3.5 py-2 border-t border-[rgba(245,158,11,0.15)]">
-        <div class="text-[var(--warning)] text-[11px] font-bold mb-1.5 uppercase tracking-[0.5px]">Warnings (${errors.warnings?.length || 0})</div>
+        <div class="text-[var(--warning)] text-[11px] font-bold mb-1.5 tracking-[0.5px]">Warnings (${errors.warnings?.length || 0})</div>
         ${createListHTML(errors.warnings || [])}
       </div>
       <div class="px-3.5 py-2 border-t border-[rgba(245,158,11,0.15)]">
-        <div class="text-[var(--warning)] text-[11px] font-bold mb-1.5 uppercase tracking-[0.5px]">Notices (${errors.notices?.length || 0})</div>
+        <div class="text-[var(--warning)] text-[11px] font-bold mb-1.5 tracking-[0.5px]">Notices (${errors.notices?.length || 0})</div>
         ${createListHTML(errors.notices || [])}
       </div>
     </div>
   `;
 
-  const header  = section.querySelector(".errors-header");
+  const header = section.querySelector(".errors-header");
   const content = section.querySelector(".errors-content");
-  const toggle  = section.querySelector(".errors-toggle");
+  const toggle = section.querySelector(".errors-toggle");
   header.addEventListener("click", () => {
     const isCollapsed = toggle.classList.contains("collapsed");
     toggle.classList.toggle("collapsed", !isCollapsed);
@@ -132,12 +133,17 @@ function createErrorSection(errors) {
 }
 
 function createRawSection(colorRamps) {
-  const rawHTML = Object.entries(colorRamps).map(([colorGroup, weights]) => {
-    const swatchesHTML = Object.entries(weights).map(([, data]) => {
-      if (!data?.value) return "";
-      const colorValue = normalizeHex(data.value) || "#000000";
-      const textColor  = getOptimalTextColor(colorValue);
-      return `
+  // const section = document.createElement("div");
+  // section.className = "bg-[var(--bg-card)] border border-[var(--border)] mb-4 p-4 rounded-[10px]";
+
+  const rawHTML = Object.entries(colorRamps)
+    .map(([colorGroup, weights]) => {
+      const swatchesHTML = Object.entries(weights)
+        .map(([, data]) => {
+          if (!data?.value) return "";
+          const colorValue = normalizeHex(data.value) || "#000000";
+          const textColor = getOptimalTextColor(colorValue);
+          return `
         <div class="rounded-[8px] p-3 min-h-[110px] flex items-end relative shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-[transform,box-shadow] duration-200 cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_6px_12px_rgba(0,0,0,0.4)] break-inside-avoid"
              style="background-color:${colorValue};color:${textColor}">
           <div class="flex flex-col gap-1.5 w-full">
@@ -161,85 +167,152 @@ function createRawSection(colorRamps) {
             </div>
           </div>
         </div>`;
-    }).join("");
-    return `
-      <div class="mb-6">
-        <h3 class="text-[11px] font-bold tracking-[0.8px] text-[var(--text-muted)] uppercase mb-2.5">${colorGroup.toUpperCase()}</h3>
+        })
+        .join("");
+      return `
+      <div class="bg-[var(--bg-card)] border border-[var(--border)] mb-4 p-4 rounded-[10px]">
+        <h3 class="text-[14px] font-bold tracking-[0.8px] text-[var(--text-muted)] mb-2.5">${colorGroup}</h3>
         <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">${swatchesHTML}</div>
       </div>`;
-  }).join("");
+    })
+    .join("");
 
-  const section = document.createElement("div");
-  section.className = "bg-[var(--bg-card)] border border-[var(--border)] mb-4 p-4 rounded-[10px]";
-  section.innerHTML = rawHTML;
-  return section;
+  // section.innerHTML = rawHTML;
+  return rawHTML;
 }
 
 function createThemeSection(colorTokens, theme) {
   const themeName = theme.charAt(0).toUpperCase() + theme.slice(1);
-  const isDark    = theme === "dark";
-  const pillClass = isDark
-    ? "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-black/70 text-[#f8f9fa] border border-white/10"
-    : "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/90 text-[#212529] border border-black/10";
-  const pillIcon  = isDark ? "🌙" : "☀️";
+  const isDark = theme === "dark";
+  const pillClass = isDark ? "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-black/70 text-[#f8f9fa] border border-white/10" : "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/90 text-[#212529] border border-black/10";
+  const pillIcon = isDark ? "🌙" : "☀️";
 
-  const contextualHTML = Object.entries(colorTokens).map(([colorGroup, roles]) => {
+  // Create a container for all color groups (e.g., a div or DocumentFragment)
+  const container = document.createElement("div");
+  container.className = "color-roles-container";
+
+  for (const [colorGroup, roles] of Object.entries(colorTokens)) {
     if (!roles || Object.keys(roles).length === 0) {
-      return `<div class="${isDark ? "bg-black" : "bg-[var(--bg-card)]"} p-4 rounded-[10px] border border-[var(--border)] mb-4"><h4 class="text-[11px] font-bold tracking-[0.8px] uppercase mb-3 ${isDark ? "text-[#888]" : "text-[var(--text-muted)]"}">${colorGroup}</h4><p>No roles generated</p></div>`;
+      container.innerHTML = `
+      <div class="p-4 rounded-[10px] border border-[var(--border)] mb-4 ${isDark ? "bg-black" : "bg-[var(--bg-card)]"}">
+        <h4 class="text-[11px] font-bold tracking-[0.8px] mb-3 ${isDark ? "text-[#888]" : "text-[var(--text-muted)]"}">${colorGroup}</h4>
+        <p>No roles generated</p>
+      </div>`;
+      return;
     }
 
-    const rolesHTML = Object.entries(roles).map(([role, variations]) => {
-      if (!variations || Object.keys(variations).length === 0) return "";
-      const variationsHTML = Object.entries(variations).map(([, data]) => {
-        if (!data?.value) return "";
-        const colorValue = normalizeHex(data.value);
-        const textColor  = getOptimalTextColor(colorValue);
-        return `
-          <div class="rounded-[8px] p-3 min-h-[100px] flex items-end relative shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-[transform,box-shadow] duration-200 cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_6px_12px_rgba(0,0,0,0.4)] border border-white/5 break-inside-avoid"
-               style="background-color:${colorValue};color:${textColor}">
-            <div class="flex flex-col gap-1 w-full text-[11px] leading-snug">
-              <div class="font-mono text-[11px] font-semibold bg-black/25 rounded-[4px] px-1.5 py-0.5 cursor-pointer hover:bg-black/40 transition-colors duration-150 w-fit"
-                   data-tooltip="Click to copy hex" data-copy="${colorValue}">
-                ${colorValue}
-              </div>
-              <div class="font-semibold text-[12px] cursor-pointer"
-                   data-tooltip="Click to copy name" data-copy="${data.tknName}">
-                ${data.tknName}
-              </div>
-              <div class="font-mono text-[9px] opacity-60">Ref: ${data.tknRef}</div>
-              <div class="flex gap-1 flex-wrap">
-                <div class="${pillClass}">
-                  <span class="text-[10px] leading-none flex-shrink-0">${pillIcon}</span>
-                  <span class="text-[10px] font-semibold leading-none whitespace-nowrap">${(data.contrast.ratio || 0).toFixed(2)} - ${data.contrast.rating}</span>
-                </div>
-              </div>
-              ${data.isAdjusted ? `<div class="text-[var(--warning)] font-bold text-[9px] tracking-[0.5px] uppercase">Adjusted</div>` : ""}
-            </div>
-          </div>`;
-      }).join("");
+    // Main group container
+    const groupDiv = document.createElement("div");
+    groupDiv.className = `p-4 rounded-[10px] border border-[var(--border)] mb-4 ${isDark ? "bg-black" : "bg-[var(--bg-card)]"}`;
 
-      const firstVar       = Object.values(variations)[0];
+    // Group title
+    groupDiv.innerHTML = `
+    <h4 class="text-[14px] font-bold tracking-[0.5px] mb-3 ${isDark ? "text-[#888]" : "text-[var(--text-muted)]"}">${colorGroup}</h4>
+    `;
+
+    // Iterate over each role inside the group using for...of on Object.entries
+    for (const [role, variations] of Object.entries(roles)) {
+      if (!variations || Object.keys(variations).length === 0) return;
+
+      // Get display name for the role (first variation's role property or the key)
+      const firstVar = Object.values(variations)[0];
       const displayRoleName = firstVar?.role || role;
-      return variationsHTML
-        ? `<div class="mb-4">
-             <h5 class="text-[10px] font-semibold tracking-[0.6px] ${isDark ? "text-[#666]" : "text-[var(--text-dim)]"} uppercase mb-2">${displayRoleName}</h5>
-             <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">${variationsHTML}</div>
-           </div>`
-        : "";
-    }).join("");
 
-    return rolesHTML
-      ? `<div class="${isDark ? "bg-black" : "bg-[var(--bg-card)]"} p-4 rounded-[10px] border border-[var(--border)] mb-4">
-           <h4 class="text-[11px] font-bold tracking-[0.8px] uppercase mb-3 ${isDark ? "text-[#888]" : "text-[var(--text-muted)]"}">${colorGroup.toUpperCase()}</h4>
-           ${rolesHTML}
-         </div>`
-      : "";
-  }).join("");
+      // Role sub‑heading
+      const roleHeading = document.createElement("h5");
+      roleHeading.className = `text-[10px] font-semibold tracking-[0.6px] mb-2 ${isDark ? "text-[#666]" : "text-[var(--text-dim)]"}`;
+      roleHeading.textContent = displayRoleName;
+      groupDiv.appendChild(roleHeading);
+
+      // Grid container for color cards
+      const grid = document.createElement("div");
+      grid.className = "grid gap-2";
+      grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(180px, 1fr))";
+
+      // Iterate over each variation (color) inside the role using for...in
+      for (const variationKey in variations) {
+        if (!Object.hasOwn(variations, variationKey)) continue;
+        const data = variations[variationKey];
+        if (!data?.value) continue;
+
+        const colorValue = normalizeHex(data.value);
+        const textColor = getOptimalTextColor(colorValue);
+
+        // Color card element
+        const card = document.createElement("div");
+        card.className = "rounded-[8px] p-3 min-h-[100px] flex items-end relative shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-[transform,box-shadow] duration-200 cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_6px_12px_rgba(0,0,0,0.4)] border border-white/5 break-inside-avoid";
+        card.style.backgroundColor = colorValue;
+        card.style.color = textColor;
+
+        // Inner content container
+        const content = document.createElement("div");
+        content.className = "flex flex-col gap-1 w-full text-[11px] leading-snug";
+
+        // Hex value element (with copy tooltip)
+        const hexSpan = document.createElement("div");
+        hexSpan.className = "font-mono text-[11px] font-semibold bg-black/25 rounded-[4px] px-1.5 py-0.5 cursor-pointer hover:bg-black/40 transition-colors duration-150 w-fit";
+        hexSpan.setAttribute("data-tooltip", "Click to copy hex");
+        hexSpan.setAttribute("data-copy", colorValue);
+        hexSpan.textContent = colorValue;
+
+        // Token name element (copy name)
+        const nameSpan = document.createElement("div");
+        nameSpan.className = "font-semibold text-[12px] cursor-pointer";
+        nameSpan.setAttribute("data-tooltip", "Click to copy name");
+        nameSpan.setAttribute("data-copy", data.tknName);
+        nameSpan.textContent = data.tknName;
+
+        // Reference element
+        const refSpan = document.createElement("div");
+        refSpan.className = "font-mono text-[9px] opacity-60";
+        refSpan.textContent = `Ref: ${data.tknRef}`;
+
+        // Contrast pill
+        const pill = document.createElement("div");
+        pill.className = pillClass; // uses existing pillClass variable
+        // Add icon (if pillIcon is a string, use innerHTML; if it's an element, clone)
+        if (typeof pillIcon === "string") {
+          pill.innerHTML = pillIcon;
+        } else if (pillIcon instanceof Element) {
+          pill.appendChild(pillIcon.cloneNode(true));
+        }
+        const contrastText = document.createElement("span");
+        contrastText.className = "text-[10px] font-semibold leading-none whitespace-nowrap";
+        contrastText.textContent = `${(data.contrast.ratio || 0).toFixed(2)} - ${data.contrast.rating}`;
+        pill.appendChild(contrastText);
+
+        // Wrap pill and text in a flex container (since pill may already have structure, adjust as needed)
+        // The original uses a <div class="flex gap-1 flex-wrap">, so we create that wrapper
+        const pillWrapper = document.createElement("div");
+        pillWrapper.className = "flex gap-1 flex-wrap";
+        pillWrapper.appendChild(pill);
+
+        // Append all parts to content
+        content.appendChild(hexSpan);
+        content.appendChild(nameSpan);
+        content.appendChild(refSpan);
+        content.appendChild(pillWrapper);
+
+        // "Adjusted" warning if needed
+        if (data.isAdjusted) {
+          const adjustedBadge = document.createElement("div");
+          adjustedBadge.className = "text-[var(--warning)] font-bold text-[9px] tracking-[0.5px]";
+          adjustedBadge.textContent = "Adjusted";
+          content.appendChild(adjustedBadge);
+        }
+
+        card.appendChild(content);
+        grid.appendChild(card);
+      }
+
+      groupDiv.appendChild(grid);
+    }
+
+    container.appendChild(groupDiv);
+  }
 
   const section = document.createElement("div");
-  section.innerHTML = `
-    <h4 class="text-[11px] font-bold tracking-[0.8px] text-[var(--text-muted)] uppercase mb-3">${themeName} Theme — Contextual Tokens</h4>
-    ${contextualHTML}`;
+  section.appendChild(container);
   return section;
 }
 
@@ -248,30 +321,39 @@ function createThemeSection(colorTokens, theme) {
 function createColorInputs(colorScheme, onUpdate) {
   const targetContainer = document.getElementById("colorInputs");
   if (!targetContainer) return;
+
+  const fragment = document.createDocumentFragment();
+
+  // 1. Basic Settings
+  const basicSection = createSection("Basic Settings", "basic-settings");
+  basicSection.content.appendChild(createInput("name", "System Name", colorScheme.name));
+  basicSection.content.appendChild(createInput("colorSteps", "Weight Count", colorScheme.colorSteps, "number"));
+  basicSection.content.appendChild(createInput("rampType", "Ramp Generation Mode", colorScheme.rampType || "Balanced", "select", rampTypes));
+  basicSection.content.appendChild(createInput("roleMapping", "Role Mapping Method", colorScheme.roleMapping || "Contrast Based", "select", roleMappingMethods));
+  basicSection.content.appendChild(createColorInput("themes.0.bg", "Light Theme Background", colorScheme.themes[0].bg || "FFFFFF"));
+  basicSection.content.appendChild(createColorInput("themes.1.bg", "Dark Theme Background", colorScheme.themes[1].bg || "000000"));
+  fragment.appendChild(basicSection.element);
+
+  // 2. Color Groups
+  fragment.appendChild(createColorGroupsSection(colorScheme).element);
+
+  // 3. Roles Configuration
+  fragment.appendChild(createRolesSection(colorScheme, onUpdate).element);
+
   targetContainer.innerHTML = "";
+  targetContainer.appendChild(fragment);
 
-  const basicSection = createSection("Basic Settings");
-  basicSection.appendChild(createInput("name", "System Name", colorScheme.name));
-  basicSection.appendChild(createInput("colorSteps", "Weight Count", colorScheme.colorSteps, "number"));
-  basicSection.appendChild(createInput("rampType", "Ramp Generation Mode", colorScheme.rampType || "Balanced", "select", rampTypes));
-  basicSection.appendChild(createInput("roleMapping", "Role Mapping Method", colorScheme.roleMapping || "Contrast Based", "select", roleMappingMethods));
-  basicSection.appendChild(createColorInput("themes.0.bg", "Light Theme Background", colorScheme.themes[0].bg || "FFFFFF"));
-  basicSection.appendChild(createColorInput("themes.1.bg", "Dark Theme Background", colorScheme.themes[1].bg || "000000"));
-  targetContainer.appendChild(basicSection);
-  targetContainer.appendChild(createColorGroupsSection(colorScheme));
-  targetContainer.appendChild(createRolesSection(colorScheme, onUpdate));
-
-  // Delegated listener registered once on the container; 350 ms debounce batches rapid input.
+  // Delegated listener for inputs
   if (!targetContainer.dataset.hasListener) {
     let updateTimeout;
     ["input", "change"].forEach((evtType) => {
       targetContainer.addEventListener(evtType, (e) => {
         const target = e.target;
-        const path   = target.dataset.path;
+        const path = target.dataset.path;
         if (!path) return;
         const pathParts = path.split(".");
-        const rawVal    = target.value;
-        const type      = target.type;
+        const rawVal = target.value;
+        const type = target.type;
         if (updateTimeout) clearTimeout(updateTimeout);
         updateTimeout = setTimeout(() => {
           const activeScheme = window.currentEditableScheme;
@@ -295,11 +377,9 @@ function createColorInputs(colorScheme, onUpdate) {
     targetContainer.dataset.hasListener = "true";
   }
 
-  // Role mapping needs its own direct listener because switching modes rebuilds the entire sidebar,
-  // which must happen before onUpdate re-renders tokens.
+  // Direct listener for role mapping select
   const roleMappingSelect = targetContainer.querySelector('[data-path="roleMapping"]');
   if (roleMappingSelect) {
-    roleMappingSelect.removeEventListener("change", roleMappingSelect._handler);
     const handler = (e) => {
       const activeScheme = window.currentEditableScheme;
       if (activeScheme) {
@@ -308,33 +388,33 @@ function createColorInputs(colorScheme, onUpdate) {
         if (typeof onUpdate === "function") onUpdate(activeScheme);
       }
     };
-    roleMappingSelect.addEventListener("change", handler);
-    roleMappingSelect._handler = handler;
+    roleMappingSelect.onchange = handler;
   }
 }
 
 function createColorGroupsSection(colorScheme) {
-  const colorsSection = createSection("Color Groups");
+  const section = createSection("Color Groups", "color-groups");
   const addButton = document.createElement("button");
   addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[rgba(24,160,251,0.1)]";
-  addButton.textContent = "+ Add";
-  addButton.addEventListener("click", () => {
+  addButton.textContent = "+ Add Color";
+  addButton.onclick = () => {
     const newGroup = {
       name: `color${colorScheme.colors.length + 1}`,
       shortName: `C${colorScheme.colors.length + 1}`,
       value: "000000",
     };
-    colorScheme.colors.push(newGroup);
+    colorScheme.colors.unshift(newGroup);
     createColorInputs(colorScheme, (updated) => {
       window.currentEditableScheme = updated;
       displayColorTokens(variableMaker(updated));
     });
-  });
-  colorsSection.appendChild(addButton);
+    displayColorTokens(variableMaker(colorScheme));
+  };
+  section.content.appendChild(addButton);
   colorScheme.colors.forEach((group, index) => {
-    colorsSection.appendChild(createColorGroupInput(group, index, colorScheme));
+    section.content.appendChild(createColorGroupInput(group, index, colorScheme));
   });
-  return colorsSection;
+  return section;
 }
 
 function createColorGroupInput(group, index, colorScheme) {
@@ -368,9 +448,9 @@ function createColorGroupInput(group, index, colorScheme) {
   setupColorInputSync(div);
   const deleteBtn = div.querySelector(".delete-group-btn");
   if (deleteBtn) {
-    deleteBtn.addEventListener("click", (e) => {
+    deleteBtn.onclick = (e) => {
       e.stopPropagation();
-      const idx = parseInt(e.target.dataset.index);
+      const idx = parseInt(e.currentTarget.dataset.index);
       colorScheme.colors.splice(idx, 1);
       const updatedScheme = JSON.parse(JSON.stringify(colorScheme));
       window.currentEditableScheme = updatedScheme;
@@ -379,7 +459,7 @@ function createColorGroupInput(group, index, colorScheme) {
         displayColorTokens(variableMaker(s));
       });
       displayColorTokens(variableMaker(updatedScheme));
-    });
+    };
   }
   return div;
 }
@@ -403,46 +483,48 @@ function createColorInput(path, label, value) {
 
 function setupColorInputSync(container) {
   const colorPicker = container.querySelector(".color-picker");
-  const colorText   = container.querySelector(".color-text");
+  const colorText = container.querySelector(".color-text");
   if (colorPicker && colorText) {
-    colorPicker.addEventListener("input", (e) => {
+    colorPicker.oninput = (e) => {
       colorText.value = e.target.value.replace("#", "").toUpperCase();
-    });
-    colorText.addEventListener("input", (e) => {
+    };
+    colorText.oninput = (e) => {
       const hex = e.target.value.replace("#", "").toUpperCase();
       if (/^[0-9A-F]{6}$/.test(hex)) colorPicker.value = "#" + hex;
-    });
+    };
   }
 }
 
 function createRolesSection(colorScheme, onUpdate) {
-  const rolesSection = createSection("Roles Configuration");
-  const addButton    = document.createElement("button");
+  const section = createSection("Roles Configuration", "roles-config");
+  const addButton = document.createElement("button");
   addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[rgba(24,160,251,0.1)]";
   addButton.textContent = "+ Add Role";
-  addButton.addEventListener("click", () => {
-    const roleId = `role${Object.keys(colorScheme.roles).length + 1}`;
-    colorScheme.roles[roleId] = {
-      name: "New Role",
-      shortName: "nr",
+  addButton.onclick = () => {
+    const roleId = colorScheme.roles.length + 1;
+    colorScheme.roles.unshift({
+      name: "Role " + roleId,
+      shortName: `r-${roleId}`,
       minContrast: 4.5,
       spread: 2,
       baseIndex: Math.floor(colorScheme.colorSteps / 2),
-    };
+    });
     createColorInputs(colorScheme, (updated) => {
       window.currentEditableScheme = updated;
       displayColorTokens(variableMaker(updated));
     });
-  });
-  rolesSection.appendChild(addButton);
+    onUpdate(colorScheme);
+  };
+  section.content.appendChild(addButton);
 
   const isManualMode = colorScheme.roleMapping === "Manual Base Index";
-  const rampLength   = colorScheme.colorSteps;
+  const rampLength = colorScheme.colorSteps;
 
-  for (const [roleKey, role] of Object.entries(colorScheme.roles)) {
-    const roleDiv    = document.createElement("div");
+  for (let roleKey = 0; roleKey < colorScheme.roles.length; roleKey++) {
+    const role = colorScheme.roles[roleKey];
+    const roleDiv = document.createElement("div");
     const roleInputs = document.createElement("div");
-    roleInputs.className = "grid grid-cols-[1fr_0.5fr_0.5fr] items-end gap-2";
+    roleInputs.className = "grid grid-cols-3 items-end gap-2";
     roleDiv.className = "bg-[var(--bg-card)] rounded-[10px] border border-[var(--border)] p-3 mb-2 flex flex-col gap-2";
     roleDiv.innerHTML = `
       <div class="flex justify-between items-center">
@@ -454,14 +536,14 @@ function createRolesSection(colorScheme, onUpdate) {
       </div>
     `;
 
-    const spreadInput    = createInput(`roles.${roleKey}.spread`, "Spread", role.spread, "number");
+    const spreadInput = createInput(`roles.${roleKey}.spread`, "Spread", role.spread, "number");
     const shortNameInput = createInput(`roles.${roleKey}.shortName`, "Short Name", role.shortName);
     roleInputs.appendChild(spreadInput);
     roleInputs.appendChild(shortNameInput);
 
     if (isManualMode) {
-      const zeroBased  = role.baseIndex !== undefined ? role.baseIndex : Math.floor(rampLength / 2);
-      const stepValue  = zeroBased + 1;
+      const zeroBased = role.baseIndex !== undefined ? role.baseIndex : Math.floor(rampLength / 2);
+      const stepValue = zeroBased + 1;
       const baseStepDiv = document.createElement("div");
       baseStepDiv.className = "flex flex-col gap-1";
       baseStepDiv.innerHTML = `
@@ -470,14 +552,14 @@ function createRolesSection(colorScheme, onUpdate) {
           value="${stepValue}" min="1" max="${rampLength}">
       `;
       const stepInput = baseStepDiv.querySelector("input");
-      stepInput.addEventListener("change", (e) => {
+      stepInput.onchange = (e) => {
         let newStep = parseInt(e.target.value);
         if (isNaN(newStep)) newStep = 1;
         newStep = Math.min(rampLength, Math.max(1, newStep));
         role.baseIndex = newStep - 1;
         e.target.value = newStep;
         if (typeof onUpdate === "function") onUpdate(colorScheme);
-      });
+      };
       roleInputs.appendChild(baseStepDiv);
     } else {
       const minContrastInput = createInput(`roles.${roleKey}.minContrast`, "Min Contrast", role.minContrast, "number");
@@ -488,10 +570,10 @@ function createRolesSection(colorScheme, onUpdate) {
 
     const deleteBtn = roleDiv.querySelector(".delete-group-btn");
     if (deleteBtn) {
-      deleteBtn.addEventListener("click", (e) => {
+      deleteBtn.onclick = (e) => {
         e.stopPropagation();
-        const rKey = e.target.dataset.role;
-        delete colorScheme.roles[rKey];
+        const rKey = parseInt(e.currentTarget.dataset.role);
+        colorScheme.roles.splice(rKey, 1);
         const updatedScheme = JSON.parse(JSON.stringify(colorScheme));
         window.currentEditableScheme = updatedScheme;
         createColorInputs(updatedScheme, (s) => {
@@ -499,50 +581,71 @@ function createRolesSection(colorScheme, onUpdate) {
           displayColorTokens(variableMaker(s));
         });
         displayColorTokens(variableMaker(updatedScheme));
-      });
+      };
     }
-    rolesSection.appendChild(roleDiv);
+    section.content.appendChild(roleDiv);
   }
-  return rolesSection;
+  return section;
 }
 
-function createSection(title) {
-  const section = document.createElement("div");
-  section.className = "py-1";
+function createSection(title, id) {
+  const container = document.createElement("div");
+  container.className = "flex flex-col gap-1";
+
+  // Check state: if never seen, default to true (expanded).
+  if (!window.sidebarExpandedState) window.sidebarExpandedState = {};
+  if (window.sidebarExpandedState[id] === undefined) {
+    window.sidebarExpandedState[id] = true;
+  }
+  const isExpanded = window.sidebarExpandedState[id];
 
   const header = document.createElement("div");
-  header.className = "flex justify-between items-center px-1 py-2 mb-1 rounded-[8px] cursor-pointer select-none transition-colors duration-150 hover:bg-[var(--bg-hover)]";
+  header.className = "text-[14px] font-bold text-[var(--text-muted)] flex justify-between items-center px-1 py-3 mb-1 rounded-[8px] cursor-pointer select-none transition-colors duration-150 hover:bg-[var(--bg-hover)]";
+  header.setAttribute("role", "button");
+  header.setAttribute("aria-expanded", isExpanded);
+  header.setAttribute("tabindex", "0");
+
   header.innerHTML = `
-    <h4 class="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wide">${title}</h4>
-    <button class="section-toggle-btn bg-transparent border-none text-[12px] text-[var(--text-dim)] cursor-pointer w-5 h-5 flex items-center justify-center transition-transform duration-200">▼</button>
+    ${title}
+    <svg class="w-4 h-4 transition-transform duration-200 ${isExpanded ? "rotate-0" : "-rotate-90"}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
   `;
 
   const content = document.createElement("div");
-  content.className = "section-content";
+  content.className = `flex-col gap-4 ${isExpanded ? "flex" : "hidden"}`;
 
-  const inner = document.createElement("div");
-  inner.className = "flex flex-col gap-2 pt-1";
-  content.appendChild(inner);
+  const toggle = () => {
+    const isNowExpanded = content.classList.contains("hidden");
+    content.classList.toggle("hidden", !isNowExpanded);
+    content.classList.toggle("flex", isNowExpanded);
+    header.setAttribute("aria-expanded", isNowExpanded);
+    window.sidebarExpandedState[id] = isNowExpanded;
 
-  const toggleBtn = header.querySelector(".section-toggle-btn");
-  header.addEventListener("click", () => {
-    content.classList.toggle("collapsed");
-    toggleBtn.style.transform = content.classList.contains("collapsed") ? "rotate(-90deg)" : "rotate(0deg)";
-  });
-
-  section.appendChild(header);
-  section.appendChild(content);
-
-  // Override appendChild so callers treat the section like a flat container —
-  // child nodes are automatically routed into the collapsible inner div.
-  const originalAppendChild = section.appendChild.bind(section);
-  section.appendChild = function (node) {
-    if (this.contains(content) && node !== header && node !== content) {
-      return inner.appendChild(node);
+    const svg = header.querySelector("svg");
+    if (svg) {
+      if (isNowExpanded) {
+        svg.classList.remove("-rotate-90");
+        svg.classList.add("rotate-0");
+      } else {
+        svg.classList.remove("rotate-0");
+        svg.classList.add("-rotate-90");
+      }
     }
-    return originalAppendChild(node);
   };
-  return section;
+
+  header.onclick = toggle;
+  header.onkeydown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggle();
+    }
+  };
+
+  container.appendChild(header);
+  container.appendChild(content);
+
+  return { element: container, content: content };
 }
 
 function createInput(path, label, value, type = "text", options = []) {
@@ -567,7 +670,7 @@ function createInput(path, label, value, type = "text", options = []) {
 
 document.addEventListener("DOMContentLoaded", () => {
   const toggleSidebarBtn = document.getElementById("toggleSidebarBtn");
-  const appContainer     = document.querySelector("app");
+  const appContainer = document.querySelector("app");
   if (toggleSidebarBtn && appContainer) {
     toggleSidebarBtn.addEventListener("click", () => appContainer.classList.toggle("sidebar-hidden"));
   }
@@ -616,7 +719,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const dialog = document.getElementById("import-confirm-dialog");
   if (dialog) {
     document.getElementById("import-dialog-overwrite").addEventListener("click", () => {
-      if (_pendingImport) { applyImportedScheme(_pendingImport); _pendingImport = null; }
+      if (_pendingImport) {
+        applyImportedScheme(_pendingImport);
+        _pendingImport = null;
+      }
       dialog.close();
     });
     document.getElementById("import-dialog-cancel").addEventListener("click", () => {
@@ -660,8 +766,8 @@ function updateColorScheme(colorScheme, pathParts, value) {
 }
 
 function exportColorScheme(colorScheme) {
-  const dataStr  = JSON.stringify(colorScheme, null, 2);
-  const dataUri  = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+  const dataStr = JSON.stringify(colorScheme, null, 2);
+  const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
   const filename = `color-scheme-${colorScheme.name || "untitled"}-${new Date().toISOString().slice(0, 10)}.json`;
   const a = document.createElement("a");
   a.setAttribute("href", dataUri);
@@ -683,7 +789,7 @@ function parseSchemeFile(file, onValid) {
   reader.onload = (e) => {
     try {
       const imported = JSON.parse(e.target.result);
-      if (!imported || !imported.colors || !Array.isArray(imported.colors) || !imported.roles) {
+      if (!imported || !imported.colors || !Array.isArray(imported.colors) || !Array.isArray(imported.roles)) {
         alert("Invalid color scheme file format");
         return;
       }
@@ -763,27 +869,27 @@ function initializeColorControls() {
   if (!window.globalListenersSet) {
     document.addEventListener("click", (e) => {
       const id = e.target.id;
-      if (id === "exportCss")    downloadCss(window.currentEditableScheme || editable);
+      if (id === "exportCss") downloadCss(window.currentEditableScheme || editable);
       if (id === "exportConfig") exportColorScheme(window.currentEditableScheme || demoConfig);
       if (id === "downloadCsv") {
-        const scheme     = window.currentEditableScheme || editable;
+        const scheme = window.currentEditableScheme || editable;
         const dataForCsv = variableMaker(scheme);
-        const flat       = flattenTokensForCsv(dataForCsv);
+        const flat = flattenTokensForCsv(dataForCsv);
         if (flat.length === 0) {
           alert("No color token data found to export. Please check if the color system is properly configured.");
           return;
         }
         const columns = [
-          { label: "Theme",          path: "theme" },
-          { label: "Group",          path: "group" },
-          { label: "Role",           path: "role" },
-          { label: "Variation",      path: "variation" },
-          { label: "Token Ref",      path: "tokenRef" },
-          { label: "Token Name",     path: "tokenName" },
-          { label: "Hex Value",      path: "value" },
+          { label: "Theme", path: "theme" },
+          { label: "Group", path: "group" },
+          { label: "Role", path: "role" },
+          { label: "Variation", path: "variation" },
+          { label: "Token Ref", path: "tokenRef" },
+          { label: "Token Name", path: "tokenName" },
+          { label: "Hex Value", path: "value" },
           { label: "Contrast Ratio", path: "contrastRatio" },
-          { label: "Rating",         path: "contrastRating" },
-          { label: "Adjusted",       path: "isAdjusted" },
+          { label: "Rating", path: "contrastRating" },
+          { label: "Adjusted", path: "isAdjusted" },
         ];
         downloadCSV("tokens.csv", generateCSV({ data: flat, columns }));
       }

@@ -14,18 +14,18 @@ const demoConfig = {
     { name: "warning", shortName: "Wg", value: "F2AA30" },
     { name: "info", shortName: "In", value: "206BB0" },
   ],
-  roles: {
-    text: { name: "Text", shortName: "tx", minContrast: "5", spread: 3, baseIndex: 10 }, // baseIndex is 0-based: 10 = step 11
-    layer: { name: "Layer", shortName: "ly", minContrast: "0", spread: 1, baseIndex: 10 },
-    stroke: { name: "Stroke", shortName: "st", minContrast: "1", spread: 1, baseIndex: 10 },
-    fill: { name: "Fill", shortName: "fi", minContrast: "4", spread: 2, baseIndex: 10 },
-  },
+  roles: [
+    { name: "Text", shortName: "tx", minContrast: "5", spread: 3, baseIndex: 10 },
+    { name: "Layer", shortName: "ly", minContrast: "0", spread: 1, baseIndex: 10 },
+    { name: "Stroke", shortName: "st", minContrast: "1", spread: 1, baseIndex: 10 },
+    { name: "Fill", shortName: "fi", minContrast: "4", spread: 2, baseIndex: 10 },
+  ],
   roleSteps: 5,
   roleStepNames: ["Weakest", "Weak", "Base", "Strong", "Stronger"],
-  colorSteps: 23,
+  colorSteps: 21,
   rampType: "Balanced",
   roleMapping: "Contrast Based",
-  colorStepNames: null || seriesMaker(23),
+  colorStepNames: [],
   themes: [
     { name: "light", bg: "FFFFFF" },
     { name: "dark", bg: "000000" },
@@ -136,7 +136,10 @@ function variableMaker(config) {
   const colors = config.colors;
   const roles = config.roles;
   const rampLength = config.colorSteps;
-  let stepNames = config.colorStepNames || seriesMaker(config.colorSteps);
+  let stepNames = config.colorStepNames;
+  if (!stepNames || stepNames.length !== rampLength) {
+    stepNames = seriesMaker(rampLength);
+  }
 
   const inputHash = JSON.stringify({
     colors: config.colors.map((g) => ({
@@ -195,7 +198,7 @@ function variableMaker(config) {
       const clrName = color.name;
       const conGroup = Object.create(null);
       conTheme[clrName] = conGroup;
-      const roleNames = Object.keys(roles);
+      const roleNames = roles.map((_, i) => i);
 
       if (config.roleMapping === "Contrast Based") {
         for (const roleName of roleNames) {

@@ -59,7 +59,7 @@ function translateConfig(appState) {
   const userWeightNames = appState.colorStepNames && appState.colorStepNames.trim() ? appState.colorStepNames.split(",").map((n) => n.trim()) : null;
   let stepNames = null;
   if (userWeightNames && userWeightNames.length > 0) {
-    const names = [...userWeightNames];
+    const names = userWeightNames.slice();
     while (names.length < count) names.push(String(names.length + 1));
     stepNames = names.slice(0, count);
   }
@@ -86,20 +86,13 @@ function translateConfig(appState) {
       shortName: g.shortName,
       value: g.value,
     })),
-    // roles is now an array; use numeric index as key for the engine
-    roles: Object.fromEntries(
-      (appState.roles || []).map((role, idx) => [
-        idx,
-        {
-          name: role.name,
-          shortName: role.shortName || role.name.substring(0, 2).toLowerCase(),
-          minContrast: String(role.minContrast !== undefined ? role.minContrast : "4.5"),
-          spread: Math.max(1, parseInt(role.spread) || 1),
-          // UI uses 1-based baseWeight; reference uses 0-based baseIndex
-          baseIndex: Math.max(0, (parseInt(role.baseWeight) || 1) - 1),
-        },
-      ]),
-    ),
+    roles: (appState.roles || []).map((role) => ({
+      name: role.name,
+      shortName: role.shortName || role.name.substring(0, 2).toLowerCase(),
+      minContrast: String(role.minContrast !== undefined ? role.minContrast : "4.5"),
+      spread: Math.max(1, parseInt(role.spread) || 1),
+      baseIndex: Math.max(0, (parseInt(role.baseWeight) || 1) - 1),
+    })),
     colorSteps: count,
     rampType: rampTypeMap[appState.colorStepMethod] || "Balanced",
     roleMapping: roleMappingMap[appState.roleMappingMethod] || "Contrast Based",
@@ -172,17 +165,17 @@ function generateScss(result) {
   for (const [group, weights] of Object.entries(result.colorRamps)) {
     scss += `// ${group.toUpperCase()}\n`;
     for (const [weight, data] of Object.entries(weights)) {
-      if (!data?.value) continue;
+      if (!data || !data.value) continue;
       scss += `$${scssSlug(group)}-${scssSlug(String(weight))}: ${data.value};\n`;
     }
     scss += "\n";
   }
   scss += `// ============================================\n// LIGHT THEME TOKENS\n// ============================================\n\n$light-theme: (\n`;
-  if (result.colorTokens?.light) {
+  if (result.colorTokens && result.colorTokens.light) {
     for (const [group, roles] of Object.entries(result.colorTokens.light)) {
       for (const [, variations] of Object.entries(roles)) {
         for (const [variation, data] of Object.entries(variations)) {
-          if (!data?.tknRef) continue;
+          if (!data || !data.tknRef) continue;
           const last = data.tknRef.lastIndexOf("-");
           const varName = `${scssSlug(group)}-${scssSlug(data.role || group)}-${scssSlug(variation)}`;
           const refGroup = scssSlug(data.tknRef.substring(0, last));
@@ -194,11 +187,11 @@ function generateScss(result) {
   }
   scss += ");\n\n";
   scss += `// ============================================\n// DARK THEME TOKENS\n// ============================================\n\n$dark-theme: (\n`;
-  if (result.colorTokens?.dark) {
+  if (result.colorTokens && result.colorTokens.dark) {
     for (const [group, roles] of Object.entries(result.colorTokens.dark)) {
       for (const [, variations] of Object.entries(roles)) {
         for (const [variation, data] of Object.entries(variations)) {
-          if (!data?.tknRef) continue;
+          if (!data || !data.tknRef) continue;
           const last = data.tknRef.lastIndexOf("-");
           const varName = `${scssSlug(group)}-${scssSlug(data.role || group)}-${scssSlug(variation)}`;
           const refGroup = scssSlug(data.tknRef.substring(0, last));
@@ -235,7 +228,7 @@ const VariableManager = {
     // STAGE 1: Raw Color Ramps → "_raw" collection
     if (scope === "all" || scope === "groups") {
       const rawCol = await this.getOrCreateCollection("_raw");
-      const modeId = rawCol.themes[0].modeId;
+      const modeId = rawCol.modes[0].modeId;
       for (const [colorName, ramp] of Object.entries(result.colorRamps)) {
         const vars = Object.entries(ramp).map(([weightName, entry]) => [`${colorName}/${weightName}`, "COLOR", entry.value, `L:${entry.contrast.light.ratio}(${entry.contrast.light.rating}) D:${entry.contrast.dark.ratio}(${entry.contrast.dark.rating})`]);
         await this.upsertVariables(rawCol, modeId, vars);
@@ -286,16 +279,16 @@ const VariableManager = {
   },
 
   ensureMode(collection, modeName) {
-    const existing = collection.themes.find((m) => m.name.toLowerCase() === modeName.toLowerCase());
+    const existing = collection.modes.find((m) => m.name.toLowerCase() === modeName.toLowerCase());
     if (existing) return existing.modeId;
-    if (collection.themes.length === 1 && collection.themes[0].name.toLowerCase().startsWith("mode")) {
-      collection.renameMode(collection.themes[0].modeId, modeName);
-      return collection.themes[0].modeId;
+    if (collection.modes.length === 1 && collection.modes[0].name.toLowerCase().startsWith("mode")) {
+      collection.renameMode(collection.modes[0].modeId, modeName);
+      return collection.modes[0].modeId;
     }
     try {
       return collection.addMode(modeName);
-    } catch (e) {
-      return collection.themes[0].modeId;
+    } catch (_e) {
+      return collection.modes[0].modeId;
     }
   },
 
@@ -304,7 +297,7 @@ const VariableManager = {
       try {
         let variable = this.cache.variables.find((v) => v.name === varName && v.variableCollectionId === collection.id);
         if (!variable) {
-          variable = figma.variables.createVariable(varName, collection, varType);
+          variable = figma.variables.createVariable(varName, collection.id, varType);
           this.cache.variables.push(variable);
           this.tally.created++;
         } else {
@@ -318,7 +311,7 @@ const VariableManager = {
             variable.setValueForMode(modeId, varValue);
           }
         }
-      } catch (err) {
+      } catch (_err) {
         this.tally.failed++;
       }
     }
@@ -415,10 +408,13 @@ function variableMaker(config) {
   const colors = config.colors;
   const roles = config.roles;
   const rampLength = config.colorSteps;
-  const stepNames = config.colorStepNames || seriesMaker(config.colorSteps);
+  let stepNames = config.colorStepNames;
+  if (!stepNames || stepNames.length !== rampLength) {
+    stepNames = seriesMaker(rampLength);
+  }
 
   const inputHash = JSON.stringify({
-    colors: config.colors.map((g) => ({ ...g, value: normalizeHex(g.value) })),
+    colors: config.colors.map((g) => Object.assign({}, g, { value: normalizeHex(g.value) })),
     rampLength: config.colorSteps,
     rampType: config.rampType,
     lightBg: normalizeHex(config.themes[0].bg),
@@ -465,7 +461,7 @@ function variableMaker(config) {
       const clrName = color.name;
       const conGroup = Object.create(null);
       conTheme[clrName] = conGroup;
-      const roleNames = Object.keys(roles);
+      const roleNames = roles.map((_, i) => i);
 
       if (config.roleMapping === "Contrast Based") {
         for (const roleName of roleNames) {
@@ -717,7 +713,7 @@ function hslToHex(h, s, l) {
 function hexToHsl(hex) {
   const rgb = hexToRgb(hex);
   if (!rgb) return null;
-  return rgbToHsl(...rgb);
+  return rgbToHsl(rgb[0], rgb[1], rgb[2]);
 }
 
 function hexToHue(hex) {
@@ -770,12 +766,4 @@ function seriesMaker(x) {
   return out;
 }
 
-function slugify(str) {
-  if (!str) return "";
-  return str
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+
