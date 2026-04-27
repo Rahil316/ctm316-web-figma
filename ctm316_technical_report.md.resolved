@@ -1,0 +1,67 @@
+# ctm316 Color System: Technical Report
+
+## 1. Executive Summary
+The **ctm316** project is a high-precision color design monorepo comprising a standalone Web Application and a Figma Plugin. It leverages advanced color math and perceptual luminance targeting to generate balanced color ramps and semantic design tokens that adhere to WCAG 2.1 accessibility standards.
+
+---
+
+## 2. Web Application: Feature Audit
+The Web Application serves as the primary designer interface and documentation engine.
+
+### Core Features
+| Feature | Status | Description | Component |
+| :--- | :--- | :--- | :--- |
+| **Perceptual Ramp Generation** | ✅ | Generates ramps based on target luminance rather than linear HSL steps. | `ClrGen.js` |
+| **Multi-Method Creation** | ✅ | Supports **Balanced** (perceptual), **Linear** (standard), and **Symmetric** modes. | `ClrGen.js` |
+| **Contrast-Based Mapping** | ✅ | Automatically selects base colors that meet specific WCAG contrast targets. | `ClrGen.js` |
+| **Manual Override Mapping** | ✅ | Allows designers to specify a manual base index for role tokens. | `ClrGen.js` |
+| **Live UI Generation** | ✅ | Real-time preview of ramps and theme tokens with interactive controls. | `UiGen.js` |
+| **Documentation Exports** | ✅ | Export system as **CSS Variables**, **SCSS Maps**, or **CSV** documentation. | `DocGen.js` |
+| **Config Persistence** | ✅ | JSON-based import/export for sharing and saving design system states. | `UiGen.js` |
+| **Accessibility Audit** | ✅ | Integrated WCAG 2.1 contrast ratio and rating display (AA/AAA) for all steps. | `Utils.js` |
+
+---
+
+## 3. Figma Plugin: Feature Audit
+The Figma Plugin synchronizes the design system directly with Figma's native Variable engine.
+
+### Core Features
+| Feature | Status | Description | Component |
+| :--- | :--- | :--- | :--- |
+| **Variable Sync Engine** | ✅ | Bi-directional sync of color groups and semantic roles to Figma. | `scripts.js` |
+| **Contextual Aliasing** | ✅ | Maps semantic tokens to raw variables using Figma Variable Aliases. | `scripts.js` |
+| **Thematic Modes** | ✅ | Automatically maps Light and Dark themes to Figma Variable Modes. | `scripts.js` |
+| **In-Plugin Preview** | ✅ | High-fidelity preview of all generated tokens without leaving the canvas. | `ui.html` |
+| **Granular Updates** | ✅ | Choice to update all variables, only raw groups, or only semantic roles. | `ui.html` |
+| **Contrast Awareness** | ✅ | Visual warnings and automatic adjustments for non-compliant tokens. | `scripts.js` |
+| **Resizable Interface** | ✅ | Premium UI with custom resize handles and TailwindCSS integration. | `ui.html` |
+
+---
+
+## 4. Technical Design Document (TDD)
+
+### 4.1. System Architecture
+The monorepo follows a **Reactive Functional Architecture**.
+- **State Management**: A centralized JSON `config` object holds all design parameters.
+- **Processing**: The `variableMaker` engine acts as a pure function, accepting the config and returning a complete "resolved system" (ramps + tokens + errors).
+- **Binding**: UI layers (Web/Figma) listen for config changes and re-run the engine, ensuring zero drift between design and code.
+
+### 4.2. Perceptual Luminance Algorithm
+The "Balanced" ramp creation is the system's core innovation.
+1. **Luminance Calculation**: Uses the WCAG 2.1 formula: `0.2126*R + 0.7152*G + 0.0722*B`.
+2. **Perceptual Spacing**: Target luminances are calculated on a logarithmic curve to ensure the visual difference between "Step 1" and "Step 2" feels identical to "Step 9" and "Step 10".
+3. **Binary Search Fitting**: Since HSL Lightness is non-linear relative to Luminance, the system uses a binary search to find the optimal Lightness value for every step, accurate to 0.0001 luminance units.
+
+### 4.3. Semantic Token Generation
+Semantic roles (e.g., `Text`, `Fill`, `Background`) are generated dynamically for each theme:
+- **Auto-Discovery**: The system scans the ramp for the first index that hits the `minContrast` goal (e.g., 4.5:1).
+- **Spread Variations**: Five variations are created for every role: `weakest`, `weak`, `base`, `strong`, `stronger`.
+- **Directional Contrast**: The system automatically flips offset directions in dark mode to ensure "stronger" always results in a color with higher contrast against the background.
+
+### 4.4. Figma Variable Integration
+The plugin leverages the Figma Plugin API to perform complex CRUD operations:
+- **Collection Management**: Organizes variables into `_raw` (primitives) and `contextual` (semantic) collections.
+- **Alias Resolution**: Instead of hardcoding hex values, semantic tokens are assigned a `VARIABLE_ALIAS` pointing to a specific ramp weight, preserving the design system's hierarchy.
+
+### 4.5. Math Utilities
+The shared `Utils.js` module provides a stateless, high-precision layer for all color conversions (HSL, RGB, HEX) and relative luminance calculations, ensuring identical output across the Web and Figma platforms.

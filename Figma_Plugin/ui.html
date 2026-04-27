@@ -6,11 +6,49 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
+      :root {
+        --bg-app: #0d0d0d;
+        --bg-panel: #1e1e1e;
+        --bg-card: #2b2b2b;
+        --bg-input: #3c3c3c;
+        --bg-hover: #444;
+        --bg-active: #555;
+        --border: #444;
+        --border-input: #555;
+        --border-focus: #18a0fb;
+        --text-primary: #ffffff;
+        --text-muted: #b3b3b3;
+        --text-dim: #888;
+        --accent: #18a0fb;
+        --accent-hover: #0089e8;
+        --accent-glow: rgba(24, 160, 251, 0.3);
+        --danger: #e74c3c;
+        --danger-bg: rgba(231, 76, 60, 0.1);
+        --success: #2ecc71;
+        --warning: #f59e0b;
+        --font: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-mono: "SF Mono", "Cascadia Code", "Fira Code", monospace;
+      }
+      body.app-light-mode {
+        --bg-app: #d2d8e5;
+        --bg-panel: #ffffff;
+        --bg-card: #f8f9fa;
+        --bg-input: #ffffff;
+        --bg-hover: #e9ecef;
+        --bg-active: #dee2e6;
+        --border: #dee2e6;
+        --border-input: #ced4da;
+        --border-focus: #18a0fb;
+        --text-primary: #212529;
+        --text-muted: #6c757d;
+        --text-dim: #adb5bd;
+      }
+
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-family: "Inter", sans-serif;
+        font-family: var(--font);
       }
       ::-webkit-scrollbar {
         width: 4px;
@@ -19,11 +57,11 @@
         background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: #444;
+        background: var(--bg-active);
         border-radius: 10px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #555;
+        background: var(--bg-hover);
       }
 
       .bottom-sheet {
@@ -67,7 +105,7 @@
         padding: 6px 14px;
         font-size: 11px;
         font-weight: 600;
-        color: #b3b3b3;
+        color: var(--text-muted);
         border-bottom: 2px solid transparent;
         transition:
           color 0.15s,
@@ -80,8 +118,8 @@
         border-right: none;
       }
       .preview-tab-btn.active {
-        color: #18a0fb;
-        border-bottom-color: #18a0fb;
+        color: var(--accent);
+        border-bottom-color: var(--accent);
       }
       .preview-panel {
         display: none;
@@ -136,7 +174,7 @@
         width: 6px;
         height: 6px;
         border-radius: 50%;
-        background: #f59e0b;
+        background: var(--warning);
       }
 
       .preview-copy-flash::after {
@@ -169,7 +207,7 @@
         font-size: 10px;
         font-weight: 700;
         letter-spacing: 0.8px;
-        color: #b3b3b3;
+        color: var(--text-muted);
         text-transform: uppercase;
         margin-bottom: 6px;
       }
@@ -182,15 +220,15 @@
       .preview-role-label {
         font-size: 9px;
         font-weight: 600;
-        color: #888;
+        color: var(--text-dim);
         text-transform: uppercase;
         letter-spacing: 0.6px;
         margin-bottom: 3px;
       }
 
       .preview-errors-bar {
-        border-top: 1px solid #444;
-        background: #1a1a1a;
+        border-top: 1px solid var(--border);
+        background: var(--bg-input);
         flex-shrink: 0;
       }
       .preview-errors-header {
@@ -201,7 +239,7 @@
         cursor: pointer;
         font-size: 11px;
         font-weight: 600;
-        color: #f59e0b;
+        color: var(--warning);
         user-select: none;
       }
       .preview-errors-body {
@@ -216,14 +254,15 @@
       .preview-error-item {
         padding: 4px 12px;
         font-size: 10px;
-        color: #ccc;
-        border-top: 1px solid #2a2a2a;
+        color: var(--text-muted);
+        border-top: 1px solid var(--border);
       }
 
       #drop-overlay {
-        background: rgba(13, 13, 13, 0.9);
+        background: var(--bg-app);
+        opacity: 0.9;
         backdrop-filter: blur(8px);
-        border: 2px dashed #18a0fb;
+        border: 2px dashed var(--accent);
         margin: 16px;
         border-radius: 24px;
         pointer-events: none;
@@ -239,14 +278,14 @@
     </style>
     <title>ctm316</title>
   </head>
-  <body class="bg-[#0d0d0d] text-white selection:bg-[#18a0fb] selection:text-white overflow-hidden">
+  <body class="bg-[var(--bg-app)] text-[var(--text-primary)] selection:bg-[var(--accent)] selection:text-white overflow-hidden">
     <!-- Main Screen -->
     <div id="main-screen" class="h-screen flex flex-col relative overflow-hidden">
       <!-- Header -->
-      <header class="bg-[#1e1e1e] border-b border-[#444] px-4 py-2 flex items-center justify-between sticky top-0 z-10">
+      <header class="bg-[var(--bg-panel)] border-b border-[var(--border)] px-4 py-2 flex items-center justify-between sticky top-0 z-10">
         <h1 class="text-[24px] font-bold">ctm316</h1>
         <div class="flex gap-1.5">
-          <button id="btn-more" title="More Options" class="bg-[#333] hover:bg-[#444] border border-[#444] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
+          <button id="btn-more" title="More Options" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
               <path
                 d="M3 8C3 7.44772 3.44772 7 4 7C4.55228 7 5 7.44772 5 8C5 8.55228 4.55228 9 4 9C3.44772 9 3 8.55228 3 8ZM7 8C7 7.44772 7.44772 7 8 7C8.55229 7 9 7.44772 9 8C9 8.55228 8.55229 9 8 9C7.44772 9 7 8.55228 7 8ZM11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44772 13 8C13 8.55228 12.5523 9 12 9C11.4477 9 11 8.55228 11 8Z"
@@ -254,7 +293,7 @@
               />
             </svg>
           </button>
-          <button id="btn-import" title="Import JSON" class="bg-[#333] hover:bg-[#444] border border-[#444] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
+          <button id="btn-import" title="Import JSON" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M12.5 8.5C12.5 7.94772 12.0523 7.5 11.5 7.5V11.5C11.5 12.6046 10.6046 13.5 9.5 13.5H5.5C5.5 14.0523 5.94772 14.5 6.5 14.5H11.5C12.0523 14.5 12.5 14.0523 12.5 13.5V8.5ZM6.5 1C6.5 0.723858 6.72386 0.5 7 0.5C7.27614 0.5 7.5 0.723858 7.5 1V8.29297L8.64648 7.14648C8.84175 6.95122 9.15825 6.95122 9.35352 7.14648C9.54878 7.34175 9.54878 7.65825 9.35352 7.85352L7.35352 9.85352C7.25975 9.94728 7.13261 10 7 10C6.86739 10 6.74025 9.94728 6.64648 9.85352L4.64648 7.85352C4.45122 7.65825 4.45122 7.34175 4.64648 7.14648C4.84175 6.95122 5.15825 6.95122 5.35352 7.14648L6.5 8.29297V1ZM13.5 13.5C13.5 14.6046 12.6046 15.5 11.5 15.5H6.5C5.39543 15.5 4.5 14.6046 4.5 13.5C3.39543 13.5 2.5 12.6046 2.5 11.5V6.5C2.5 5.39543 3.39543 4.5 4.5 4.5H5C5.27614 4.5 5.5 4.72386 5.5 5C5.5 5.27614 5.27614 5.5 5 5.5H4.5C3.94772 5.5 3.5 5.94772 3.5 6.5V11.5C3.5 12.0523 3.94772 12.5 4.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6.5C10.5 5.94772 10.0523 5.5 9.5 5.5H9C8.72386 5.5 8.5 5.27614 8.5 5C8.5 4.72386 8.72386 4.5 9 4.5H9.5C10.6046 4.5 11.5 5.39543 11.5 6.5C12.6046 6.5 13.5 7.39543 13.5 8.5V13.5Z"
@@ -262,7 +301,7 @@
               />
             </svg>
           </button>
-          <button id="btn-settings" title="Settings" class="bg-[#333] hover:bg-[#444] border border-[#444] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
+          <button id="btn-settings" title="Settings" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M13.4995 7.6354C13.4995 7.51319 13.4111 7.40875 13.2905 7.38866L12.6948 7.2897C12.2131 7.20941 11.8594 6.86232 11.6955 6.46743C11.5301 6.0691 11.5396 5.57819 11.8218 5.18293L12.1733 4.69074C12.2443 4.5913 12.233 4.45486 12.1466 4.36847L11.631 3.85285C11.5446 3.7665 11.4082 3.7552 11.3088 3.82616L10.8172 4.17772C10.4218 4.46014 9.93054 4.46947 9.53206 4.30402C9.13715 4.14004 8.7901 3.78645 8.7098 3.30467L8.61084 2.70897C8.59075 2.58842 8.48631 2.49998 8.3641 2.49998H7.63493C7.51272 2.49998 7.40827 2.58842 7.38818 2.70897L7.28923 3.30467C7.20893 3.78641 6.86185 4.14007 6.46696 4.30402C6.06862 4.46939 5.57773 4.45993 5.18245 4.17772L4.69027 3.82616C4.59093 3.75537 4.45501 3.7667 4.36865 3.85285L3.85238 4.36847C3.76599 4.45489 3.75531 4.59131 3.82633 4.69074L4.17725 5.18228C4.45967 5.57767 4.46899 6.06896 4.30355 6.46743C4.13956 6.86235 3.78598 7.2094 3.3042 7.2897L2.7085 7.38866C2.58795 7.40875 2.49951 7.51319 2.49951 7.6354V8.36457C2.49951 8.48678 2.58795 8.59122 2.7085 8.61131L3.3042 8.71027C3.78593 8.79056 4.1396 9.13765 4.30355 9.53254C4.46891 9.93087 4.45947 10.4218 4.17725 10.817L3.82568 11.3092C3.75473 11.4087 3.76599 11.5451 3.85238 11.6315L4.368 12.1471C4.4544 12.2335 4.59084 12.2448 4.69027 12.1738L5.1818 11.8223C5.57719 11.5398 6.06849 11.5305 6.46696 11.6959C6.86187 11.8599 7.20893 12.2135 7.28923 12.6953L7.38818 13.291C7.40827 13.4115 7.51272 13.5 7.63493 13.5H8.3641C8.48631 13.5 8.59075 13.4115 8.61084 13.291L8.7098 12.6953C8.79009 12.2135 9.13717 11.8599 9.53206 11.6959C9.9304 11.5306 10.4213 11.54 10.8166 11.8223L11.3088 12.1738C11.4081 12.2446 11.544 12.2333 11.6304 12.1471L12.1466 11.6315C12.233 11.5451 12.2442 11.4087 12.1733 11.3092L11.8218 10.8177C11.5394 10.4223 11.53 9.931 11.6955 9.53254C11.8595 9.13762 12.213 8.79057 12.6948 8.71027L13.2905 8.61131C13.4111 8.59122 13.4995 8.48678 13.4995 8.36457V7.6354ZM9.50016 7.99998C9.50015 7.17163 8.8285 6.50008 8.00016 6.49998C7.17174 6.49998 6.50017 7.17156 6.50016 7.99998C6.50016 8.82841 7.17174 9.49998 8.00016 9.49998C8.82851 9.49988 9.50016 8.82835 9.50016 7.99998ZM10.5002 7.99998C10.5002 9.38064 9.38079 10.4999 8.00016 10.5C6.61945 10.5 5.50016 9.3807 5.50016 7.99998C5.50017 6.61928 6.61946 5.49998 8.00016 5.49998C9.38078 5.50008 10.5002 6.61934 10.5002 7.99998ZM14.4995 8.36457C14.4995 8.97554 14.0579 9.49709 13.4552 9.59764L12.8589 9.69725C12.7751 9.71134 12.6752 9.78151 12.6193 9.916C12.5647 10.0474 12.5845 10.1648 12.6356 10.2363L12.9865 10.7278C13.3417 11.2251 13.2857 11.9064 12.8537 12.3385L12.3381 12.8542C11.906 13.2862 11.2246 13.3427 10.7274 12.9876L10.2358 12.6361C10.1644 12.585 10.0469 12.5652 9.91553 12.6198C9.781 12.6756 9.71083 12.7756 9.69678 12.8594L9.59717 13.4557C9.49662 14.0583 8.97507 14.5 8.3641 14.5H7.63493C7.02396 14.5 6.5024 14.0583 6.40186 13.4557L6.30225 12.8594C6.28816 12.7756 6.21798 12.6757 6.0835 12.6198C5.95209 12.5652 5.83466 12.585 5.76318 12.6361L5.27165 12.9876C4.77443 13.3428 4.09305 13.2862 3.66097 12.8542L3.14535 12.3385C2.71328 11.9065 2.65674 11.2251 3.01188 10.7278L3.36344 10.2363C3.41447 10.1649 3.43425 10.0473 3.37972 9.916C3.32386 9.78146 3.22393 9.7113 3.14014 9.69725L2.54378 9.59764C1.94116 9.49709 1.49951 8.97554 1.49951 8.36457V7.6354C1.49951 7.02443 1.94116 6.50288 2.54378 6.40233L3.14014 6.30272C3.22394 6.28862 3.32384 6.21845 3.37972 6.08397C3.43428 5.95257 3.41449 5.83515 3.36344 5.76366L3.01253 5.27212C2.65738 4.7749 2.7133 4.09352 3.14535 3.66144L3.66097 3.14582C4.093 2.71379 4.77443 2.65733 5.27165 3.01235L5.76318 3.36392C5.83462 3.41494 5.95215 3.43473 6.0835 3.38019C6.21803 3.32433 6.28819 3.2244 6.30225 3.14061L6.40186 2.54426C6.5024 1.94163 7.02396 1.49998 7.63493 1.49998H8.3641C8.97507 1.49998 9.49662 1.94163 9.59717 2.54426L9.69678 3.14061C9.71087 3.22442 9.78105 3.32431 9.91553 3.38019C10.0469 3.43475 10.1644 3.41497 10.2358 3.36392L10.7274 3.01235C11.2246 2.65722 11.906 2.71379 12.3381 3.14582L12.8537 3.66144C13.2857 4.0935 13.3423 4.77489 12.9871 5.27212L12.6356 5.76366C12.5846 5.83508 12.5648 5.95264 12.6193 6.08397C12.6752 6.21851 12.7751 6.28868 12.8589 6.30272L13.4552 6.40233C14.0579 6.50288 14.4995 7.02443 14.4995 7.6354V8.36457Z"
@@ -270,13 +309,13 @@
               />
             </svg>
           </button>
-          <button id="btn-preview" title="Preview Colors" class="bg-[#333] hover:bg-[#444] border border-[#444] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
+          <button id="btn-preview" title="Preview Colors" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
           </button>
-          <button id="btn-run" class="bg-[#18a0fb] hover:bg-[#0089e8] flex items-center gap-2 px-4 py-2 rounded-[10px] transition-all shadow-[0px_4px_12px_0px_rgba(24,160,251,0.3)]">
+          <button id="btn-run" class="bg-[var(--accent)] hover:bg-[var(--accent-hover)] flex items-center gap-2 px-4 py-2 rounded-[10px] transition-all shadow-[0_4px_12px_var(--accent-glow)]">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M3 3.76846C3 2.8177 4.01933 2.215 4.8524 2.67319L12.5461 6.90474C13.4096 7.37964 13.4096 8.62037 12.5461 9.09527L4.8524 13.3268C4.01933 13.785 3 13.1823 3 12.2316V3.76846Z" fill="white" />
             </svg>
@@ -294,13 +333,13 @@
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path
                   d="M8.31579 10.888C8.11941 11.0482 7.82959 11.0366 7.64652 10.8535L2.64652 5.85351C2.45126 5.65825 2.45126 5.34174 2.64652 5.14648C2.84178 4.95122 3.15829 4.95122 3.35355 5.14648L8.00004 9.79297L12.6465 5.14648C12.8418 4.95122 13.1583 4.95122 13.3536 5.14648C13.5488 5.34174 13.5488 5.65825 13.3536 5.85351L8.35355 10.8535L8.31579 10.888Z"
-                  fill="#b3b3b3"
-                  class="group-hover:fill-white transition-colors"
+                  fill="var(--text-muted)"
+                  class="group-hover:fill-[var(--text-primary)] transition-colors"
                 />
               </svg>
             </div>
-            <div class="text-[#b3b3b3] group-hover:text-white text-[12px] font-bold tracking-[1.1px] transition-colors">Color Groups</div>
-            <div class="flex-1 h-px bg-[#444]"></div>
+            <div class="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] text-[12px] font-bold tracking-[1.1px] transition-colors">Color Groups</div>
+            <div class="flex-1 h-px bg-[var(--border)]"></div>
             <button
               type="button"
               id="add-group"
@@ -309,7 +348,7 @@
                 event.stopPropagation();
                 addGroup();
               "
-              class="bg-[#333] hover:bg-[#444] border border-[#444] p-1 rounded-md transition-colors w-8 h-8 flex items-center justify-center z-10"
+              class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] p-1 rounded-md transition-colors w-8 h-8 flex items-center justify-center z-10"
             >
               <svg width="12" height="12" viewBox="0 0 16 16" fill="white">
                 <path
@@ -331,13 +370,13 @@
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path
                   d="M8.31579 10.888C8.11941 11.0482 7.82959 11.0366 7.64652 10.8535L2.64652 5.85351C2.45126 5.65825 2.45126 5.34174 2.64652 5.14648C2.84178 4.95122 3.15829 4.95122 3.35355 5.14648L8.00004 9.79297L12.6465 5.14648C12.8418 4.95122 13.1583 4.95122 13.3536 5.14648C13.5488 5.34174 13.5488 5.65825 13.3536 5.85351L8.35355 10.8535L8.31579 10.888Z"
-                  fill="#b3b3b3"
+                  fill="var(--text-muted)"
                   class="group-hover:fill-white transition-colors"
                 />
               </svg>
             </div>
-            <div class="text-[#b3b3b3] group-hover:text-white text-[12px] font-bold tracking-[1.1px] transition-colors">Theme Roles</div>
-            <div class="flex-1 h-px bg-[#444]"></div>
+            <div class="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] text-[12px] font-bold tracking-[1.1px] transition-colors">Theme Roles</div>
+            <div class="flex-1 h-px bg-[var(--border)]"></div>
             <button
               type="button"
               id="add-role"
@@ -346,7 +385,7 @@
                 event.stopPropagation();
                 addRole();
               "
-              class="bg-[#333] hover:bg-[#444] border border-[#444] p-1 rounded-md transition-colors w-8 h-8 flex items-center justify-center z-10"
+              class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] p-1 rounded-md transition-colors w-8 h-8 flex items-center justify-center z-10"
             >
               <svg width="12" height="12" viewBox="0 0 16 16" fill="white">
                 <path
@@ -366,41 +405,41 @@
       <div id="overlay" class="overlay absolute inset-0 bg-black/50 z-20 backdrop-blur-sm"></div>
 
       <!-- Settings Bottom Sheet -->
-      <div id="settings-sheet" class="bottom-sheet absolute bottom-0 left-0 right-0 bg-[#1e1e1e] rounded-t-[16px] border-t border-[#444] z-30 max-h-[90%] flex flex-col">
-        <div class="px-4 py-3 flex flex-row items-center justify-between gap-2 border-b border-[#444]">
-          <h2 class="text-[18px] font-semibold">Settings</h2>
-          <button id="close-settings" class="bg-[#333] hover:bg-[#444] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors">Done</button>
+      <div id="settings-sheet" class="bottom-sheet absolute bottom-0 left-0 right-0 bg-[var(--bg-panel)] rounded-t-[16px] border-t border-[var(--border)] z-30 max-h-[90%] flex flex-col">
+        <div class="px-4 py-3 flex flex-row items-center justify-between gap-2 border-b border-[var(--border)]">
+          <h2 class="text-[18px] font-semibold text-[var(--text-primary)]">Settings</h2>
+          <button id="close-settings" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors text-[var(--text-primary)]">Done</button>
         </div>
         <div class="p-4 overflow-y-auto space-y-6">
           <div class="space-y-3">
-            <h3 class="text-[#b3b3b3] text-[11px] font-bold tracking-[1.2px] px-1">Basic</h3>
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-1">Basic</h3>
             <div class="space-y-1">
-              <label for="setting-design-system-name" class="text-[#b3b3b3] text-[12px] font-medium ml-1">System Name</label>
-              <input type="text" id="setting-design-system-name" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] outline-none focus:border-[#18a0fb]" />
+              <label for="setting-name" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">System Name</label>
+              <input type="text" id="setting-name" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" />
             </div>
             <div class="flex gap-3">
               <div class="flex-1 space-y-1">
-                <label for="setting-light-bg" class="text-[#b3b3b3] text-[12px] font-medium ml-1">Light theme bg</label>
-                <input type="text" id="setting-light-bg" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] uppercase outline-none focus:border-[#18a0fb]" />
+                <label for="setting-light-bg" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Light theme bg</label>
+                <input type="text" id="setting-light-bg" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] uppercase outline-none focus:border-[var(--accent)]" />
               </div>
               <div class="flex-1 space-y-1">
-                <label for="setting-dark-bg" class="text-[#b3b3b3] text-[12px] font-medium ml-1">Dark theme bg</label>
-                <input type="text" id="setting-dark-bg" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] uppercase outline-none focus:border-[#18a0fb]" />
+                <label for="setting-dark-bg" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Dark theme bg</label>
+                <input type="text" id="setting-dark-bg" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] uppercase outline-none focus:border-[var(--accent)]" />
               </div>
             </div>
           </div>
 
           <!-- Color Settings Section -->
           <div class="space-y-3">
-            <h3 class="text-[#b3b3b3] text-[11px] font-bold tracking-[1.2px] px-1">Color Settings</h3>
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-1">Color Settings</h3>
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-1">
-                <label for="setting-weights-count" class="text-[#b3b3b3] text-[12px] font-medium ml-1">Weights Count</label>
-                <input type="number" id="setting-weights-count" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] outline-none focus:border-[#18a0fb]" />
+                <label for="setting-colorSteps" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Weights Count</label>
+                <input type="number" id="setting-colorSteps" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" />
               </div>
               <div class="space-y-1">
-                <label for="setting-weights-method" class="text-[#b3b3b3] text-[12px] font-medium ml-1">Weights Creation Method</label>
-                <select id="setting-weights-method" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] outline-none focus:border-[#18a0fb] appearance-none cursor-pointer">
+                <label for="setting-rampType" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Weights Creation Method</label>
+                <select id="setting-rampType" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer">
                   <option value="Balanced">Balanced</option>
                   <option value="Linear">Linear</option>
                   <option value="Symmetric">Symmetric</option>
@@ -408,45 +447,45 @@
               </div>
             </div>
             <div class="space-y-1">
-              <label for="setting-weight-names" class="text-[#b3b3b3] text-[12px] font-medium ml-1">Color Group Weight Names (CSV)</label>
-              <input type="text" id="setting-weight-names" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] outline-none focus:border-[#18a0fb]" />
+              <label for="setting-colorStepNames" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Color Group Weight Names (CSV)</label>
+              <input type="text" id="setting-colorStepNames" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" />
             </div>
           </div>
 
           <!-- Role Settings Section -->
           <div class="space-y-3">
-            <h3 class="text-[#b3b3b3] text-[11px] font-bold tracking-[1.2px] px-1">Role Settings</h3>
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-1">Role Settings</h3>
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-1">
-                <label for="setting-role-variations-count" class="text-[#b3b3b3] text-[12px] font-medium ml-1">Roles Variations Count</label>
-                <input type="number" id="setting-role-variations-count" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] outline-none focus:border-[#18a0fb]" />
+                <label for="setting-roleSteps" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Roles Variations Count</label>
+                <input type="number" id="setting-roleSteps" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" />
               </div>
               <div class="space-y-1">
-                <label for="setting-role-mapping-method" class="text-[#b3b3b3] text-[12px] font-medium ml-1">Role Mapping Method</label>
-                <select id="setting-role-mapping-method" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] outline-none focus:border-[#18a0fb] appearance-none cursor-pointer">
+                <label for="setting-roleMapping" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Role Mapping Method</label>
+                <select id="setting-roleMapping" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer">
                   <option value="Contrast Based">Contrast Based</option>
                   <option value="Manual Base Index">Manual Base Index</option>
                 </select>
               </div>
             </div>
             <div class="space-y-1">
-              <label for="setting-role-variations-names" class="text-[#b3b3b3] text-[12px] font-medium ml-1">Role Variation Names (CSV)</label>
-              <input type="text" id="setting-role-variations-names" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] outline-none focus:border-[#18a0fb]" />
+              <label for="setting-roleStepNames" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Role Variation Names (CSV)</label>
+              <input type="text" id="setting-roleStepNames" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" />
             </div>
           </div>
         </div>
       </div>
 
-      <div id="more-sheet" class="bottom-sheet absolute bottom-0 left-0 right-0 bg-[#1e1e1e] rounded-t-[16px] border-t border-[#444] z-30 max-h-[90%] flex flex-col">
-        <div class="px-4 py-3 flex flex-row items-center justify-between gap-2 border-b border-[#444]">
-          <h2 class="text-[18px] font-semibold">More Options</h2>
-          <button id="close-more" class="bg-[#333] hover:bg-[#444] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors">Done</button>
+      <div id="more-sheet" class="bottom-sheet absolute bottom-0 left-0 right-0 bg-[var(--bg-panel)] rounded-t-[16px] border-t border-[var(--border)] z-30 max-h-[90%] flex flex-col">
+        <div class="px-4 py-3 flex flex-row items-center justify-between gap-2 border-b border-[var(--border)]">
+          <h2 class="text-[18px] font-semibold text-[var(--text-primary)]">More Options</h2>
+          <button id="close-more" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors text-[var(--text-primary)]">Done</button>
         </div>
         <div class="p-2 overflow-y-auto space-y-4">
           <!-- Update Options -->
           <div class="space-y-1">
-            <h3 class="text-[#b3b3b3] text-[11px] font-bold tracking-[1.2px] px-3 mb-2">Update Options</h3>
-            <button id="opt-update-all" class="w-full flex items-center gap-3 p-3 hover:bg-[#2e2e2e] rounded-[10px] transition-colors">
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-3 mb-2">Update Options</h3>
+            <button id="opt-update-all" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors">
               <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
@@ -455,8 +494,8 @@
               </div>
               <span class="text-[14px] font-medium">Update All</span>
             </button>
-            <button id="opt-update-groups" class="w-full flex items-center gap-3 p-3 hover:bg-[#2e2e2e] rounded-[10px] transition-colors">
-              <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
+            <button id="opt-update-groups" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors">
+              <div class="w-8 h-8 rounded-lg bg-[var(--secondary)]/10 flex items-center justify-center text-[var(--secondary)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 2H2v10h10V2z"></path>
                   <path d="M22 12H12v10h10V12z"></path>
@@ -466,8 +505,8 @@
               </div>
               <span class="text-[14px] font-medium">Update Groups</span>
             </button>
-            <button id="opt-update-roles" class="w-full flex items-center gap-3 p-3 hover:bg-[#2e2e2e] rounded-[10px] transition-colors">
-              <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
+            <button id="opt-update-roles" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors">
+              <div class="w-8 h-8 rounded-lg bg-[var(--attention)]/10 flex items-center justify-center text-[var(--attention)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                   <circle cx="9" cy="7" r="4"></circle>
@@ -481,9 +520,9 @@
 
           <!-- Export Options -->
           <div class="space-y-1">
-            <h3 class="text-[#b3b3b3] text-[11px] font-bold tracking-[1.2px] px-3 mb-2">Export Options</h3>
-            <button id="opt-save-config" class="w-full flex items-center gap-3 p-3 hover:bg-[#2e2e2e] rounded-[10px] transition-colors">
-              <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500">
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-3 mb-2">Export Options</h3>
+            <button id="opt-save-config" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors text-[var(--text-primary)]">
+              <div class="w-8 h-8 rounded-lg bg-[var(--success)]/10 flex items-center justify-center text-[var(--success)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                   <polyline points="17 21 17 13 7 13 7 21"></polyline>
@@ -492,8 +531,8 @@
               </div>
               <span class="text-[14px] font-medium">Save Config</span>
             </button>
-            <button id="opt-export-css" class="w-full flex items-center gap-3 p-3 hover:bg-[#2e2e2e] rounded-[10px] transition-colors">
-              <div class="w-8 h-8 rounded-lg bg-pink-500/10 flex items-center justify-center text-pink-500">
+            <button id="opt-export-css" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors text-[var(--text-primary)]">
+              <div class="w-8 h-8 rounded-lg bg-[var(--creative)]/10 flex items-center justify-center text-[var(--creative)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="16 18 22 12 16 6"></polyline>
                   <polyline points="8 6 2 12 8 18"></polyline>
@@ -501,8 +540,8 @@
               </div>
               <span class="text-[14px] font-medium">Export CSS</span>
             </button>
-            <button id="opt-export-csv" class="w-full flex items-center gap-3 p-3 hover:bg-[#2e2e2e] rounded-[10px] transition-colors">
-              <div class="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-500">
+            <button id="opt-export-csv" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors text-[var(--text-primary)]">
+              <div class="w-8 h-8 rounded-lg bg-[var(--discovery)]/10 flex items-center justify-center text-[var(--discovery)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                   <polyline points="14 2 14 8 20 8"></polyline>
@@ -513,8 +552,8 @@
               </div>
               <span class="text-[14px] font-medium">Export CSV</span>
             </button>
-            <button id="opt-export-scss" class="w-full flex items-center gap-3 p-3 hover:bg-[#2e2e2e] rounded-[10px] transition-colors">
-              <div class="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400">
+            <button id="opt-export-scss" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors text-[var(--text-primary)]">
+              <div class="w-8 h-8 rounded-lg bg-[var(--secondary)]/10 flex items-center justify-center text-[var(--secondary)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
                   <path d="M2 17l10 5 10-5"></path>
@@ -523,8 +562,8 @@
               </div>
               <span class="text-[14px] font-medium">Export SCSS</span>
             </button>
-            <button id="opt-export-json" class="w-full flex items-center gap-3 p-3 hover:bg-[#2e2e2e] rounded-[10px] transition-colors">
-              <div class="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-500">
+            <button id="opt-export-json" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors text-[var(--text-primary)]">
+              <div class="w-8 h-8 rounded-lg bg-[var(--warning)]/10 flex items-center justify-center text-[var(--warning)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="7 10 12 15 17 10"></polyline>
@@ -535,9 +574,9 @@
             </button>
           </div>
 
-          <div class="pt-2 border-t border-[#444]">
-            <button id="opt-clear" class="w-full flex items-center gap-3 p-3 hover:bg-red-500/10 text-red-500 rounded-[10px] transition-colors">
-              <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+          <div class="pt-2 border-t border-[var(--border)]">
+            <button id="opt-clear" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--danger)]/10 text-[var(--danger)] rounded-[10px] transition-colors">
+              <div class="w-8 h-8 rounded-lg bg-[var(--danger)]/10 flex items-center justify-center">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="3 6 5 6 21 6"></polyline>
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -552,58 +591,58 @@
       </div>
 
       <!-- Status Overlays -->
-      <div id="loading-overlay" class="hidden absolute inset-0 bg-[#0d0d0d] z-50 flex items-center justify-center p-8 text-center flex-col gap-4">
-        <div class="w-12 h-12 border-4 border-[#18a0fb] border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-xl font-bold">Creating Variables...</p>
-        <p class="text-[#b3b3b3]">Generating color tokens and thematic variations in Figma.</p>
+      <div id="loading-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)] z-50 flex items-center justify-center p-8 text-center flex-col gap-4">
+        <div class="w-12 h-12 border-4 border-[var(--accent)] border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-xl font-bold text-[var(--text-primary)]">Creating Variables...</p>
+        <p class="text-[var(--text-muted)]">Generating color tokens and thematic variations in Figma.</p>
       </div>
       <!-- success overlay -->
-      <div id="success-overlay" class="hidden absolute inset-0 bg-[#0d0d0d] z-50 flex flex-col">
+      <div id="success-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)] z-50 flex flex-col">
         <div class="flex-1 flex items-center justify-center p-8 text-center flex-col gap-4">
           <div class="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-500">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </div>
-          <h2 class="text-2xl font-bold">Success!</h2>
-          <div id="success-results" class="text-[#b3b3b3] space-y-1">
+          <h2 class="text-2xl font-bold text-[var(--text-primary)]">Success!</h2>
+          <div id="success-results" class="text-[var(--text-muted)] space-y-1">
             <!-- Tally results -->
           </div>
-          <button onclick="hideOverlay('success-overlay')" class="mt-4 bg-[#18a0fb] hover:bg-[#0089e8] px-8 py-3 rounded-xl font-bold">Back to Editor</button>
+          <button onclick="hideOverlay('success-overlay')" class="mt-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] px-8 py-3 rounded-xl font-bold text-white transition-all shadow-lg shadow-[var(--accent-glow)]">Back to Editor</button>
         </div>
         <!-- Collapsible error summary (shown only when errors exist) -->
         <div id="run-errors-bar" class="preview-errors-bar hidden">
           <div class="preview-errors-header" onclick="toggleRunErrors()">
             <span id="run-errors-count"></span>
             <svg id="run-errors-chevron" width="12" height="12" viewBox="0 0 16 16" fill="none">
-              <path d="M8 10.888L2.646 5.146c-.195-.195-.195-.512 0-.707s.512-.195.707 0L8 9.793l4.646-5.354c.195-.195.512-.195.707 0s.195.512 0 .707L8 10.888z" fill="#b3b3b3" />
+              <path d="M8 10.888L2.646 5.146c-.195-.195-.195-.512 0-.707s.512-.195.707 0L8 9.793l4.646-5.354c.195-.195.512-.195.707 0s.195.512 0 .707L8 10.888z" fill="var(--text-muted)" />
             </svg>
           </div>
           <div id="run-errors-body" class="preview-errors-body"></div>
         </div>
       </div>
       <!-- error-overlay -->
-      <div id="error-overlay" class="hidden absolute inset-0 bg-[#0d0d0d] z-50 flex items-center justify-center p-8 text-center flex-col gap-4">
+      <div id="error-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)] z-50 flex items-center justify-center p-8 text-center flex-col gap-4">
         <div class="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center text-red-500">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </div>
-        <h2 class="text-2xl font-bold">Error</h2>
-        <p id="error-message" class="text-red-400"></p>
-        <button onclick="hideOverlay('error-overlay')" class="mt-4 bg-[#333] hover:bg-[#444] px-8 py-3 rounded-xl font-bold">Dismiss</button>
+        <h2 class="text-2xl font-bold text-[var(--text-primary)]">Error</h2>
+        <p id="error-message" class="text-[var(--danger)]"></p>
+        <button onclick="hideOverlay('error-overlay')" class="mt-4 bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] px-8 py-3 rounded-xl font-bold text-[var(--text-primary)]">Dismiss</button>
       </div>
 
       <!-- Preview Overlay -->
-      <div id="preview-overlay" class="hidden absolute inset-0 bg-[#0d0d0d] z-50 flex flex-col">
+      <div id="preview-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)] z-50 flex flex-col">
         <!-- Header -->
-        <div class="bg-[#1e1e1e] border-b border-[#444] px-4 py-2 flex items-center justify-between shrink-0">
-          <h2 class="text-[16px] font-semibold">Color Preview</h2>
-          <button id="preview-close" class="bg-[#333] hover:bg-[#444] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors">Back to Editor</button>
+        <div class="bg-[var(--bg-panel)] border-b border-[var(--border)] px-4 py-2 flex items-center justify-between shrink-0">
+          <h2 class="text-[16px] font-semibold text-[var(--text-primary)]">Color Preview</h2>
+          <button id="preview-close" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors text-[var(--text-primary)]">Back to Editor</button>
         </div>
         <!-- Tab Navigation -->
-        <div id="preview-tabs" class="flex border-b border-[#444] bg-[#1e1e1e] shrink-0 overflow-x-auto">
+        <div id="preview-tabs" class="flex border-b border-[var(--border)] bg-[var(--bg-panel)] shrink-0 overflow-x-auto">
           <button class="preview-tab-btn active" data-target="preview-raw">Raw Colors</button>
           <button class="preview-tab-btn" data-target="preview-light">Light Theme</button>
           <button class="preview-tab-btn" data-target="preview-dark">Dark Theme</button>
@@ -619,7 +658,7 @@
           <div class="preview-errors-header" onclick="togglePreviewErrors()">
             <span id="preview-errors-count"></span>
             <svg id="preview-errors-chevron" width="12" height="12" viewBox="0 0 16 16" fill="none">
-              <path d="M8 10.888L2.646 5.146c-.195-.195-.195-.512 0-.707s.512-.195.707 0L8 9.793l4.646-5.354c.195-.195.512-.195.707 0s.195.512 0 .707L8 10.888z" fill="#b3b3b3" />
+              <path d="M8 10.888L2.646 5.146c-.195-.195-.195-.512 0-.707s.512-.195.707 0L8 9.793l4.646-5.354c.195-.195.512-.195.707 0s.195.512 0 .707L8 10.888z" fill="var(--text-muted)" />
             </svg>
           </div>
           <div id="preview-errors-body" class="preview-errors-body"></div>
@@ -629,7 +668,7 @@
       <!-- Drop Overlay -->
       <div id="drop-overlay" class="absolute inset-0">
         <div class="flex flex-col items-center gap-4 text-center pointer-events-none">
-          <div class="w-16 h-16 bg-[#18a0fb]/10 rounded-2xl flex items-center justify-center text-[#18a0fb]">
+          <div class="w-16 h-16 bg-[var(--accent)]/10 rounded-2xl flex items-center justify-center text-[var(--accent)]">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="17 8 12 3 7 8"></polyline>
@@ -638,14 +677,14 @@
           </div>
           <div>
             <h2 class="text-2xl font-bold mb-1">Import JSON</h2>
-            <p class="text-[#b3b3b3]">Drop here to load data</p>
+            <p class="text-[var(--text-muted)]">Drop here to load data</p>
           </div>
         </div>
       </div>
 
       <!-- Confirmation Overlay -->
-      <div id="confirm-import-overlay" class="hidden absolute inset-0 bg-[#0d0d0d]/90 backdrop-blur-sm z-[60] flex items-center justify-center p-6 text-center flex-col gap-6">
-        <div class="w-20 h-20 bg-yellow-500/10 rounded-full flex items-center justify-center text-yellow-500">
+      <div id="confirm-import-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)]/95 backdrop-blur-sm z-[60] flex items-center justify-center p-6 text-center flex-col gap-6">
+        <div class="w-20 h-20 bg-[var(--warning)]/10 rounded-full flex items-center justify-center text-[var(--warning)]">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
             <line x1="12" y1="9" x2="12" y2="13"></line>
@@ -654,12 +693,12 @@
         </div>
         <div>
           <h2 class="text-2xl font-bold mb-2">Overwrite Data?</h2>
-          <p class="text-[#b3b3b3] text-sm leading-relaxed">The current configuration is different from the default. Importing a new file will replace all existing color groups and roles.</p>
+          <p class="text-[var(--text-muted)] text-sm leading-relaxed">The current configuration is different from the default. Importing a new file will replace all existing color groups and roles.</p>
         </div>
         <div class="w-full space-y-3">
-          <button id="btn-import-save" class="w-full bg-[#18a0fb] hover:bg-[#0089e8] py-3.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/20">Save Current & Import</button>
-          <button id="btn-import-now" class="w-full bg-white/10 hover:bg-white/20 py-3.5 rounded-xl font-bold transition-all">Import & Overwrite</button>
-          <button onclick="hideOverlay('confirm-import-overlay')" class="w-full text-[#888] hover:text-white py-2 text-sm transition-colors">Cancel</button>
+          <button id="btn-import-save" class="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] py-3.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-[var(--accent)]/20 text-white">Save Current & Import</button>
+          <button id="btn-import-now" class="w-full bg-[var(--text-primary)]/10 hover:bg-[var(--text-primary)]/20 py-3.5 rounded-xl font-bold transition-all text-[var(--text-primary)]">Import & Overwrite</button>
+          <button onclick="hideOverlay('confirm-import-overlay')" class="w-full text-[var(--text-dim)] hover:text-[var(--text-primary)] py-2 text-sm transition-colors">Cancel</button>
         </div>
       </div>
     </div>
@@ -668,9 +707,9 @@
     <input type="file" id="file-input" class="hidden" accept=".json,.js" />
 
     <!-- Resize Handle -->
-    <div id="resize-handle" class="fixed bottom-0 right-0 w-8 h-8 cursor-nwse-resize z-[999] flex items-end justify-end p-1 hover:bg-[#18a0fb]/20 transition-colors rounded-tl-2xl pointer-events-auto" style="pointer-events: auto !important">
+    <div id="resize-handle" class="fixed bottom-0 right-0 w-8 h-8 cursor-nwse-resize z-[999] flex items-end justify-end p-1 hover:bg-[var(--accent)]/20 transition-colors rounded-tl-2xl pointer-events-auto" style="pointer-events: auto !important">
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-        <path d="M11 1L1 11M11 5L5 11M11 9L9 11" stroke="#888" stroke-width="2" stroke-linecap="round" />
+        <path d="M11 1L1 11M11 5L5 11M11 9L9 11" stroke="var(--text-dim)" stroke-width="2" stroke-linecap="round" />
       </svg>
     </div>
     <script>
@@ -686,13 +725,13 @@
        * appState is the single source of truth for the session.
        */
       const demoConfig = {
-        designSystemName: "CTM316",
-        colorStep: 25,
-        colorStepMethod: "Balanced",
+        name: "CTM316",
+        colorSteps: 25,
+        rampType: "Balanced",
         colorStepNames: "",
-        roleMappingMethod: "Contrast Based",
-        roleVariations: 5,
-        roleVariationsNames: "weakest, weak, base, strong, stronger",
+        roleMapping: "Contrast Based",
+        roleSteps: 5,
+        roleStepNames: "weakest, weak, base, strong, stronger",
         colors: [
           { name: "Primary", shortName: "pr", value: "0067DD" },
           { name: "Secondary", shortName: "sc", value: "EFEFF2" },
@@ -911,7 +950,7 @@
       let _previewCache = null;
 
       function translateConfigForPreview(state) {
-        const count = Math.max(1, parseInt(state.colorStep) || 23);
+        const count = Math.max(1, parseInt(state.colorSteps) || 23);
         const userWeightNames = state.colorStepNames && state.colorStepNames.trim() ? state.colorStepNames.split(",").map((n) => n.trim()) : null;
         let stepNames = null;
         if (userWeightNames && userWeightNames.length > 0) {
@@ -919,7 +958,7 @@
           while (names.length < count) names.push(String(names.length + 1));
           stepNames = names.slice(0, count);
         }
-        const userVarNames = (state.roleVariationsNames || "")
+        const userVarNames = (state.roleStepNames || "")
           .split(",")
           .map((v) => v.trim())
           .filter(Boolean);
@@ -927,7 +966,7 @@
         const roleStepNames = defaultVarNames.map((def, i) => userVarNames[i] || def);
         const themes = state.themes || [{ bg: "FFFFFF" }, { bg: "000000" }];
         return {
-          name: state.designSystemName || "ctm316",
+          name: state.name || "ctm316",
           colors: (state.colors || []).map((g) => ({ name: g.name, shortName: g.shortName, value: g.value })),
           roles: (state.roles || []).map((role) => ({
             name: role.name,
@@ -937,8 +976,8 @@
             baseIndex: Math.max(0, (parseInt(role.baseWeight) || 1) - 1),
           })),
           colorSteps: count,
-          rampType: state.colorStepMethod || "Balanced",
-          roleMapping: state.roleMappingMethod || "Contrast Based",
+          rampType: state.rampType || "Balanced",
+          roleMapping: state.roleMapping || "Contrast Based",
           colorStepNames: stepNames,
           roleStepNames,
           themes: [
@@ -1174,41 +1213,41 @@
             const gId = `group-${idx}`;
 
             const card = document.createElement("div");
-            card.className = "bg-[#2b2b2b] rounded-[12px] border border-[#444] p-3 space-y-2";
+            card.className = "bg-[var(--bg-card)] rounded-[12px] border border-[var(--border)] p-3 space-y-2";
             card.innerHTML = `
                 <div class="grid grid-cols-[1fr_1fr_40px] gap-2">
                   <div class="flex-[3] space-y-1">
-                    <label for="${gId}-name" class="text-[#b3b3b3] text-[12px] font-medium">Color Name</label>
-                    <input type="text" id="${gId}-name" value="${group.name}" oninput="updateGroup(${idx}, 'name', this.value)" class="w-full bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[14px] outline-none focus:border-[#18a0fb] h-[40px]">
+                    <label for="${gId}-name" class="text-[var(--text-muted)] text-[12px] font-medium">Color Name</label>
+                    <input type="text" id="${gId}-name" value="${group.name}" oninput="updateGroup(${idx}, 'name', this.value)" class="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[14px] outline-none focus:border-[var(--border-focus)] h-[40px] text-[var(--text-primary)]">
                   </div>
                   <div class="flex-[4] space-y-1">
-                    <label for="${gId}-hex" class="text-[#b3b3b3] text-[12px] font-medium">Seed Hex</label>
-                    <div class="flex items-center gap-2 w-full bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[14px] outline-none focus:border-[#18a0fb] h-[40px]">
-                        <input type="color" value="${hexValue}" oninput="updateGroup(${idx}, 'value', this.value)" class="cursor-pointer size[32p]">
-                        <input type="text" id="${gId}-hex" value="${group.value}" oninput="updateGroup(${idx}, 'value', this.value, this)" class="w-full bg-transparent text-[13px] uppercase outline-none">
+                    <label for="${gId}-hex" class="text-[var(--text-muted)] text-[12px] font-medium">Seed Hex</label>
+                    <div class="flex items-center gap-2 w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[14px] outline-none focus:border-[var(--border-focus)] h-[40px]">
+                        <input type="color" value="${hexValue}" oninput="updateGroup(${idx}, 'value', this.value)" class="cursor-pointer size[32p] bg-transparent border-none">
+                        <input type="text" id="${gId}-hex" value="${group.value}" oninput="updateGroup(${idx}, 'value', this.value, this)" class="w-full bg-transparent text-[13px] uppercase outline-none text-[var(--text-primary)]">
                     </div>
                   </div>
-                  <button onclick="removeGroup(${idx})" class="bg-[#E74C3C]/10 text-[#E74C3C] border border-[#E74C3C]/20 self-end size-[40px] flex items-center justify-center rounded-[10px] transition-all hover:bg-[#E74C3C]/20">
+                  <button onclick="removeGroup(${idx})" class="bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/20 self-end size-[40px] flex items-center justify-center rounded-[10px] transition-all hover:bg-[var(--danger)]/20">
                     <svg width="16" height="16" viewBox="0 0 12 14" fill="none"><path d="M8.00021 1.98568C8.00021 1.4562 7.5944 1.03371 7.09136 1.01758C6.72911 1.00599 6.36531 1 6.00021 1C5.63511 1 5.27131 1.00599 4.90906 1.01758C4.40602 1.03371 4.00021 1.4562 4.00021 1.98568V2.0612C4.6618 2.02102 5.32864 2 6.00021 2C6.67179 2 7.33862 2.02102 8.00021 2.0612V1.98568ZM6.00021 3C5.17177 3 4.35078 3.03229 3.53862 3.09505C2.92606 3.14239 2.31853 3.20784 1.71636 3.28971L2.39214 12.0768C2.43227 12.5978 2.86704 13 3.38953 13H8.61089C9.13338 13 9.56815 12.5978 9.60828 12.0768L10.2834 3.28971C9.68144 3.20789 9.07415 3.14237 8.4618 3.09505C7.64964 3.03229 6.82865 3 6.00021 3ZM4.15386 4.50065C4.42969 4.49004 4.66196 4.70468 4.67274 4.98047L4.90386 10.9805C4.91447 11.2564 4.69927 11.4887 4.42339 11.4993C4.14756 11.51 3.91529 11.2953 3.90451 11.0195L3.67339 5.01953C3.66278 4.74367 3.87803 4.51138 4.15386 4.50065ZM7.84656 4.50065C8.12239 4.51138 8.33764 4.74367 8.32703 5.01953L8.09591 11.0195C8.08513 11.2953 7.85287 11.51 7.57703 11.4993C7.30115 11.4887 7.08595 11.2564 7.09656 10.9805L7.32768 4.98047C7.33846 4.70468 7.57073 4.49004 7.84656 4.50065ZM9.00021 2.13737C9.63667 2.19563 10.2681 2.27144 10.8934 2.36589C11.125 2.40085 11.3556 2.43869 11.5855 2.47852C11.8575 2.52564 12.04 2.78399 11.993 3.05599C11.9459 3.32806 11.687 3.51064 11.4149 3.46354C11.3684 3.45548 11.3216 3.44861 11.2749 3.44076L10.605 12.1536C10.5247 13.1955 9.65587 14 8.61089 14H3.38953C2.34455 14 1.47568 13.1955 1.39539 12.1536L0.72482 3.44076C0.678419 3.44858 0.631829 3.45552 0.585497 3.46354C0.313427 3.51064 0.0545012 3.32806 0.00737211 3.05599C-0.0396145 2.78399 0.142913 2.52563 0.414924 2.47852C0.644818 2.43869 0.875465 2.40085 1.10698 2.36589C1.73236 2.27144 2.36375 2.19563 3.00021 2.13737V1.98568C3.00021 0.9427 3.80857 0.0524197 4.87716 0.0182292C5.25006 0.00630041 5.62445 0 6.00021 0C6.37597 0 6.75036 0.00630037 7.12326 0.0182292C8.19185 0.0524197 9.00021 0.9427 9.00021 1.98568V2.13737Z" fill="currentColor"/></svg>
                   </button>
                 </div>
                 <div class="grid grid-cols-[1fr_1fr_1fr] items-end gap-2">
                   <div class="flex-[3] space-y-1">
-                    <label for="${gId}-short" class="text-[#b3b3b3] text-[12px] font-medium">Sort Name</label>
-                    <input type="text" id="${gId}-short" value="${group.shortName}" oninput="updateGroup(${idx}, 'shortName', this.value)" class="w-full bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[14px] outline-none focus:border-[#18a0fb] h-[40px]">
+                    <label for="${gId}-short" class="text-[var(--text-muted)] text-[12px] font-medium">Sort Name</label>
+                    <input type="text" id="${gId}-short" value="${group.shortName}" oninput="updateGroup(${idx}, 'shortName', this.value)" class="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[14px] outline-none focus:border-[var(--border-focus)] h-[40px] text-[var(--text-primary)]">
                   </div>
                   <div class="flex-[3.5] space-y-1">
-                    <span class="text-[#b3b3b3] text-[12px] font-medium">Contrast- Light</span>
-                    <div class="h-[40px] bg-[#3c3c3c]/30 border border-[#444] rounded-[8px] px-2 flex items-center justify-between text-[12px]">
+                    <span class="text-[var(--text-muted)] text-[12px] font-medium">Contrast- Light</span>
+                    <div class="h-[40px] bg-[var(--bg-input)]/30 border border-[var(--border)] rounded-[8px] px-2 flex items-center justify-between text-[12px] text-[var(--text-primary)]">
                       <span>${lightC.toFixed(2)}:1</span>
-                      <span class="font-bold ${lightC >= 4.5 ? "text-green-500" : lightC >= 3 ? "text-yellow-500" : "text-red-500"}">${contrastRating(hexValue, lightBgHex)}</span>
+                      <span class="font-bold ${lightC >= 4.5 ? "text-[var(--success)]" : lightC >= 3 ? "text-[var(--warning)]" : "text-[var(--danger)]"}">${contrastRating(hexValue, lightBgHex)}</span>
                     </div>
                   </div>
                   <div class="flex-[3.5] space-y-1">
-                    <span class="text-[#b3b3b3] text-[12px] font-medium">Contrast- Dark</span>
-                    <div class="h-[40px] bg-[#3c3c3c]/30 border border-[#444] rounded-[8px] px-2 flex items-center justify-between text-[12px]">
+                    <span class="text-[var(--text-muted)] text-[12px] font-medium">Contrast- Dark</span>
+                    <div class="h-[40px] bg-[var(--bg-input)]/30 border border-[var(--border)] rounded-[8px] px-2 flex items-center justify-between text-[12px] text-[var(--text-primary)]">
                       <span>${darkC.toFixed(2)}:1</span>
-                      <span class="font-bold ${darkC >= 4.5 ? "text-green-500" : darkC >= 3 ? "text-yellow-500" : "text-red-500"}">${contrastRating(hexValue, darkBgHex)}</span>
+                      <span class="font-bold ${darkC >= 4.5 ? "text-[var(--success)]" : darkC >= 3 ? "text-[var(--warning)]" : "text-[var(--danger)]"}">${contrastRating(hexValue, darkBgHex)}</span>
                     </div>
                   </div>
                 </div>
@@ -1230,7 +1269,7 @@
 
           appState.roles.forEach((role, idx) => {
             const card = document.createElement("div");
-            card.className = "bg-[#2b2b2b] rounded-[12px] border border-[#444] p-3 space-y-3";
+            card.className = "bg-[var(--bg-card)] rounded-[12px] border border-[var(--border)] p-3 space-y-3";
 
             const mappingMethod = appState.roleMappingMethod || "Contrast Based";
 
@@ -1239,16 +1278,16 @@
               inputsHtml = `
                 <div class="grid grid-cols-[1fr_0.5fr_0.5fr] items-end gap-2">
                   <div class="space-y-1">
-                    <label for="role-${idx}-name" class="text-[#b3b3b3] text-[11px] font-bold tracking-wider ml-1">Role Name</label>
-                    <input type="text" id="role-${idx}-name" value="${role.name || ""}" oninput="updateRole(${idx}, 'name', this.value)" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] outline-none focus:border-[#18a0fb]">
+                    <label for="role-${idx}-name" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Role Name</label>
+                    <input type="text" id="role-${idx}-name" value="${role.name || ""}" oninput="updateRole(${idx}, 'name', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
                   </div>
                   <div class="space-y-1">
-                    <label for="role-${idx}-contrast" class="text-[#b3b3b3] text-[11px] font-bold tracking-wider ml-1">Contrast</label>
-                    <input type="number" id="role-${idx}-contrast" step="0.1" value="${role.minContrast || "4.5"}" onchange="updateRole(${idx}, 'minContrast', this.value)" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] outline-none focus:border-[#18a0fb]">
+                    <label for="role-${idx}-contrast" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Contrast</label>
+                    <input type="number" id="role-${idx}-contrast" step="0.1" value="${role.minContrast || "4.5"}" onchange="updateRole(${idx}, 'minContrast', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
                   </div>
                   <div class="space-y-1">
-                    <label for="role-${idx}-spread" class="text-[#b3b3b3] text-[11px] font-bold tracking-wider ml-1">Spread</label>
-                    <input type="number" id="role-${idx}-spread" value="${role.spread || 1}" onchange="updateRole(${idx}, 'spread', this.value)" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] outline-none focus:border-[#18a0fb]">
+                    <label for="role-${idx}-spread" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Spread</label>
+                    <input type="number" id="role-${idx}-spread" value="${role.spread || 1}" onchange="updateRole(${idx}, 'spread', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
                   </div>
                 </div>
               `;
@@ -1256,23 +1295,23 @@
               inputsHtml = `
                 <div class="grid grid-cols-[1fr_0.5fr_0.5fr] items-end gap-2">
                   <div class="space-y-1">
-                    <label for="role-${idx}-name" class="text-[#b3b3b3] text-[11px] font-bold tracking-wider ml-1">Role Name</label>
-                    <input type="text" id="role-${idx}-name" value="${role.name || ""}" oninput="updateRole(${idx}, 'name', this.value)" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] outline-none focus:border-[#18a0fb]">
+                    <label for="role-${idx}-name" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Role Name</label>
+                    <input type="text" id="role-${idx}-name" value="${role.name || ""}" oninput="updateRole(${idx}, 'name', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
                   </div>
                   <div class="space-y-1">
-                    <label for="role-${idx}-base" class="text-[#b3b3b3] text-[11px] font-bold tracking-wider ml-1">Base Wt</label>
-                    <input type="number" id="role-${idx}-base" value="${role.baseWeight || 1}" onchange="updateRole(${idx}, 'baseWeight', this.value)" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] outline-none focus:border-[#18a0fb]">
+                    <label for="role-${idx}-base" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Base Wt</label>
+                    <input type="number" id="role-${idx}-base" value="${role.baseWeight || 1}" onchange="updateRole(${idx}, 'baseWeight', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
                   </div>
                   <div class="space-y-1">
-                    <label for="role-${idx}-spread" class="text-[#b3b3b3] text-[11px] font-bold tracking-wider ml-1">Spread</label>
-                    <input type="number" id="role-${idx}-spread" value="${role.spread || 1}" onchange="updateRole(${idx}, 'spread', this.value)" class="w-full h-[40px] bg-[#3c3c3c] border border-[#444] rounded-[8px] p-2 text-[13px] outline-none focus:border-[#18a0fb]">
+                    <label for="role-${idx}-spread" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Spread</label>
+                    <input type="number" id="role-${idx}-spread" value="${role.spread || 1}" onchange="updateRole(${idx}, 'spread', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
                   </div>
                 </div>`;
             }
 
             card.innerHTML = `
                 <div class="grid grid-cols-[1fr_40px] items-end gap-2">${inputsHtml}
-                  <button onclick="removeRole(${idx})" class="bg-[#E74C3C]/10 text-[#E74C3C] border border-[#E74C3C]/20 size-[40px] shrink-0 flex items-center justify-center rounded-[10px] transition-all hover:bg-[#E74C3C]/20">
+                  <button onclick="removeRole(${idx})" class="bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/20 size-[40px] shrink-0 flex items-center justify-center rounded-[10px] transition-all hover:bg-[var(--danger)]/20">
                     <svg width="14" height="14" viewBox="0 0 12 14" fill="none"><path d="M8.00021 1.98568C8.00021 1.4562 7.5944 1.03371 7.09136 1.01758C6.72911 1.00599 6.36531 1 6.00021 1C5.63511 1 5.27131 1.00599 4.90906 1.01758C4.40602 1.03371 4.00021 1.4562 4.00021 1.98568V2.0612C4.6618 2.02102 5.32864 2 6.00021 2C6.67179 2 7.33862 2.02102 8.00021 2.0612V1.98568ZM6.00021 3C5.17177 3 4.35078 3.03229 3.53862 3.09505C2.92606 3.14239 2.31853 3.20784 1.71636 3.28971L2.39214 12.0768C2.43227 12.5978 2.86704 13 3.38953 13H8.61089C9.13338 13 9.56815 12.5978 9.60828 12.0768L10.2834 3.28971C9.68144 3.20789 9.07415 3.14237 8.4618 3.09505C7.64964 3.03229 6.82865 3 6.00021 3ZM4.15386 4.50065C4.42969 4.49004 4.66196 4.70468 4.67274 4.98047L4.90386 10.9805C4.91447 11.2564 4.69927 11.4887 4.42339 11.4993C4.14756 11.51 3.91529 11.2953 3.90451 11.0195L3.67339 5.01953C3.66278 4.74367 3.87803 4.51138 4.15386 4.50065ZM7.84656 4.50065C8.12239 4.51138 8.33764 4.74367 8.32703 5.01953L8.09591 11.0195C8.08513 11.2953 7.85287 11.51 7.57703 11.4993C7.30115 11.4887 7.08595 11.2564 7.09656 10.9805L7.32768 4.98047C7.33846 4.70468 7.57073 4.49004 7.84656 4.50065ZM9.00021 2.13737C9.63667 2.19563 10.2681 2.27144 10.8934 2.36589C11.125 2.40085 11.3556 2.43869 11.5855 2.47852C11.8575 2.52564 12.04 2.78399 11.993 3.05599C11.9459 3.32806 11.687 3.51064 11.4149 3.46354C11.3684 3.45548 11.3216 3.44861 11.2749 3.44076L10.605 12.1536C10.5247 13.1955 9.65587 14 8.61089 14H3.38953C2.34455 14 1.47568 13.1955 1.39539 12.1536L0.72482 3.44076C0.678419 3.44858 0.631829 3.45552 0.585497 3.46354C0.313427 3.51064 0.0545012 3.32806 0.00737211 3.05599C-0.0396145 2.78399 0.142913 2.52563 0.414924 2.47852C0.644818 2.43869 0.875465 2.40085 1.10698 2.36589C1.73236 2.27144 2.36375 2.19563 3.00021 2.13737V1.98568C3.00021 0.9427 3.80857 0.0524197 4.87716 0.0182292C5.25006 0.00630041 5.62445 0 6.00021 0C6.37597 0 6.75036 0.00630037 7.12326 0.0182292C8.19185 0.0524197 9.00021 0.9427 9.00021 1.98568V2.13737Z" fill="currentColor"/></svg>
                   </button>
               </div>`;
@@ -1342,7 +1381,7 @@
       }
 
       function addGroup() {
-        appState.colors.push({ name: "New Color", shortName: "Nc", value: "8E8E93" });
+        appState.colors.push({ name: "New Color", shortName: "Nc", value: "888888" });
         renderColorGroups();
       }
 
@@ -1377,7 +1416,7 @@
       }
 
       function updateSettingsFromInputs() {
-        appState.designSystemName = document.getElementById("setting-design-system-name").value;
+        appState.name = document.getElementById("setting-name").value;
         const sanitizeHex = (id) => {
           const el = document.getElementById(id);
           const clean = el.value
@@ -1396,36 +1435,36 @@
         appState.themes[1].bg = sanitizeHex("setting-dark-bg");
 
         // Color Settings
-        let wCount = parseInt(document.getElementById("setting-weights-count").value);
-        appState.colorStep = isNaN(wCount) ? 25 : Math.max(1, Math.min(100, wCount));
-        appState.colorStepMethod = document.getElementById("setting-weights-method").value;
-        appState.colorStepNames = document.getElementById("setting-weight-names").value;
+        let wCount = parseInt(document.getElementById("setting-colorSteps").value);
+        appState.colorSteps = isNaN(wCount) ? 25 : Math.max(1, Math.min(100, wCount));
+        appState.rampType = document.getElementById("setting-rampType").value;
+        appState.colorStepNames = document.getElementById("setting-colorStepNames").value;
 
         // Role Settings
-        let vCount = parseInt(document.getElementById("setting-role-variations-count").value);
-        appState.roleVariations = isNaN(vCount) ? 5 : Math.max(1, Math.min(21, vCount));
-        appState.roleMappingMethod = document.getElementById("setting-role-mapping-method").value;
-        appState.roleVariationsNames = document.getElementById("setting-role-variations-names").value;
+        let vCount = parseInt(document.getElementById("setting-roleSteps").value);
+        appState.roleSteps = isNaN(vCount) ? 5 : Math.max(1, Math.min(21, vCount));
+        appState.roleMapping = document.getElementById("setting-roleMapping").value;
+        appState.roleStepNames = document.getElementById("setting-roleStepNames").value;
 
         renderColorGroups();
         renderRoles();
       }
 
       function syncInputsFromState() {
-        document.getElementById("setting-design-system-name").value = appState.designSystemName;
+        document.getElementById("setting-name").value = appState.name || "";
         const themes = appState.themes || [{ bg: "FFFFFF" }, { bg: "000000" }];
         document.getElementById("setting-light-bg").value = themes[0].bg;
         document.getElementById("setting-dark-bg").value = themes[1].bg;
 
         // Color Settings
-        document.getElementById("setting-weights-count").value = appState.colorStep;
-        document.getElementById("setting-weights-method").value = appState.colorStepMethod || "Balanced";
-        document.getElementById("setting-weight-names").value = appState.colorStepNames || "";
+        document.getElementById("setting-colorSteps").value = appState.colorSteps;
+        document.getElementById("setting-rampType").value = appState.rampType || "Balanced";
+        document.getElementById("setting-colorStepNames").value = appState.colorStepNames || "";
 
         // Role Settings
-        document.getElementById("setting-role-variations-count").value = appState.roleVariations || 5;
-        document.getElementById("setting-role-mapping-method").value = appState.roleMappingMethod || "Contrast Based";
-        document.getElementById("setting-role-variations-names").value = appState.roleVariationsNames;
+        document.getElementById("setting-roleSteps").value = appState.roleSteps || 5;
+        document.getElementById("setting-roleMapping").value = appState.roleMapping || "Contrast Based";
+        document.getElementById("setting-roleStepNames").value = appState.roleStepNames;
       }
 
       /**

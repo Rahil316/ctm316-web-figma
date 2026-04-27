@@ -53,7 +53,7 @@ figma.ui.onmessage = async (msg) => {
 
 // 3. CONFIG TRANSLATOR: Converts appState (UI format) into the format expected by variableMaker.
 function translateConfig(appState) {
-  const count = Math.max(1, parseInt(appState.colorStep) || 23);
+  const count = Math.max(1, parseInt(appState.colorSteps) || 23);
 
   // Weight (step) names
   const userWeightNames = appState.colorStepNames && appState.colorStepNames.trim() ? appState.colorStepNames.split(",").map((n) => n.trim()) : null;
@@ -65,22 +65,18 @@ function translateConfig(appState) {
   }
 
   // Role variation display names (maps to the 5 fixed reference keys)
-  const userVarNames = (appState.roleVariationsNames || "")
+  const userVarNames = (appState.roleStepNames || "")
     .split(",")
     .map((v) => v.trim())
     .filter(Boolean);
   const defaultVarNames = ["weakest", "weak", "base", "strong", "stronger"];
   const roleStepNames = defaultVarNames.map((def, i) => userVarNames[i] || def);
 
-  // Method name normalization (UI labels → reference engine values)
-  const rampTypeMap = { Balanced: "Balanced", Linear: "Linear", Symmetric: "Symmetric" };
-  const roleMappingMap = { "Contrast Based": "Contrast Based", "Manual Base Index": "Manual Base Index" };
-
   // themes array → light/dark backgrounds
   const themes = appState.themes || [{ bg: "FFFFFF" }, { bg: "000000" }];
 
   return {
-    name: appState.designSystemName || "ctm316",
+    name: appState.name || "ctm316",
     colors: (appState.colors || []).map((g) => ({
       name: g.name,
       shortName: g.shortName,
@@ -94,8 +90,8 @@ function translateConfig(appState) {
       baseIndex: Math.max(0, (parseInt(role.baseWeight) || 1) - 1),
     })),
     colorSteps: count,
-    rampType: rampTypeMap[appState.colorStepMethod] || "Balanced",
-    roleMapping: roleMappingMap[appState.roleMappingMethod] || "Contrast Based",
+    rampType: appState.rampType || "Balanced",
+    roleMapping: appState.roleMapping || "Contrast Based",
     colorStepNames: stepNames,
     roleStepNames,
     themes: [

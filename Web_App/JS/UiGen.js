@@ -99,22 +99,22 @@ function createErrorSection(errors) {
       .join("");
 
   const section = document.createElement("div");
-  section.className = "bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.3)] mb-4 rounded-[10px] overflow-hidden";
+  section.className = "bg-[var(--warning)]/10 border border-[var(--warning)]/30 mb-4 rounded-[10px] overflow-hidden";
   section.innerHTML = `
-    <div class="errors-header px-3.5 py-2.5 cursor-pointer flex justify-between items-center transition-colors duration-150 hover:bg-[rgba(245,158,11,0.05)]">
+    <div class="errors-header px-3.5 py-2.5 cursor-pointer flex justify-between items-center transition-colors duration-150 hover:bg-[var(--warning)]/5">
       <h4 class="text-[var(--warning)] text-[12px] font-bold tracking-[0.5px]">⚠️ Warnings &amp; Errors</h4>
       <button class="errors-toggle collapsed bg-transparent border-none text-[12px] cursor-pointer text-[var(--warning)] transition-transform duration-200">&lt;</button>
     </div>
     <div class="errors-content custom-scrollbar">
-      <div class="px-3.5 py-2 border-t border-[rgba(245,158,11,0.15)]">
+      <div class="px-3.5 py-2 border-t border-[var(--warning)]/15">
         <div class="text-[var(--warning)] text-[11px] font-bold mb-1.5 tracking-[0.5px]">Critical (${errors.critical?.length || 0})</div>
         ${createListHTML(errors.critical || [])}
       </div>
-      <div class="px-3.5 py-2 border-t border-[rgba(245,158,11,0.15)]">
+      <div class="px-3.5 py-2 border-t border-[var(--warning)]/15">
         <div class="text-[var(--warning)] text-[11px] font-bold mb-1.5 tracking-[0.5px]">Warnings (${errors.warnings?.length || 0})</div>
         ${createListHTML(errors.warnings || [])}
       </div>
-      <div class="px-3.5 py-2 border-t border-[rgba(245,158,11,0.15)]">
+      <div class="px-3.5 py-2 border-t border-[var(--warning)]/15">
         <div class="text-[var(--warning)] text-[11px] font-bold mb-1.5 tracking-[0.5px]">Notices (${errors.notices?.length || 0})</div>
         ${createListHTML(errors.notices || [])}
       </div>
@@ -184,7 +184,9 @@ function createRawSection(colorRamps) {
 function createThemeSection(colorTokens, theme) {
   const themeName = theme.charAt(0).toUpperCase() + theme.slice(1);
   const isDark = theme === "dark";
-  const pillClass = isDark ? "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-black/70 text-[#f8f9fa] border border-white/10" : "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/90 text-[#212529] border border-black/10";
+  const pillClass = isDark
+    ? "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-black/70 text-[var(--text-primary)] border border-white/10"
+    : "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/90 text-[var(--text-primary)] border border-black/10";
   const pillIcon = isDark ? "🌙" : "☀️";
 
   // Create a container for all color groups (e.g., a div or DocumentFragment)
@@ -195,7 +197,7 @@ function createThemeSection(colorTokens, theme) {
     if (!roles || Object.keys(roles).length === 0) {
       container.innerHTML = `
       <div class="p-4 rounded-[10px] border border-[var(--border)] mb-4 ${isDark ? "bg-black" : "bg-[var(--bg-card)]"}">
-        <h4 class="text-[11px] font-bold tracking-[0.8px] mb-3 ${isDark ? "text-[#888]" : "text-[var(--text-muted)]"}">${colorGroup}</h4>
+        <h4 class="text-[11px] font-bold tracking-[0.8px] mb-3 ${isDark ? "text-[var(--text-dim)]" : "text-[var(--text-muted)]"}">${colorGroup}</h4>
         <p>No roles generated</p>
       </div>`;
       return;
@@ -207,12 +209,12 @@ function createThemeSection(colorTokens, theme) {
 
     // Group title
     groupDiv.innerHTML = `
-    <h4 class="text-[14px] font-bold tracking-[0.5px] mb-3 ${isDark ? "text-[#888]" : "text-[var(--text-muted)]"}">${colorGroup}</h4>
+    <h4 class="text-[14px] font-bold tracking-[0.5px] mb-3 ${isDark ? "text-[var(--text-dim)]" : "text-[var(--text-muted)]"}">${colorGroup}</h4>
     `;
 
     // Iterate over each role inside the group using for...of on Object.entries
     for (const [role, variations] of Object.entries(roles)) {
-      if (!variations || Object.keys(variations).length === 0) return;
+      if (!variations || Object.keys(variations).length === 0) continue;
 
       // Get display name for the role (first variation's role property or the key)
       const firstVar = Object.values(variations)[0];
@@ -220,7 +222,7 @@ function createThemeSection(colorTokens, theme) {
 
       // Role sub‑heading
       const roleHeading = document.createElement("h5");
-      roleHeading.className = `text-[10px] font-semibold tracking-[0.6px] mb-2 ${isDark ? "text-[#666]" : "text-[var(--text-dim)]"}`;
+      roleHeading.className = `text-[10px] font-semibold tracking-[0.6px] mb-2 ${isDark ? "text-[var(--text-dim)]" : "text-[var(--text-dim)]"}`;
       roleHeading.textContent = displayRoleName;
       groupDiv.appendChild(roleHeading);
 
@@ -395,7 +397,7 @@ function createColorInputs(colorScheme, onUpdate) {
 function createColorGroupsSection(colorScheme) {
   const section = createSection("Color Groups", "color-groups");
   const addButton = document.createElement("button");
-  addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[rgba(24,160,251,0.1)]";
+  addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--accent)]/10";
   addButton.textContent = "+ Add Color";
   addButton.onclick = () => {
     const newGroup = {
