@@ -2,17 +2,13 @@
   "name": "ctm316_Fig",
   "id": "1623424196747639999",
   "api": "1.0.0",
-  "main": "code.js",
+  "main": "scripts.js",
   "capabilities": [],
   "enableProposedApi": false,
   "documentAccess": "dynamic-page",
   "editorType": ["figma", "figjam", "slides"],
   "ui": "ui.html",
   "networkAccess": {
-    "allowedDomains": [
-      "https://cdn.tailwindcss.com",
-      "https://fonts.googleapis.com",
-      "https://fonts.gstatic.com"
-    ]
+    "allowedDomains": ["https://cdn.tailwindcss.com", "https://fonts.googleapis.com", "https://fonts.gstatic.com"]
   }
 }

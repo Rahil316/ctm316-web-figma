@@ -297,7 +297,7 @@ const VariableManager = {
       try {
         let variable = this.cache.variables.find((v) => v.name === varName && v.variableCollectionId === collection.id);
         if (!variable) {
-          variable = figma.variables.createVariable(varName, collection.id, varType);
+          variable = figma.variables.createVariable(varName, collection, varType);
           this.cache.variables.push(variable);
           this.tally.created++;
         } else {
@@ -312,6 +312,7 @@ const VariableManager = {
           }
         }
       } catch (_err) {
+        console.error("Failed to upsert variable:", varName, _err);
         this.tally.failed++;
       }
     }
