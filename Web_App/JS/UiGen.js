@@ -3,6 +3,7 @@
 
 window.currentEditableScheme = null;
 window.sidebarExpandedState = window.sidebarExpandedState || {};
+window.activeSidebarTab = window.activeSidebarTab || "color-groups";
 
 function getOptimalTextColor(bg) {
   const b = normalizeHex(bg) || "#000000";
@@ -325,21 +326,21 @@ function createColorInputs(colorScheme, onUpdate) {
 
   const fragment = document.createDocumentFragment();
 
-  // 1. Basic Settings
-  const basicSection = createSection("Basic Settings", "basic-settings");
-  basicSection.content.appendChild(createInput("name", "System Name", colorScheme.name));
-  basicSection.content.appendChild(createInput("colorSteps", "Weight Count", colorScheme.colorSteps, "number"));
-  basicSection.content.appendChild(createInput("rampType", "Ramp Generation Mode", colorScheme.rampType || "Balanced", "select", rampTypes));
-  basicSection.content.appendChild(createInput("roleMapping", "Role Mapping Method", colorScheme.roleMapping || "Contrast Based", "select", roleMappingMethods));
-  basicSection.content.appendChild(createColorInput("themes.0.bg", "Light Theme Background", colorScheme.themes[0].bg || "FFFFFF"));
-  basicSection.content.appendChild(createColorInput("themes.1.bg", "Dark Theme Background", colorScheme.themes[1].bg || "000000"));
-  fragment.appendChild(basicSection.element);
-
-  // 2. Color Groups
-  fragment.appendChild(createColorGroupsSection(colorScheme).element);
-
-  // 3. Roles Configuration
-  fragment.appendChild(createRolesSection(colorScheme, onUpdate).element);
+  // Determine what to show based on active tab
+  if (window.activeSidebarTab === "basic-settings") {
+    const basicSection = createSection("Basic Settings", "basic-settings", true);
+    basicSection.content.appendChild(createInput("name", "System Name", colorScheme.name));
+    basicSection.content.appendChild(createInput("colorSteps", "Weight Count", colorScheme.colorSteps, "number"));
+    basicSection.content.appendChild(createInput("rampType", "Ramp Generation Mode", colorScheme.rampType || "Balanced", "select", rampTypes));
+    basicSection.content.appendChild(createInput("roleMapping", "Role Mapping Method", colorScheme.roleMapping || "Contrast Based", "select", roleMappingMethods));
+    basicSection.content.appendChild(createColorInput("themes.0.bg", "Light Theme Background", colorScheme.themes[0].bg || "FFFFFF"));
+    basicSection.content.appendChild(createColorInput("themes.1.bg", "Dark Theme Background", colorScheme.themes[1].bg || "000000"));
+    fragment.appendChild(basicSection.element);
+  } else if (window.activeSidebarTab === "color-groups") {
+    fragment.appendChild(createColorGroupsSection(colorScheme, true).element);
+  } else if (window.activeSidebarTab === "roles-config") {
+    fragment.appendChild(createRolesSection(colorScheme, onUpdate, true).element);
+  }
 
   targetContainer.innerHTML = "";
   targetContainer.appendChild(fragment);
@@ -393,8 +394,8 @@ function createColorInputs(colorScheme, onUpdate) {
   }
 }
 
-function createColorGroupsSection(colorScheme) {
-  const section = createSection("Color Groups", "color-groups");
+function createColorGroupsSection(colorScheme, hideHeader = false) {
+  const section = createSection("Color Groups", "color-groups", hideHeader);
   const addButton = document.createElement("button");
   addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--accent)]/10";
   addButton.textContent = "+ Add Color";
@@ -496,8 +497,8 @@ function setupColorInputSync(container) {
   }
 }
 
-function createRolesSection(colorScheme, onUpdate) {
-  const section = createSection("Roles Configuration", "roles-config");
+function createRolesSection(colorScheme, onUpdate, hideHeader = false) {
+  const section = createSection("Roles Configuration", "roles-config", hideHeader);
   const addButton = document.createElement("button");
   addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[rgba(24,160,251,0.1)]";
   addButton.textContent = "+ Add Role";
@@ -611,7 +612,7 @@ function createRolesSection(colorScheme, onUpdate) {
   return section;
 }
 
-function createSection(title, id) {
+function createSection(title, id, hideHeader = false) {
   const container = document.createElement("div");
   container.className = "flex flex-col gap-1";
 
@@ -624,6 +625,7 @@ function createSection(title, id) {
 
   const header = document.createElement("div");
   header.className = "text-[14px] font-bold text-[var(--text-muted)] flex justify-between items-center px-1 py-3 mb-1 rounded-[8px] cursor-pointer select-none transition-colors duration-150 hover:bg-[var(--bg-hover)]";
+  if (hideHeader) header.classList.add("hidden");
   header.setAttribute("role", "button");
   header.setAttribute("aria-expanded", isExpanded);
   header.setAttribute("tabindex", "0");
@@ -636,7 +638,7 @@ function createSection(title, id) {
   `;
 
   const content = document.createElement("div");
-  content.className = `flex-col gap-4 ${isExpanded ? "flex" : "hidden"}`;
+  content.className = `flex-col gap-2 ${isExpanded || hideHeader ? "flex" : "hidden"}`;
 
   const toggle = () => {
     const isNowExpanded = content.classList.contains("hidden");
@@ -696,6 +698,36 @@ document.addEventListener("DOMContentLoaded", () => {
   const appContainer = document.querySelector("app");
   if (toggleSidebarBtn && appContainer) {
     toggleSidebarBtn.addEventListener("click", () => appContainer.classList.toggle("sidebar-hidden"));
+  }
+
+  // Sidebar Tab Switching Logic
+  const sidebarTabs = document.querySelectorAll(".sidebar-tab-btn");
+  const settingsBtn = document.getElementById("openSettingsBtn");
+
+  const updateSidebarTabs = (activeTab) => {
+    window.activeSidebarTab = activeTab;
+    sidebarTabs.forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.tab === activeTab);
+    });
+    if (settingsBtn) {
+      settingsBtn.classList.toggle("text-[var(--accent)]", activeTab === "basic-settings");
+      settingsBtn.classList.toggle("text-[var(--text-muted)]", activeTab !== "basic-settings");
+    }
+    // Refresh the inputs to show correct tab content
+    if (window.currentEditableScheme) {
+      createColorInputs(window.currentEditableScheme, (updated) => {
+        window.currentEditableScheme = updated;
+        displayColorTokens(variableMaker(updated));
+      });
+    }
+  };
+
+  sidebarTabs.forEach((btn) => {
+    btn.addEventListener("click", () => updateSidebarTabs(btn.dataset.tab));
+  });
+
+  if (settingsBtn) {
+    settingsBtn.addEventListener("click", () => updateSidebarTabs("basic-settings"));
   }
 
   document.addEventListener("click", async (e) => {

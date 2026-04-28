@@ -100,6 +100,47 @@
         pointer-events: none;
       }
 
+      /* === SIDEBAR TABS === */
+      .sidebar-tabs {
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 8px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 8px;
+        background: var(--bg-panel);
+      }
+      .sidebar-tab-btn {
+        position: relative;
+        padding: 12px 12px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+      }
+      .sidebar-tab-btn:hover {
+        color: var(--text-primary);
+      }
+      .sidebar-tab-btn.active {
+        color: var(--accent);
+      }
+      .sidebar-tab-btn.active::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--accent);
+        border-radius: 2px 2px 0 0;
+      }
+
       /* === PREVIEW PANEL === */
       .preview-tab-btn {
         padding: 6px 14px;
@@ -301,14 +342,6 @@
               />
             </svg>
           </button>
-          <button id="btn-settings" title="Settings" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M13.4995 7.6354C13.4995 7.51319 13.4111 7.40875 13.2905 7.38866L12.6948 7.2897C12.2131 7.20941 11.8594 6.86232 11.6955 6.46743C11.5301 6.0691 11.5396 5.57819 11.8218 5.18293L12.1733 4.69074C12.2443 4.5913 12.233 4.45486 12.1466 4.36847L11.631 3.85285C11.5446 3.7665 11.4082 3.7552 11.3088 3.82616L10.8172 4.17772C10.4218 4.46014 9.93054 4.46947 9.53206 4.30402C9.13715 4.14004 8.7901 3.78645 8.7098 3.30467L8.61084 2.70897C8.59075 2.58842 8.48631 2.49998 8.3641 2.49998H7.63493C7.51272 2.49998 7.40827 2.58842 7.38818 2.70897L7.28923 3.30467C7.20893 3.78641 6.86185 4.14007 6.46696 4.30402C6.06862 4.46939 5.57773 4.45993 5.18245 4.17772L4.69027 3.82616C4.59093 3.75537 4.45501 3.7667 4.36865 3.85285L3.85238 4.36847C3.76599 4.45489 3.75531 4.59131 3.82633 4.69074L4.17725 5.18228C4.45967 5.57767 4.46899 6.06896 4.30355 6.46743C4.13956 6.86235 3.78598 7.2094 3.3042 7.2897L2.7085 7.38866C2.58795 7.40875 2.49951 7.51319 2.49951 7.6354V8.36457C2.49951 8.48678 2.58795 8.59122 2.7085 8.61131L3.3042 8.71027C3.78593 8.79056 4.1396 9.13765 4.30355 9.53254C4.46891 9.93087 4.45947 10.4218 4.17725 10.817L3.82568 11.3092C3.75473 11.4087 3.76599 11.5451 3.85238 11.6315L4.368 12.1471C4.4544 12.2335 4.59084 12.2448 4.69027 12.1738L5.1818 11.8223C5.57719 11.5398 6.06849 11.5305 6.46696 11.6959C6.86187 11.8599 7.20893 12.2135 7.28923 12.6953L7.38818 13.291C7.40827 13.4115 7.51272 13.5 7.63493 13.5H8.3641C8.48631 13.5 8.59075 13.4115 8.61084 13.291L8.7098 12.6953C8.79009 12.2135 9.13717 11.8599 9.53206 11.6959C9.9304 11.5306 10.4213 11.54 10.8166 11.8223L11.3088 12.1738C11.4081 12.2446 11.544 12.2333 11.6304 12.1471L12.1466 11.6315C12.233 11.5451 12.2442 11.4087 12.1733 11.3092L11.8218 10.8177C11.5394 10.4223 11.53 9.931 11.6955 9.53254C11.8595 9.13762 12.213 8.79057 12.6948 8.71027L13.2905 8.61131C13.4111 8.59122 13.4995 8.48678 13.4995 8.36457V7.6354ZM9.50016 7.99998C9.50015 7.17163 8.8285 6.50008 8.00016 6.49998C7.17174 6.49998 6.50017 7.17156 6.50016 7.99998C6.50016 8.82841 7.17174 9.49998 8.00016 9.49998C8.82851 9.49988 9.50016 8.82835 9.50016 7.99998ZM10.5002 7.99998C10.5002 9.38064 9.38079 10.4999 8.00016 10.5C6.61945 10.5 5.50016 9.3807 5.50016 7.99998C5.50017 6.61928 6.61946 5.49998 8.00016 5.49998C9.38078 5.50008 10.5002 6.61934 10.5002 7.99998ZM14.4995 8.36457C14.4995 8.97554 14.0579 9.49709 13.4552 9.59764L12.8589 9.69725C12.7751 9.71134 12.6752 9.78151 12.6193 9.916C12.5647 10.0474 12.5845 10.1648 12.6356 10.2363L12.9865 10.7278C13.3417 11.2251 13.2857 11.9064 12.8537 12.3385L12.3381 12.8542C11.906 13.2862 11.2246 13.3427 10.7274 12.9876L10.2358 12.6361C10.1644 12.585 10.0469 12.5652 9.91553 12.6198C9.781 12.6756 9.71083 12.7756 9.69678 12.8594L9.59717 13.4557C9.49662 14.0583 8.97507 14.5 8.3641 14.5H7.63493C7.02396 14.5 6.5024 14.0583 6.40186 13.4557L6.30225 12.8594C6.28816 12.7756 6.21798 12.6757 6.0835 12.6198C5.95209 12.5652 5.83466 12.585 5.76318 12.6361L5.27165 12.9876C4.77443 13.3428 4.09305 13.2862 3.66097 12.8542L3.14535 12.3385C2.71328 11.9065 2.65674 11.2251 3.01188 10.7278L3.36344 10.2363C3.41447 10.1649 3.43425 10.0473 3.37972 9.916C3.32386 9.78146 3.22393 9.7113 3.14014 9.69725L2.54378 9.59764C1.94116 9.49709 1.49951 8.97554 1.49951 8.36457V7.6354C1.49951 7.02443 1.94116 6.50288 2.54378 6.40233L3.14014 6.30272C3.22394 6.28862 3.32384 6.21845 3.37972 6.08397C3.43428 5.95257 3.41449 5.83515 3.36344 5.76366L3.01253 5.27212C2.65738 4.7749 2.7133 4.09352 3.14535 3.66144L3.66097 3.14582C4.093 2.71379 4.77443 2.65733 5.27165 3.01235L5.76318 3.36392C5.83462 3.41494 5.95215 3.43473 6.0835 3.38019C6.21803 3.32433 6.28819 3.2244 6.30225 3.14061L6.40186 2.54426C6.5024 1.94163 7.02396 1.49998 7.63493 1.49998H8.3641C8.97507 1.49998 9.49662 1.94163 9.59717 2.54426L9.69678 3.14061C9.71087 3.22442 9.78105 3.32431 9.91553 3.38019C10.0469 3.43475 10.1644 3.41497 10.2358 3.36392L10.7274 3.01235C11.2246 2.65722 11.906 2.71379 12.3381 3.14582L12.8537 3.66144C13.2857 4.0935 13.3423 4.77489 12.9871 5.27212L12.6356 5.76366C12.5846 5.83508 12.5648 5.95264 12.6193 6.08397C12.6752 6.21851 12.7751 6.28868 12.8589 6.30272L13.4552 6.40233C14.0579 6.50288 14.4995 7.02443 14.4995 7.6354V8.36457Z"
-                fill="white"
-              />
-            </svg>
-          </button>
           <button id="btn-preview" title="Preview Colors" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -324,81 +357,25 @@
         </div>
       </header>
 
+      <!-- Sidebar Tabs -->
+      <div class="sidebar-tabs">
+        <div class="flex gap-1">
+          <button class="sidebar-tab-btn active" data-tab="color-groups">Color Groups</button>
+          <button class="sidebar-tab-btn" data-tab="roles-config">Theme Roles</button>
+        </div>
+        <button id="btn-settings" title="Settings" class="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+            ></path>
+          </svg>
+        </button>
+      </div>
+
       <!-- Scrollable Content -->
       <main class="flex-1 overflow-y-auto p-2 space-y-2">
-        <!-- Color Groups Section -->
-        <section id="section-groups">
-          <div class="flex items-center gap-2 mb-2 cursor-pointer group" onclick="toggleSection('section-groups', event)" role="button" aria-expanded="true" aria-controls="groups-container">
-            <div class="chevron transition-transform duration-200">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M8.31579 10.888C8.11941 11.0482 7.82959 11.0366 7.64652 10.8535L2.64652 5.85351C2.45126 5.65825 2.45126 5.34174 2.64652 5.14648C2.84178 4.95122 3.15829 4.95122 3.35355 5.14648L8.00004 9.79297L12.6465 5.14648C12.8418 4.95122 13.1583 4.95122 13.3536 5.14648C13.5488 5.34174 13.5488 5.65825 13.3536 5.85351L8.35355 10.8535L8.31579 10.888Z"
-                  fill="var(--text-muted)"
-                  class="group-hover:fill-[var(--text-primary)] transition-colors"
-                />
-              </svg>
-            </div>
-            <div class="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] text-[12px] font-bold tracking-[1.1px] transition-colors">Color Groups</div>
-            <div class="flex-1 h-px bg-[var(--border)]"></div>
-            <button
-              type="button"
-              id="add-group"
-              title="Add Color Group"
-              onclick="
-                event.stopPropagation();
-                addGroup();
-              "
-              class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] p-1 rounded-md transition-colors w-8 h-8 flex items-center justify-center z-10"
-            >
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="white">
-                <path
-                  d="M8 3C8.27614 3 8.5 3.22386 8.5 3.5V7.5H12.5C12.7761 7.5 13 7.72386 13 8C13 8.27614 12.7761 8.5 12.5 8.5H8.5V12.5C8.5 12.7761 8.27614 13 8 13C7.72386 13 7.5 12.7761 7.5 12.5V8.5H3.5C3.22386 8.5 3 8.27614 3 8C3 7.72386 3.22386 7.5 3.5 7.5H7.5V3.5C7.5 3.22386 7.72386 3 8 3Z"
-                  fill="currentColor"
-                />
-              </svg>
-            </button>
-          </div>
-          <div id="groups-container" class="section-content space-y-2">
-            <!-- Dynamic Color Groups -->
-          </div>
-        </section>
-
-        <!-- Theme Roles Section -->
-        <section id="section-roles">
-          <div class="flex items-center gap-2 mb-2 cursor-pointer group" onclick="toggleSection('section-roles', event)" role="button" aria-expanded="true" aria-controls="roles-container">
-            <div class="chevron transition-transform duration-200">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M8.31579 10.888C8.11941 11.0482 7.82959 11.0366 7.64652 10.8535L2.64652 5.85351C2.45126 5.65825 2.45126 5.34174 2.64652 5.14648C2.84178 4.95122 3.15829 4.95122 3.35355 5.14648L8.00004 9.79297L12.6465 5.14648C12.8418 4.95122 13.1583 4.95122 13.3536 5.14648C13.5488 5.34174 13.5488 5.65825 13.3536 5.85351L8.35355 10.8535L8.31579 10.888Z"
-                  fill="var(--text-muted)"
-                  class="group-hover:fill-white transition-colors"
-                />
-              </svg>
-            </div>
-            <div class="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] text-[12px] font-bold tracking-[1.1px] transition-colors">Theme Roles</div>
-            <div class="flex-1 h-px bg-[var(--border)]"></div>
-            <button
-              type="button"
-              id="add-role"
-              title="Add Theme Role"
-              onclick="
-                event.stopPropagation();
-                addRole();
-              "
-              class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] p-1 rounded-md transition-colors w-8 h-8 flex items-center justify-center z-10"
-            >
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="white">
-                <path
-                  d="M8 3C8.27614 3 8.5 3.22386 8.5 3.5V7.5H12.5C12.7761 7.5 13 7.72386 13 8C13 8.27614 12.7761 8.5 12.5 8.5H8.5V12.5C8.5 12.7761 8.27614 13 8 13C7.72386 13 7.5 12.7761 7.5 12.5V8.5H3.5C3.22386 8.5 3 8.27614 3 8C3 7.72386 3.22386 7.5 3.5 7.5H7.5V3.5C7.5 3.22386 7.72386 3 8 3Z"
-                  fill="currentColor"
-                />
-              </svg>
-            </button>
-          </div>
-          <div id="roles-container" class="section-content space-y-2">
-            <!-- Dynamic Theme Roles -->
-          </div>
-        </section>
+        <div id="sidebar-content-container"></div>
       </main>
 
       <!-- Overlays -->
@@ -750,6 +727,7 @@
       };
 
       let appState = JSON.parse(JSON.stringify(demoConfig));
+      let activeSidebarTab = "color-groups";
 
       /**
        * 2. UI UTILITIES & FOCUS MANAGEMENT
@@ -757,7 +735,7 @@
        */
       const debounce = (fn, delay = 150) => {
         let timeout;
-        return function() {
+        return function () {
           var args = Array.prototype.slice.call(arguments);
           clearTimeout(timeout);
           timeout = setTimeout(() => fn.apply(null, args), delay);
@@ -1203,9 +1181,16 @@
        * Uses document fragments for performance.
        */
       const renderColorGroups = debounce(() => {
+        if (activeSidebarTab !== "color-groups") return;
         withPreservedFocus(() => {
-          const container = document.getElementById("groups-container");
+          const container = document.getElementById("sidebar-content-container");
           const fragment = document.createDocumentFragment();
+
+          const addButton = document.createElement("button");
+          addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--accent)]/10 flex items-center justify-center gap-2";
+          addButton.innerHTML = `<span>+ Add Color Group</span>`;
+          addButton.onclick = addGroup;
+          fragment.appendChild(addButton);
 
           appState.colors.forEach((group, idx) => {
             const hexValue = normalizeHex(group.value) || "#8E8E93";
@@ -1216,7 +1201,7 @@
             const gId = `group-${idx}`;
 
             const card = document.createElement("div");
-            card.className = "bg-[var(--bg-card)] rounded-[12px] border border-[var(--border)] p-3 space-y-2";
+            card.className = "bg-[var(--bg-card)] rounded-[12px] border border-[var(--border)] p-3 space-y-2 mb-2";
             card.innerHTML = `
                 <div class="grid grid-cols-[1fr_1fr_40px] gap-2">
                   <div class="flex-[3] space-y-1">
@@ -1264,15 +1249,22 @@
       }, 50);
 
       const renderRoles = debounce(() => {
+        if (activeSidebarTab !== "roles-config") return;
         withPreservedFocus(() => {
-          const container = document.getElementById("roles-container");
+          const container = document.getElementById("sidebar-content-container");
           const fragment = document.createDocumentFragment();
+
+          const addButton = document.createElement("button");
+          addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--accent)]/10 flex items-center justify-center gap-2";
+          addButton.innerHTML = `<span>+ Add Theme Role</span>`;
+          addButton.onclick = addRole;
+          fragment.appendChild(addButton);
 
           const variations = (appState.roleVariationsNames || "weakest, weak, base, strong, stronger").split(",").map((v) => v.trim());
 
           appState.roles.forEach((role, idx) => {
             const card = document.createElement("div");
-            card.className = "bg-[var(--bg-card)] rounded-[12px] border border-[var(--border)] p-3 space-y-3";
+            card.className = "bg-[var(--bg-card)] rounded-[12px] border border-[var(--border)] p-3 space-y-3 mb-2";
 
             const mappingMethod = appState.roleMapping || "Contrast Based";
 
@@ -1297,7 +1289,7 @@
             } else {
               const mid = Math.floor(appState.colorSteps / 2);
               const lightBase = (role.baseIndex !== undefined ? role.baseIndex : mid) + 1;
-              const darkBase = (role.darkBaseIndex !== undefined ? role.darkBaseIndex : (role.baseIndex !== undefined ? role.baseIndex : mid)) + 1;
+              const darkBase = (role.darkBaseIndex !== undefined ? role.darkBaseIndex : role.baseIndex !== undefined ? role.baseIndex : mid) + 1;
               inputsHtml = `
                 <div class="grid grid-cols-[1fr_0.5fr_0.5fr_0.5fr] items-end gap-2">
                   <div class="space-y-1">
@@ -1680,6 +1672,20 @@
       };
 
       document.getElementById("preview-close").onclick = () => hideOverlay("preview-overlay");
+
+      // Sidebar Tab Logic
+      const sidebarTabs = document.querySelectorAll(".sidebar-tab-btn");
+      sidebarTabs.forEach((btn) => {
+        btn.onclick = () => {
+          activeSidebarTab = btn.dataset.tab;
+          sidebarTabs.forEach((b) => b.classList.toggle("active", b.dataset.tab === activeSidebarTab));
+          if (activeSidebarTab === "color-groups") renderColorGroups();
+          else if (activeSidebarTab === "roles-config") renderRoles();
+        };
+      });
+
+      // Initial Render
+      renderColorGroups();
 
       // Update Options
       document.getElementById("opt-update-all").onclick = () => {
