@@ -14,6 +14,21 @@
 // 1. UI INITIALIZATION
 figma.showUI(__html__, { width: 424, height: 720, themeColors: true });
 
+// Load saved config from Figma on startup
+(async () => {
+  try {
+    const vars = await figma.variables.getLocalVariablesAsync("STRING");
+    const cfgVar = vars.find((v) => v.name === "__ctm316_config__");
+    if (cfgVar) {
+      const modeId = Object.keys(cfgVar.valuesByMode)[0];
+      const raw = cfgVar.valuesByMode[modeId];
+      if (typeof raw === "string") {
+        figma.ui.postMessage({ type: "load-config", state: JSON.parse(raw) });
+      }
+    }
+  } catch (_) {}
+})();
+
 // 2. MESSAGE ROUTER
 figma.ui.onmessage = async (msg) => {
   try {
@@ -21,7 +36,15 @@ figma.ui.onmessage = async (msg) => {
       case "run-creater": {
         const config = translateConfig(msg.state);
         const result = variableMaker(config);
-        await VariableManager.sync(result, config, msg.scope || "all");
+        await VariableManager.sync(result, config, msg.scope || "all", msg.state);
+        break;
+      }
+
+      case "check-collections": {
+        const cols = await figma.variables.getLocalVariableCollectionsAsync();
+        const names = [msg.rawName, msg.contextualName].filter(Boolean);
+        const existing = names.filter((n) => cols.some((c) => c.name === n));
+        figma.ui.postMessage({ type: "collection-check-result", existing });
         break;
       }
 
@@ -99,6 +122,10 @@ function translateConfig(appState) {
       { name: "light", bg: themes[0].bg || "FFFFFF" },
       { name: "dark", bg: themes[1].bg || "000000" },
     ],
+    skipRawRamps: appState.skipRawRamps || false,
+    tokenGrouping: appState.tokenGrouping || "color",
+    useShortColorNames: appState.useShortColorNames || false,
+    useShortRoleNames: appState.useShortRoleNames || false,
   };
 }
 
@@ -208,48 +235,77 @@ const VariableManager = {
   cache: { variables: [], collections: [] },
   rawVarNameMap: {}, // stepName ("primary-1") → figma variable name ("primary/1")
 
-  async sync(result, config, scope = "all") {
+  async sync(result, config, scope = "all", appState = null) {
     this.tally = { created: 0, updated: 0, failed: 0 };
     this.rawVarNameMap = {};
     await this.refreshCache();
 
-    // Build tknRef → Figma variable name map (needed for alias resolution in "roles" scope too)
+    const rawName = (appState && appState.rawCollectionName) || "_raw";
+    const contextualName = (appState && appState.contextualCollectionName) || "contextual";
+    const skipRaw = config.skipRawRamps || false;
+    const tokenGrouping = config.tokenGrouping || "color";
+    const useShortColor = config.useShortColorNames || false;
+    const useShortRole = config.useShortRoleNames || false;
+
+    // Helper: resolve display label for color/role names
+    const colorLabel = (name) => {
+      if (!useShortColor) return name;
+      const col = config.colors.find((c) => c.name === name);
+      return (col && col.shortName) || name;
+    };
+    const roleLabel = (name, roleIdx) => {
+      if (!useShortRole) return name;
+      const role = config.roles[roleIdx];
+      return (role && role.shortName) || name;
+    };
+
+    // Build tknRef → Figma variable name map using the same naming as stage 1
     for (const [colorName, ramp] of Object.entries(result.colorRamps)) {
       for (const [weightName, entry] of Object.entries(ramp)) {
-        this.rawVarNameMap[entry.stepName] = `${colorName}/${weightName}`;
+        this.rawVarNameMap[entry.stepName] = `${colorLabel(colorName)}/${weightName}`;
       }
     }
 
     const roleStepNames = config.roleStepNames || REF_VARIATION_KEYS;
 
-    // STAGE 1: Raw Color Ramps → "_raw" collection
-    if (scope === "all" || scope === "groups") {
-      const rawCol = await this.getOrCreateCollection("_raw");
+    // STAGE 1: Raw Color Ramps → raw collection (skipped when skipRawRamps is true)
+    if (!skipRaw && (scope === "all" || scope === "groups")) {
+      const rawCol = await this.getOrCreateCollection(rawName);
       const modeId = rawCol.modes[0].modeId;
       for (const [colorName, ramp] of Object.entries(result.colorRamps)) {
-        const vars = Object.entries(ramp).map(([weightName, entry]) => [`${colorName}/${weightName}`, "COLOR", entry.value, `L:${entry.contrast.light.ratio}(${entry.contrast.light.rating}) D:${entry.contrast.dark.ratio}(${entry.contrast.dark.rating})`]);
+        const cLabel = colorLabel(colorName);
+        const vars = Object.entries(ramp).map(([weightName, entry]) => [`${cLabel}/${weightName}`, "COLOR", entry.value, `L:${entry.contrast.light.ratio}(${entry.contrast.light.rating}) D:${entry.contrast.dark.ratio}(${entry.contrast.dark.rating})`]);
         await this.upsertVariables(rawCol, modeId, vars);
       }
     }
 
-    // STAGE 2: Semantic Role Tokens → "contextual" collection
+    // STAGE 2: Semantic Role Tokens → contextual collection
     if (scope === "all" || scope === "roles") {
-      const contextualCol = await this.getOrCreateCollection("contextual");
-      const rawCol = await this.getOrCreateCollection("_raw");
+      const contextualCol = await this.getOrCreateCollection(contextualName);
+      const rawCol = skipRaw ? null : await this.getOrCreateCollection(rawName);
 
       for (const theme of ["light", "dark"]) {
         const modeId = this.ensureMode(contextualCol, theme);
         for (const [colorName, roles] of Object.entries(result.colorTokens[theme])) {
           for (const [roleId, variations] of Object.entries(roles)) {
-            const roleName = (config.roles[roleId] && config.roles[roleId].name) || roleId;
+            const rName = (config.roles[roleId] && config.roles[roleId].name) || roleId;
+            const cLabel = colorLabel(colorName);
+            const rLabel = roleLabel(rName, parseInt(roleId));
             const vars = REF_VARIATION_KEYS.map((refKey, i) => {
               const token = variations[refKey];
               if (!token) return null;
               const dispName = roleStepNames[i] || refKey;
-              const figmaName = `${colorName}/${roleName}/${dispName}`;
-              const rawFigmaName = this.rawVarNameMap[token.tknRef];
-              const targetVar = rawFigmaName ? this.cache.variables.find((cv) => cv.name === rawFigmaName && cv.variableCollectionId === rawCol.id) : null;
-              const value = targetVar ? { type: "VARIABLE_ALIAS", id: targetVar.id } : token.value;
+              const figmaName = tokenGrouping === "role"
+                ? `${rLabel}/${cLabel}/${dispName}`
+                : `${cLabel}/${rLabel}/${dispName}`;
+              let value;
+              if (skipRaw) {
+                value = token.value;
+              } else {
+                const rawFigmaName = this.rawVarNameMap[token.tknRef];
+                const targetVar = rawFigmaName ? this.cache.variables.find((cv) => cv.name === rawFigmaName && cv.variableCollectionId === rawCol.id) : null;
+                value = targetVar ? { type: "VARIABLE_ALIAS", id: targetVar.id } : token.value;
+              }
               const note = token.isAdjusted ? " | ⚠ Adjusted" : "";
               return [figmaName, "COLOR", value, `${theme.toUpperCase()}${note}`];
             }).filter(Boolean);
@@ -259,7 +315,28 @@ const VariableManager = {
       }
     }
 
+    // Persist config so the plugin can restore state on next launch
+    if (appState) {
+      await this.saveConfig(appState, rawName);
+    }
+
     figma.ui.postMessage({ type: "finish", tally: this.tally, errors: result ? result.errors : null });
+  },
+
+  async saveConfig(appState, rawName) {
+    try {
+      const targetName = appState.skipRawRamps
+        ? (appState.contextualCollectionName || "contextual")
+        : rawName;
+      const rawCol = await this.getOrCreateCollection(targetName);
+      const modeId = rawCol.modes[0].modeId;
+      let cfgVar = this.cache.variables.find((v) => v.name === "__ctm316_config__" && v.variableCollectionId === rawCol.id);
+      if (!cfgVar) {
+        cfgVar = figma.variables.createVariable("__ctm316_config__", rawCol, "STRING");
+        this.cache.variables.push(cfgVar);
+      }
+      cfgVar.setValueForMode(modeId, JSON.stringify(appState));
+    } catch (_) {}
   },
 
   async refreshCache() {

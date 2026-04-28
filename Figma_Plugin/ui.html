@@ -80,6 +80,24 @@
         opacity: 1;
         pointer-events: auto;
       }
+      .toggle-pill {
+        width: 40px; height: 22px; border-radius: 11px;
+        background: var(--border); border: none; cursor: pointer;
+        position: relative; transition: background 0.2s; flex-shrink: 0;
+      }
+      .toggle-pill::after {
+        content: ""; position: absolute; top: 3px; left: 3px;
+        width: 16px; height: 16px; border-radius: 50%;
+        background: var(--text-muted); transition: transform 0.2s, background 0.2s;
+      }
+      .toggle-pill.on { background: var(--accent); }
+      .toggle-pill.on::after { transform: translateX(18px); background: #fff; }
+      .seg-btn {
+        flex: 1; height: 34px; border: 1px solid var(--border); background: var(--bg-input);
+        color: var(--text-muted); font-size: 12px; font-weight: 600; border-radius: 8px;
+        cursor: pointer; transition: all 0.15s;
+      }
+      .seg-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
       .chevron {
         transition: transform 0.2s ease;
       }
@@ -406,6 +424,21 @@
             </div>
           </div>
 
+          <!-- Figma Collections Section -->
+          <div class="space-y-3">
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-1">Figma Collections</h3>
+            <div class="flex gap-3">
+              <div class="flex-1 space-y-1">
+                <label for="setting-rawCollectionName" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Raw colors collection</label>
+                <input type="text" id="setting-rawCollectionName" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" placeholder="_raw" />
+              </div>
+              <div class="flex-1 space-y-1">
+                <label for="setting-contextualCollectionName" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Contextual tokens collection</label>
+                <input type="text" id="setting-contextualCollectionName" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" placeholder="contextual" />
+              </div>
+            </div>
+          </div>
+
           <!-- Color Settings Section -->
           <div class="space-y-3">
             <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-1">Color Settings</h3>
@@ -448,6 +481,52 @@
             <div class="space-y-1">
               <label for="setting-roleStepNames" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Role Variation Names (CSV)</label>
               <input type="text" id="setting-roleStepNames" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" />
+            </div>
+          </div>
+
+          <!-- Output Options Section -->
+          <div class="space-y-3">
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-1">Output Options</h3>
+
+            <!-- Skip raw ramps -->
+            <div class="flex items-center justify-between p-3 bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)]">
+              <div>
+                <p class="text-[13px] font-medium text-[var(--text-primary)]">Skip Raw Ramps</p>
+                <p class="text-[11px] text-[var(--text-muted)] mt-0.5">Use hex values directly, no raw collection</p>
+              </div>
+              <button id="toggle-skipRawRamps" class="toggle-pill" onclick="toggleBoolSetting('skipRawRamps')"></button>
+            </div>
+
+            <!-- Token grouping -->
+            <div class="space-y-1">
+              <label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Token Grouping</label>
+              <div class="flex gap-2">
+                <button id="seg-group-color" class="seg-btn" onclick="setTokenGrouping('color')">By Color&nbsp;&nbsp;color/role/step</button>
+                <button id="seg-group-role" class="seg-btn" onclick="setTokenGrouping('role')">By Role&nbsp;&nbsp;role/color/step</button>
+              </div>
+            </div>
+
+            <!-- Name format -->
+            <div class="space-y-2">
+              <label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Variable Name Format</label>
+              <div class="flex items-center justify-between p-3 bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)]">
+                <div>
+                  <p class="text-[13px] font-medium text-[var(--text-primary)]">Short names — Colors</p>
+                  <p class="text-[11px] text-[var(--text-muted)] mt-0.5" id="preview-color-name-format">e.g. primary → pr</p>
+                </div>
+                <button id="toggle-useShortColorNames" class="toggle-pill" onclick="toggleBoolSetting('useShortColorNames')"></button>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)]">
+                <div>
+                  <p class="text-[13px] font-medium text-[var(--text-primary)]">Short names — Roles</p>
+                  <p class="text-[11px] text-[var(--text-muted)] mt-0.5" id="preview-role-name-format">e.g. Text → tx</p>
+                </div>
+                <button id="toggle-useShortRoleNames" class="toggle-pill" onclick="toggleBoolSetting('useShortRoleNames')"></button>
+              </div>
+              <div class="bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] px-3 py-2">
+                <p class="text-[11px] text-[var(--text-muted)]">Preview:</p>
+                <p id="name-format-preview" class="text-[12px] font-mono text-[var(--accent)] mt-0.5"></p>
+              </div>
             </div>
           </div>
         </div>
@@ -660,6 +739,63 @@
       </div>
 
       <!-- Confirmation Overlay -->
+      <!-- Run Review Dialog: shown before every sync so user can verify settings -->
+      <div id="run-dialog-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)] z-[60] flex flex-col">
+        <div class="px-4 py-3 flex items-center justify-between border-b border-[var(--border)]">
+          <h2 class="text-[17px] font-bold text-[var(--text-primary)]">Ready to Apply</h2>
+          <button onclick="hideOverlay('run-dialog-overlay')" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold text-[var(--text-primary)]">Cancel</button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+          <p class="text-[12px] text-[var(--text-muted)]">Review your configuration before writing to Figma. Changes to existing collections and variables cannot be undone automatically.</p>
+
+          <!-- Collections -->
+          <div class="space-y-2">
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px]">COLLECTIONS</h3>
+            <div id="run-dialog-collections" class="space-y-1.5"></div>
+          </div>
+
+          <!-- Output settings summary -->
+          <div class="space-y-2">
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px]">OUTPUT SETTINGS</h3>
+            <div id="run-dialog-options" class="space-y-1"></div>
+          </div>
+
+          <!-- Colors & Roles summary -->
+          <div class="space-y-2">
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px]">COLORS & ROLES</h3>
+            <div id="run-dialog-contents" class="space-y-1"></div>
+          </div>
+
+          <!-- Warnings (existing collections) -->
+          <div id="run-dialog-warnings" class="hidden bg-[var(--warning)]/10 border border-[var(--warning)]/30 rounded-[8px] p-3 space-y-1">
+            <p class="text-[12px] font-bold text-[var(--warning)]">⚠ Existing Collections Detected</p>
+            <p id="run-dialog-warning-text" class="text-[11px] text-[var(--text-muted)]"></p>
+          </div>
+        </div>
+        <div class="p-4 border-t border-[var(--border)] space-y-2">
+          <button id="btn-run-confirm" class="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] py-3.5 rounded-xl font-bold transition-all shadow-lg shadow-[var(--accent-glow)] text-white text-[14px]">Apply to Figma</button>
+        </div>
+      </div>
+
+      <!-- Confirm Sync Overlay: shown when target collections already exist -->
+      <div id="confirm-sync-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)]/95 backdrop-blur-sm z-[60] flex items-center justify-center p-6 text-center flex-col gap-6">
+        <div class="w-20 h-20 bg-[var(--warning)]/10 rounded-full flex items-center justify-center text-[var(--warning)]">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold mb-2">Collections Already Exist</h2>
+          <p class="text-[var(--text-muted)] text-sm leading-relaxed">The collection(s) <span id="confirm-sync-names" class="text-[var(--text-primary)] font-semibold"></span> already exist in this file. Variables inside them will be updated.</p>
+        </div>
+        <div class="w-full space-y-3">
+          <button id="btn-sync-confirm" class="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] py-3.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-[var(--accent)]/20 text-white">Yes, Update Them</button>
+          <button onclick="hideOverlay('confirm-sync-overlay')" class="w-full text-[var(--text-dim)] hover:text-[var(--text-primary)] py-2 text-sm transition-colors">Cancel</button>
+        </div>
+      </div>
+
       <div id="confirm-import-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)]/95 backdrop-blur-sm z-[60] flex items-center justify-center p-6 text-center flex-col gap-6">
         <div class="w-20 h-20 bg-[var(--warning)]/10 rounded-full flex items-center justify-center text-[var(--warning)]">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -703,6 +839,12 @@
        */
       const demoConfig = {
         name: "CTM316",
+        rawCollectionName: "_raw",
+        contextualCollectionName: "contextual",
+        skipRawRamps: false,
+        tokenGrouping: "color",
+        useShortColorNames: false,
+        useShortRoleNames: false,
         colorSteps: 25,
         rampType: "Balanced",
         colorStepNames: "",
@@ -1262,46 +1404,39 @@
 
           const variations = (appState.roleVariationsNames || "weakest, weak, base, strong, stronger").split(",").map((v) => v.trim());
 
+          const trashSvg = `<svg width="14" height="14" viewBox="0 0 12 14" fill="none"><path d="M8.00021 1.98568C8.00021 1.4562 7.5944 1.03371 7.09136 1.01758C6.72911 1.00599 6.36531 1 6.00021 1C5.63511 1 5.27131 1.00599 4.90906 1.01758C4.40602 1.03371 4.00021 1.4562 4.00021 1.98568V2.0612C4.6618 2.02102 5.32864 2 6.00021 2C6.67179 2 7.33862 2.02102 8.00021 2.0612V1.98568ZM6.00021 3C5.17177 3 4.35078 3.03229 3.53862 3.09505C2.92606 3.14239 2.31853 3.20784 1.71636 3.28971L2.39214 12.0768C2.43227 12.5978 2.86704 13 3.38953 13H8.61089C9.13338 13 9.56815 12.5978 9.60828 12.0768L10.2834 3.28971C9.68144 3.20789 9.07415 3.14237 8.4618 3.09505C7.64964 3.03229 6.82865 3 6.00021 3ZM4.15386 4.50065C4.42969 4.49004 4.66196 4.70468 4.67274 4.98047L4.90386 10.9805C4.91447 11.2564 4.69927 11.4887 4.42339 11.4993C4.14756 11.51 3.91529 11.2953 3.90451 11.0195L3.67339 5.01953C3.66278 4.74367 3.87803 4.51138 4.15386 4.50065ZM7.84656 4.50065C8.12239 4.51138 8.33764 4.74367 8.32703 5.01953L8.09591 11.0195C8.08513 11.2953 7.85287 11.51 7.57703 11.4993C7.30115 11.4887 7.08595 11.2564 7.09656 10.9805L7.32768 4.98047C7.33846 4.70468 7.57073 4.49004 7.84656 4.50065ZM9.00021 2.13737C9.63667 2.19563 10.2681 2.27144 10.8934 2.36589C11.125 2.40085 11.3556 2.43869 11.5855 2.47852C11.8575 2.52564 12.04 2.78399 11.993 3.05599C11.9459 3.32806 11.687 3.51064 11.4149 3.46354C11.3684 3.45548 11.3216 3.44861 11.2749 3.44076L10.605 12.1536C10.5247 13.1955 9.65587 14 8.61089 14H3.38953C2.34455 14 1.47568 13.1955 1.39539 12.1536L0.72482 3.44076C0.678419 3.44858 0.631829 3.45552 0.585497 3.46354C0.313427 3.51064 0.0545012 3.32806 0.00737211 3.05599C-0.0396145 2.78399 0.142913 2.52563 0.414924 2.47852C0.644818 2.43869 0.875465 2.40085 1.10698 2.36589C1.73236 2.27144 2.36375 2.19563 3.00021 2.13737V1.98568C3.00021 0.9427 3.80857 0.0524197 4.87716 0.0182292C5.25006 0.00630041 5.62445 0 6.00021 0C6.37597 0 6.75036 0.00630037 7.12326 0.0182292C8.19185 0.0524197 9.00021 0.9427 9.00021 1.98568V2.13737Z" fill="currentColor"/></svg>`;
+
           appState.roles.forEach((role, idx) => {
             const card = document.createElement("div");
-            card.className = "bg-[var(--bg-card)] rounded-[12px] border border-[var(--border)] p-3 space-y-3 mb-2";
+            card.className = "bg-[var(--bg-card)] rounded-[12px] border border-[var(--border)] p-3 space-y-2 mb-2";
 
             const mappingMethod = appState.roleMapping || "Contrast Based";
+            const mid = Math.floor(appState.colorSteps / 2);
 
-            let inputsHtml = "";
+            let secondRowHtml = "";
             if (mappingMethod === "Contrast Based") {
-              inputsHtml = `
-                <div class="grid grid-cols-[1fr_0.5fr_0.5fr] items-end gap-2">
+              secondRowHtml = `
+                <div class="grid grid-cols-2 gap-2">
                   <div class="space-y-1">
-                    <label for="role-${idx}-name" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Role Name</label>
-                    <input type="text" id="role-${idx}-name" value="${role.name || ""}" oninput="updateRole(${idx}, 'name', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
-                  </div>
-                  <div class="space-y-1">
-                    <label for="role-${idx}-contrast" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Contrast</label>
+                    <label for="role-${idx}-contrast" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Min Contrast</label>
                     <input type="number" id="role-${idx}-contrast" step="0.1" value="${role.minContrast || "4.5"}" onchange="updateRole(${idx}, 'minContrast', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
                   </div>
                   <div class="space-y-1">
                     <label for="role-${idx}-spread" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Spread</label>
                     <input type="number" id="role-${idx}-spread" value="${role.spread || 1}" onchange="updateRole(${idx}, 'spread', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
                   </div>
-                </div>
-              `;
+                </div>`;
             } else {
-              const mid = Math.floor(appState.colorSteps / 2);
               const lightBase = (role.baseIndex !== undefined ? role.baseIndex : mid) + 1;
               const darkBase = (role.darkBaseIndex !== undefined ? role.darkBaseIndex : role.baseIndex !== undefined ? role.baseIndex : mid) + 1;
-              inputsHtml = `
-                <div class="grid grid-cols-[1fr_0.5fr_0.5fr_0.5fr] items-end gap-2">
+              secondRowHtml = `
+                <div class="grid grid-cols-3 gap-2">
                   <div class="space-y-1">
-                    <label for="role-${idx}-name" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Role Name</label>
-                    <input type="text" id="role-${idx}-name" value="${role.name || ""}" oninput="updateRole(${idx}, 'name', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
-                  </div>
-                  <div class="space-y-1">
-                    <label for="role-${idx}-base" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Base ☀️ (1-${appState.colorSteps})</label>
+                    <label for="role-${idx}-base" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Base ☀️</label>
                     <input type="number" id="role-${idx}-base" value="${lightBase}" min="1" max="${appState.colorSteps}" onchange="updateRole(${idx}, 'baseIndex', parseInt(this.value) - 1)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
                   </div>
                   <div class="space-y-1">
-                    <label for="role-${idx}-darkbase" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Base 🌙 (1-${appState.colorSteps})</label>
+                    <label for="role-${idx}-darkbase" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Base 🌙</label>
                     <input type="number" id="role-${idx}-darkbase" value="${darkBase}" min="1" max="${appState.colorSteps}" onchange="updateRole(${idx}, 'darkBaseIndex', parseInt(this.value) - 1)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
                   </div>
                   <div class="space-y-1">
@@ -1312,11 +1447,18 @@
             }
 
             card.innerHTML = `
-                <div class="grid grid-cols-[1fr_40px] items-end gap-2">${inputsHtml}
-                  <button onclick="removeRole(${idx})" class="bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/20 size-[40px] shrink-0 flex items-center justify-center rounded-[10px] transition-all hover:bg-[var(--danger)]/20">
-                    <svg width="14" height="14" viewBox="0 0 12 14" fill="none"><path d="M8.00021 1.98568C8.00021 1.4562 7.5944 1.03371 7.09136 1.01758C6.72911 1.00599 6.36531 1 6.00021 1C5.63511 1 5.27131 1.00599 4.90906 1.01758C4.40602 1.03371 4.00021 1.4562 4.00021 1.98568V2.0612C4.6618 2.02102 5.32864 2 6.00021 2C6.67179 2 7.33862 2.02102 8.00021 2.0612V1.98568ZM6.00021 3C5.17177 3 4.35078 3.03229 3.53862 3.09505C2.92606 3.14239 2.31853 3.20784 1.71636 3.28971L2.39214 12.0768C2.43227 12.5978 2.86704 13 3.38953 13H8.61089C9.13338 13 9.56815 12.5978 9.60828 12.0768L10.2834 3.28971C9.68144 3.20789 9.07415 3.14237 8.4618 3.09505C7.64964 3.03229 6.82865 3 6.00021 3ZM4.15386 4.50065C4.42969 4.49004 4.66196 4.70468 4.67274 4.98047L4.90386 10.9805C4.91447 11.2564 4.69927 11.4887 4.42339 11.4993C4.14756 11.51 3.91529 11.2953 3.90451 11.0195L3.67339 5.01953C3.66278 4.74367 3.87803 4.51138 4.15386 4.50065ZM7.84656 4.50065C8.12239 4.51138 8.33764 4.74367 8.32703 5.01953L8.09591 11.0195C8.08513 11.2953 7.85287 11.51 7.57703 11.4993C7.30115 11.4887 7.08595 11.2564 7.09656 10.9805L7.32768 4.98047C7.33846 4.70468 7.57073 4.49004 7.84656 4.50065ZM9.00021 2.13737C9.63667 2.19563 10.2681 2.27144 10.8934 2.36589C11.125 2.40085 11.3556 2.43869 11.5855 2.47852C11.8575 2.52564 12.04 2.78399 11.993 3.05599C11.9459 3.32806 11.687 3.51064 11.4149 3.46354C11.3684 3.45548 11.3216 3.44861 11.2749 3.44076L10.605 12.1536C10.5247 13.1955 9.65587 14 8.61089 14H3.38953C2.34455 14 1.47568 13.1955 1.39539 12.1536L0.72482 3.44076C0.678419 3.44858 0.631829 3.45552 0.585497 3.46354C0.313427 3.51064 0.0545012 3.32806 0.00737211 3.05599C-0.0396145 2.78399 0.142913 2.52563 0.414924 2.47852C0.644818 2.43869 0.875465 2.40085 1.10698 2.36589C1.73236 2.27144 2.36375 2.19563 3.00021 2.13737V1.98568C3.00021 0.9427 3.80857 0.0524197 4.87716 0.0182292C5.25006 0.00630041 5.62445 0 6.00021 0C6.37597 0 6.75036 0.00630037 7.12326 0.0182292C8.19185 0.0524197 9.00021 0.9427 9.00021 1.98568V2.13737Z" fill="currentColor"/></svg>
-                  </button>
-              </div>`;
+              <div class="flex items-end gap-2">
+                <div class="flex-1 space-y-1">
+                  <label for="role-${idx}-name" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Role Name</label>
+                  <input type="text" id="role-${idx}-name" value="${role.name || ""}" oninput="updateRole(${idx}, 'name', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
+                </div>
+                <div class="w-[72px] space-y-1">
+                  <label for="role-${idx}-short" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Short</label>
+                  <input type="text" id="role-${idx}-short" value="${role.shortName || ""}" oninput="updateRole(${idx}, 'shortName', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
+                </div>
+                <button onclick="removeRole(${idx})" class="bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/20 size-[40px] shrink-0 flex items-center justify-center rounded-[10px] transition-all hover:bg-[var(--danger)]/20">${trashSvg}</button>
+              </div>
+              ${secondRowHtml}`;
             fragment.appendChild(card);
           });
 
@@ -1419,8 +1561,43 @@
         renderRoles();
       }
 
+      function toggleBoolSetting(key) {
+        appState[key] = !appState[key];
+        syncOutputToggles();
+      }
+
+      function setTokenGrouping(val) {
+        appState.tokenGrouping = val;
+        syncOutputToggles();
+      }
+
+      function syncOutputToggles() {
+        ["skipRawRamps", "useShortColorNames", "useShortRoleNames"].forEach((key) => {
+          const btn = document.getElementById("toggle-" + key);
+          if (btn) btn.classList.toggle("on", !!appState[key]);
+        });
+        const tg = appState.tokenGrouping || "color";
+        const btnColor = document.getElementById("seg-group-color");
+        const btnRole = document.getElementById("seg-group-role");
+        if (btnColor) btnColor.classList.toggle("active", tg === "color");
+        if (btnRole) btnRole.classList.toggle("active", tg === "role");
+        // Update name format preview
+        const sampleColor = appState.colors && appState.colors[0];
+        const sampleRole = appState.roles && appState.roles[0];
+        if (sampleColor && sampleRole) {
+          const cLabel = appState.useShortColorNames ? (sampleColor.shortName || sampleColor.name) : sampleColor.name;
+          const rLabel = appState.useShortRoleNames ? (sampleRole.shortName || sampleRole.name) : sampleRole.name;
+          const stepLabel = (appState.roleStepNames || "base").split(",")[2]?.trim() || "base";
+          const preview = tg === "role" ? `${rLabel}/${cLabel}/${stepLabel}` : `${cLabel}/${rLabel}/${stepLabel}`;
+          const el = document.getElementById("name-format-preview");
+          if (el) el.textContent = preview;
+        }
+      }
+
       function updateSettingsFromInputs() {
         appState.name = document.getElementById("setting-name").value;
+        appState.rawCollectionName = document.getElementById("setting-rawCollectionName").value.trim() || "_raw";
+        appState.contextualCollectionName = document.getElementById("setting-contextualCollectionName").value.trim() || "contextual";
         const sanitizeHex = (id) => {
           const el = document.getElementById(id);
           const clean = el.value
@@ -1456,6 +1633,9 @@
 
       function syncInputsFromState() {
         document.getElementById("setting-name").value = appState.name || "";
+        document.getElementById("setting-rawCollectionName").value = appState.rawCollectionName || "_raw";
+        document.getElementById("setting-contextualCollectionName").value = appState.contextualCollectionName || "contextual";
+        syncOutputToggles();
         const themes = appState.themes || [{ bg: "FFFFFF" }, { bg: "000000" }];
         document.getElementById("setting-light-bg").value = themes[0].bg;
         document.getElementById("setting-dark-bg").value = themes[1].bg;
@@ -1475,10 +1655,42 @@
        * 6. DATA PERSISTENCE & ASYNC BRIDGE
        * Handlers for Figma API syncing, file imports, and data exports.
        */
-      function handleSubmit() {
+      function validateUniqueness() {
+        const colorNames = appState.colors.map((c) => c.name.trim().toLowerCase()).filter(Boolean);
+        const colorShorts = appState.colors.map((c) => (c.shortName || "").trim().toLowerCase()).filter(Boolean);
+        const roleNames = appState.roles.map((r) => r.name.trim().toLowerCase()).filter(Boolean);
+        const roleShorts = appState.roles.map((r) => (r.shortName || "").trim().toLowerCase()).filter(Boolean);
+        const hasDup = (arr) => new Set(arr).size !== arr.length;
+        if (hasDup(colorNames)) return "Two or more color groups share the same name. Each color name must be unique.";
+        if (colorShorts.length && hasDup(colorShorts)) return "Two or more color groups share the same short name. Each color short name must be unique.";
+        if (hasDup(roleNames)) return "Two or more roles share the same name. Each role name must be unique.";
+        if (roleShorts.length && hasDup(roleShorts)) return "Two or more roles share the same short name. Each role short name must be unique.";
+        return null;
+      }
+
+      let pendingScope = "all";
+
+      function handleSubmit(scope = "all") {
+        const dupError = validateUniqueness();
+        if (dupError) {
+          showOverlay("error-overlay");
+          document.getElementById("error-message").textContent = dupError;
+          return;
+        }
+        pendingScope = scope;
+        parent.postMessage({
+          pluginMessage: {
+            type: "check-collections",
+            rawName: appState.rawCollectionName || "_raw",
+            contextualName: appState.contextualCollectionName || "contextual",
+          },
+        }, "*");
+      }
+
+      function proceedWithSync() {
         showOverlay("loading-overlay");
         setTimeout(() => {
-          parent.postMessage({ pluginMessage: { type: "run-creater", state: appState } }, "*");
+          parent.postMessage({ pluginMessage: { type: "run-creater", state: appState, scope: pendingScope } }, "*");
         }, 50);
       }
 
@@ -1659,7 +1871,7 @@
         hideSheets();
       };
       document.getElementById("close-more").onclick = hideSheets;
-      document.getElementById("btn-run").onclick = handleSubmit;
+      document.getElementById("btn-run").onclick = () => handleSubmit("all");
       document.getElementById("btn-import").onclick = () => document.getElementById("file-input").click();
 
       document.getElementById("btn-preview").onclick = () => {
@@ -1688,24 +1900,9 @@
       renderColorGroups();
 
       // Update Options
-      document.getElementById("opt-update-all").onclick = () => {
-        handleSubmit();
-        hideSheets();
-      };
-      document.getElementById("opt-update-groups").onclick = () => {
-        showOverlay("loading-overlay");
-        setTimeout(() => {
-          parent.postMessage({ pluginMessage: { type: "run-creater", scope: "groups", state: appState } }, "*");
-        }, 50);
-        hideSheets();
-      };
-      document.getElementById("opt-update-roles").onclick = () => {
-        showOverlay("loading-overlay");
-        setTimeout(() => {
-          parent.postMessage({ pluginMessage: { type: "run-creater", scope: "roles", state: appState } }, "*");
-        }, 50);
-        hideSheets();
-      };
+      document.getElementById("opt-update-all").onclick = () => { handleSubmit("all"); hideSheets(); };
+      document.getElementById("opt-update-groups").onclick = () => { handleSubmit("groups"); hideSheets(); };
+      document.getElementById("opt-update-roles").onclick = () => { handleSubmit("roles"); hideSheets(); };
 
       // Export Options
       document.getElementById("opt-save-config").onclick = () => {
@@ -1844,8 +2041,102 @@
        * 7. BACKEND COMMUNICATION HUB (FIGMA BRIDGE)
        * Handles all incoming postMessage traffic from code.js.
        */
+      document.getElementById("btn-sync-confirm").onclick = () => {
+        hideOverlay("confirm-sync-overlay");
+        proceedWithSync();
+      };
+
+      document.getElementById("btn-run-confirm").onclick = () => {
+        hideOverlay("run-dialog-overlay");
+        proceedWithSync();
+      };
+
+      function populateRunDialog(existingCollections) {
+        const rawName = appState.rawCollectionName || "_raw";
+        const ctxName = appState.contextualCollectionName || "contextual";
+        const skipRaw = appState.skipRawRamps;
+        const tg = appState.tokenGrouping || "color";
+        const shortC = appState.useShortColorNames;
+        const shortR = appState.useShortRoleNames;
+
+        // Collections section
+        const colsEl = document.getElementById("run-dialog-collections");
+        const collectionRows = [];
+        if (!skipRaw) {
+          const rawExists = existingCollections.includes(rawName);
+          collectionRows.push(`<div class="flex items-center justify-between bg-[var(--bg-card)] border border-[var(--border)] rounded-[8px] px-3 py-2">
+            <span class="text-[13px] text-[var(--text-primary)] font-mono">${rawName}</span>
+            <span class="text-[11px] font-bold ${rawExists ? "text-[var(--warning)]" : "text-[var(--success)]"}">${rawExists ? "UPDATE" : "CREATE"}</span>
+          </div>`);
+        }
+        const ctxExists = existingCollections.includes(ctxName);
+        collectionRows.push(`<div class="flex items-center justify-between bg-[var(--bg-card)] border border-[var(--border)] rounded-[8px] px-3 py-2">
+          <span class="text-[13px] text-[var(--text-primary)] font-mono">${ctxName}</span>
+          <span class="text-[11px] font-bold ${ctxExists ? "text-[var(--warning)]" : "text-[var(--success)]"}">${ctxExists ? "UPDATE" : "CREATE"}</span>
+        </div>`);
+        colsEl.innerHTML = collectionRows.join("");
+
+        // Options section
+        const sampleColor = appState.colors[0] || { name: "Primary", shortName: "pr" };
+        const sampleRole = appState.roles[0] || { name: "Text", shortName: "tx" };
+        const cLabel = shortC ? (sampleColor.shortName || sampleColor.name) : sampleColor.name;
+        const rLabel = shortR ? (sampleRole.shortName || sampleRole.name) : sampleRole.name;
+        const stepLabel = (appState.roleStepNames || "weakest, weak, base").split(",")[2]?.trim() || "base";
+        const exampleName = tg === "role" ? `${rLabel}/${cLabel}/${stepLabel}` : `${cLabel}/${rLabel}/${stepLabel}`;
+        const optsEl = document.getElementById("run-dialog-options");
+        optsEl.innerHTML = [
+          row("Raw Color Ramps", skipRaw ? "Skipped — values embedded directly" : "Enabled (raw collection)"),
+          row("Token Structure", tg === "role" ? "Grouped by Role (role/color/step)" : "Grouped by Color (color/role/step)"),
+          row("Color Names", shortC ? "Short names" : "Full names"),
+          row("Role Names", shortR ? "Short names" : "Full names"),
+          row("Example Variable", `<span class="font-mono text-[var(--accent)]">${exampleName}</span>`),
+        ].join("");
+
+        // Colors & roles
+        const contentsEl = document.getElementById("run-dialog-contents");
+        const colorList = appState.colors.map((c) => `<span class="font-mono">${c.name}${c.shortName ? ` (${c.shortName})` : ""}</span>`).join(", ");
+        const roleList = appState.roles.map((r) => `<span class="font-mono">${r.name}${r.shortName ? ` (${r.shortName})` : ""}</span>`).join(", ");
+        contentsEl.innerHTML = [
+          row("Colors", `${appState.colors.length} group(s): ${colorList}`),
+          row("Roles", `${appState.roles.length} role(s): ${roleList}`),
+          row("Color Steps", String(appState.colorSteps || 25)),
+        ].join("");
+
+        // Warnings
+        const warnEl = document.getElementById("run-dialog-warnings");
+        if (existingCollections.length > 0) {
+          warnEl.classList.remove("hidden");
+          document.getElementById("run-dialog-warning-text").textContent =
+            `The collection(s) ${existingCollections.map((n) => `"${n}"`).join(" and ")} already exist. Variables inside them will be added or updated. No existing variables will be deleted.`;
+        } else {
+          warnEl.classList.add("hidden");
+        }
+
+        function row(label, value) {
+          return `<div class="flex items-start justify-between gap-2 text-[12px] py-1 border-b border-[var(--border)]/50">
+            <span class="text-[var(--text-muted)] shrink-0">${label}</span>
+            <span class="text-[var(--text-primary)] text-right">${value}</span>
+          </div>`;
+        }
+      }
+
       window.onmessage = (event) => {
         const msg = event.data.pluginMessage;
+
+        if (msg.type === "collection-check-result") {
+          populateRunDialog(msg.existing);
+          showOverlay("run-dialog-overlay");
+          return;
+        }
+
+        if (msg.type === "load-config") {
+          // Silently restore saved state without showing any overlay
+          appState = Object.assign({}, JSON.parse(JSON.stringify(demoConfig)), msg.state);
+          renderColorGroups();
+          renderRoles();
+          syncInputsFromState();
+          return;
+        }
 
         if (msg.type === "processed-data-response") {
           const { content, exportType } = msg;
