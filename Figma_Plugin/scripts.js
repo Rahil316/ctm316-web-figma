@@ -87,7 +87,8 @@ function translateConfig(appState) {
       shortName: role.shortName || role.name.substring(0, 2).toLowerCase(),
       minContrast: String(role.minContrast !== undefined ? role.minContrast : "4.5"),
       spread: Math.max(1, parseInt(role.spread) || 1),
-      baseIndex: Math.max(0, (parseInt(role.baseWeight) || 1) - 1),
+      baseIndex: role.baseIndex !== undefined ? parseInt(role.baseIndex) : 0,
+      darkBaseIndex: role.darkBaseIndex !== undefined ? parseInt(role.darkBaseIndex) : undefined,
     })),
     colorSteps: count,
     rampType: appState.rampType || "Balanced",
@@ -566,7 +567,9 @@ function variableMaker(config) {
           const cStart = clrRampsCollection[clrName][stepNames[0]].contrast[modeName].ratio;
           const contrastGrowthDir = cEnd > cStart ? 1 : -1;
 
-          let baseIdx = role.baseIndex !== undefined ? parseInt(role.baseIndex) : rampLength >> 1;
+          const isDark = modeName === "dark";
+          const rawBase = isDark && role.darkBaseIndex !== undefined ? role.darkBaseIndex : role.baseIndex;
+          let baseIdx = rawBase !== undefined ? parseInt(rawBase) : rampLength >> 1;
           const maxOffset = 2 * spread;
           const minAllowed = maxOffset;
           const maxAllowed = rampLength - 1 - maxOffset;

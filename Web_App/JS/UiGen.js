@@ -182,7 +182,6 @@ function createRawSection(colorRamps) {
 }
 
 function createThemeSection(colorTokens, theme) {
-  const themeName = theme.charAt(0).toUpperCase() + theme.slice(1);
   const isDark = theme === "dark";
   const pillClass = isDark
     ? "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-black/70 text-[var(--text-primary)] border border-white/10"
@@ -403,7 +402,7 @@ function createColorGroupsSection(colorScheme) {
     const newGroup = {
       name: `color${colorScheme.colors.length + 1}`,
       shortName: `C${colorScheme.colors.length + 1}`,
-      value: "000000",
+      value: "888888",
     };
     colorScheme.colors.unshift(newGroup);
     createColorInputs(colorScheme, (updated) => {
@@ -504,12 +503,14 @@ function createRolesSection(colorScheme, onUpdate) {
   addButton.textContent = "+ Add Role";
   addButton.onclick = () => {
     const roleId = colorScheme.roles.length + 1;
+    const mid = Math.floor(colorScheme.colorSteps / 2);
     colorScheme.roles.unshift({
       name: "Role " + roleId,
       shortName: `r-${roleId}`,
       minContrast: 4.5,
       spread: 2,
-      baseIndex: Math.floor(colorScheme.colorSteps / 2),
+      baseIndex: mid,
+      darkBaseIndex: mid,
     });
     createColorInputs(colorScheme, (updated) => {
       window.currentEditableScheme = updated;
@@ -526,7 +527,7 @@ function createRolesSection(colorScheme, onUpdate) {
     const role = colorScheme.roles[roleKey];
     const roleDiv = document.createElement("div");
     const roleInputs = document.createElement("div");
-    roleInputs.className = "grid grid-cols-3 items-end gap-2";
+    roleInputs.className = `grid ${isManualMode ? "grid-cols-4" : "grid-cols-3"} items-end gap-2`;
     roleDiv.className = "bg-[var(--bg-card)] rounded-[10px] border border-[var(--border)] p-3 mb-2 flex flex-col gap-2";
     roleDiv.innerHTML = `
       <div class="flex justify-between items-center">
@@ -544,14 +545,16 @@ function createRolesSection(colorScheme, onUpdate) {
     roleInputs.appendChild(shortNameInput);
 
     if (isManualMode) {
-      const zeroBased = role.baseIndex !== undefined ? role.baseIndex : Math.floor(rampLength / 2);
-      const stepValue = zeroBased + 1;
+      const mid = Math.floor(rampLength / 2);
+      const zeroBased = role.baseIndex !== undefined ? role.baseIndex : mid;
+      const darkZeroBased = role.darkBaseIndex !== undefined ? role.darkBaseIndex : zeroBased;
+
       const baseStepDiv = document.createElement("div");
       baseStepDiv.className = "flex flex-col gap-1";
       baseStepDiv.innerHTML = `
-        <label class="text-[12px] font-medium text-[var(--text-muted)] ml-0.5">Base Step (1-${rampLength})</label>
+        <label class="text-[12px] font-medium text-[var(--text-muted)] ml-0.5">Base ☀️ (1-${rampLength})</label>
         <input type="number" class="h-10 w-full px-2 text-[13px] text-[var(--text-primary)] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] transition-colors duration-150 focus:outline-none focus:border-[var(--border-focus)]"
-          value="${stepValue}" min="1" max="${rampLength}">
+          value="${zeroBased + 1}" min="1" max="${rampLength}">
       `;
       const stepInput = baseStepDiv.querySelector("input");
       stepInput.onchange = (e) => {
@@ -563,6 +566,24 @@ function createRolesSection(colorScheme, onUpdate) {
         if (typeof onUpdate === "function") onUpdate(colorScheme);
       };
       roleInputs.appendChild(baseStepDiv);
+
+      const darkStepDiv = document.createElement("div");
+      darkStepDiv.className = "flex flex-col gap-1";
+      darkStepDiv.innerHTML = `
+        <label class="text-[12px] font-medium text-[var(--text-muted)] ml-0.5">Base 🌙 (1-${rampLength})</label>
+        <input type="number" class="h-10 w-full px-2 text-[13px] text-[var(--text-primary)] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] transition-colors duration-150 focus:outline-none focus:border-[var(--border-focus)]"
+          value="${darkZeroBased + 1}" min="1" max="${rampLength}">
+      `;
+      const darkStepInput = darkStepDiv.querySelector("input");
+      darkStepInput.onchange = (e) => {
+        let newStep = parseInt(e.target.value);
+        if (isNaN(newStep)) newStep = 1;
+        newStep = Math.min(rampLength, Math.max(1, newStep));
+        role.darkBaseIndex = newStep - 1;
+        e.target.value = newStep;
+        if (typeof onUpdate === "function") onUpdate(colorScheme);
+      };
+      roleInputs.appendChild(darkStepDiv);
     } else {
       const minContrastInput = createInput(`roles.${roleKey}.minContrast`, "Min Contrast", role.minContrast, "number");
       roleInputs.appendChild(minContrastInput);
@@ -834,15 +855,32 @@ function handleDroppedFile(file) {
 function createMainBtnGroup() {
   const container = document.getElementById("mainActionBtns");
   if (!container) return;
-  const btnClass = "h-10 px-4 bg-[var(--accent)] text-white rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--accent-hover)] shadow-[0_4px_12px_var(--accent-glow)] inline-flex items-center gap-1.5 whitespace-nowrap border-none";
+  const iconBtn = "bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors cursor-pointer text-[var(--text-primary)]";
   container.innerHTML = `
-    <button id="exportCss"    class="${btnClass}">Export CSS</button>
-    <button id="downloadCsv"  class="${btnClass}">Export CSV</button>
-    <button id="exportConfig" class="${btnClass}">Export Config</button>
-    <label for="importConfig" class="${btnClass} cursor-pointer">
-      Import Config
+    <button id="downloadCsv" title="Export CSV" class="${iconBtn}">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="12" height="12" rx="1.5"/>
+        <line x1="2" y1="6" x2="14" y2="6"/><line x1="2" y1="10" x2="14" y2="10"/>
+        <line x1="6" y1="6" x2="6" y2="14"/><line x1="10" y1="6" x2="10" y2="14"/>
+      </svg>
+    </button>
+    <button id="exportConfig" title="Export Config" class="${iconBtn}">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12.5 8.5C12.5 7.94772 12.0523 7.5 11.5 7.5V11.5C11.5 12.6046 10.6046 13.5 9.5 13.5H5.5C5.5 14.0523 5.94772 14.5 6.5 14.5H11.5C12.0523 14.5 12.5 14.0523 12.5 13.5V8.5ZM6.5 1C6.5 0.723858 6.72386 0.5 7 0.5C7.27614 0.5 7.5 0.723858 7.5 1V8.29297L8.64648 7.14648C8.84175 6.95122 9.15825 6.95122 9.35352 7.14648C9.54878 7.34175 9.54878 7.65825 9.35352 7.85352L7.35352 9.85352C7.25975 9.94728 7.13261 10 7 10C6.86739 10 6.74025 9.94728 6.64648 9.85352L4.64648 7.85352C4.45122 7.65825 4.45122 7.34175 4.64648 7.14648C4.84175 6.95122 5.15825 6.95122 5.35352 7.14648L6.5 8.29297V1ZM13.5 13.5C13.5 14.6046 12.6046 15.5 11.5 15.5H6.5C5.39543 15.5 4.5 14.6046 4.5 13.5C3.39543 13.5 2.5 12.6046 2.5 11.5V6.5C2.5 5.39543 3.39543 4.5 4.5 4.5H5C5.27614 4.5 5.5 4.72386 5.5 5C5.5 5.27614 5.27614 5.5 5 5.5H4.5C3.94772 5.5 3.5 5.94772 3.5 6.5V11.5C3.5 12.0523 3.94772 12.5 4.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6.5C10.5 5.94772 10.0523 5.5 9.5 5.5H9C8.72386 5.5 8.5 5.27614 8.5 5C8.5 4.72386 8.72386 4.5 9 4.5H9.5C10.6046 4.5 11.5 5.39543 11.5 6.5C12.6046 6.5 13.5 7.39543 13.5 8.5V13.5Z" fill="currentColor"/>
+      </svg>
+    </button>
+    <label for="importConfig" title="Import Config" class="${iconBtn}">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12.5 8.5C12.5 7.94772 12.0523 7.5 11.5 7.5V11.5C11.5 12.6046 10.6046 13.5 9.5 13.5H5.5C5.5 14.0523 5.94772 14.5 6.5 14.5H11.5C12.0523 14.5 12.5 14.0523 12.5 13.5V8.5ZM6.5 1C6.5 0.723858 6.72386 0.5 7 0.5C7.27614 0.5 7.5 0.723858 7.5 1V8.29297L8.64648 7.14648C8.84175 6.95122 9.15825 6.95122 9.35352 7.14648C9.54878 7.34175 9.54878 7.65825 9.35352 7.85352L7.35352 9.85352C7.15825 10.0488 6.84175 10.0488 6.64648 9.85352L4.64648 7.85352C4.45122 7.65825 4.45122 7.34175 4.64648 7.14648C4.84175 6.95122 5.15825 6.95122 5.35352 7.14648L6.5 8.29297V1ZM13.5 13.5C13.5 14.6046 12.6046 15.5 11.5 15.5H6.5C5.39543 15.5 4.5 14.6046 4.5 13.5C3.39543 13.5 2.5 12.6046 2.5 11.5V6.5C2.5 5.39543 3.39543 4.5 4.5 4.5H5C5.27614 4.5 5.5 4.72386 5.5 5C5.5 5.27614 5.27614 5.5 5 5.5H4.5C3.94772 5.5 3.5 5.94772 3.5 6.5V11.5C3.5 12.0523 3.94772 12.5 4.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6.5C10.5 5.94772 10.0523 5.5 9.5 5.5H9C8.72386 5.5 8.5 5.27614 8.5 5C8.5 4.72386 8.72386 4.5 9 4.5H9.5C10.6046 4.5 11.5 5.39543 11.5 6.5C12.6046 6.5 13.5 7.39543 13.5 8.5V13.5Z" fill="currentColor"/>
+      </svg>
       <input type="file" id="importConfig" accept=".json" class="hidden" />
     </label>
+    <button id="exportCss" class="bg-[var(--accent)] hover:bg-[var(--accent-hover)] flex items-center gap-2 px-4 py-2 rounded-[10px] transition-all shadow-[0_4px_12px_var(--accent-glow)] border-none cursor-pointer h-10">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
+        <path d="M2 2.5A.5.5 0 0 1 2.5 2h11a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H2.5a.5.5 0 0 1-.5-.5v-1ZM2 13.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5ZM2 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7Z" fill="white"/>
+      </svg>
+      <span class="text-[14px] font-bold text-white">Export CSS</span>
+    </button>
   `;
   const importInput = container.querySelector("#importConfig");
   if (importInput) {

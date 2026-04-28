@@ -738,10 +738,10 @@
           { name: "Gray", shortName: "gr", value: "808080" },
         ],
         roles: [
-          { name: "Text", shortName: "tx", spread: 2, minContrast: "4.5", baseWeight: 15 },
-          { name: "Fill", shortName: "fi", spread: 1, minContrast: "3.0", baseWeight: 10 },
-          { name: "Background", shortName: "bg", spread: 1, minContrast: "1.2", baseWeight: 5 },
-          { name: "Border", shortName: "br", spread: 1, minContrast: "2.0", baseWeight: 12 },
+          { name: "Text", shortName: "tx", spread: 2, minContrast: 4.5, baseIndex: 14 },
+          { name: "Fill", shortName: "fi", spread: 1, minContrast: 3.0, baseIndex: 9 },
+          { name: "Background", shortName: "bg", spread: 1, minContrast: 1.2, baseIndex: 4 },
+          { name: "Border", shortName: "br", spread: 1, minContrast: 2.0, baseIndex: 11 },
         ],
         themes: [
           { name: "Light", bg: "FFFFFF" },
@@ -973,7 +973,8 @@
             shortName: role.shortName || role.name.substring(0, 2).toLowerCase(),
             minContrast: String(role.minContrast !== undefined ? role.minContrast : "4.5"),
             spread: Math.max(1, parseInt(role.spread) || 1),
-            baseIndex: Math.max(0, (parseInt(role.baseWeight) || 1) - 1),
+            baseIndex: role.baseIndex !== undefined ? parseInt(role.baseIndex) : Math.floor(count / 2),
+            darkBaseIndex: role.darkBaseIndex !== undefined ? parseInt(role.darkBaseIndex) : undefined,
           })),
           colorSteps: count,
           rampType: state.rampType || "Balanced",
@@ -1107,7 +1108,9 @@
 
               let baseIdx;
               if (config.roleMapping === "Manual Base Index") {
-                baseIdx = role.baseIndex !== undefined ? parseInt(role.baseIndex) : rampLength >> 1;
+                const isDarkMode = modeName === "dark";
+                const rawBase = isDarkMode && role.darkBaseIndex !== undefined ? role.darkBaseIndex : role.baseIndex;
+                baseIdx = rawBase !== undefined ? parseInt(rawBase) : rampLength >> 1;
               } else {
                 baseIdx = -1;
                 const isDark = modeName === "dark";
@@ -1233,7 +1236,7 @@
                 </div>
                 <div class="grid grid-cols-[1fr_1fr_1fr] items-end gap-2">
                   <div class="flex-[3] space-y-1">
-                    <label for="${gId}-short" class="text-[var(--text-muted)] text-[12px] font-medium">Sort Name</label>
+                    <label for="${gId}-short" class="text-[var(--text-muted)] text-[12px] font-medium">Short Name</label>
                     <input type="text" id="${gId}-short" value="${group.shortName}" oninput="updateGroup(${idx}, 'shortName', this.value)" class="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[14px] outline-none focus:border-[var(--border-focus)] h-[40px] text-[var(--text-primary)]">
                   </div>
                   <div class="flex-[3.5] space-y-1">
@@ -1271,7 +1274,7 @@
             const card = document.createElement("div");
             card.className = "bg-[var(--bg-card)] rounded-[12px] border border-[var(--border)] p-3 space-y-3";
 
-            const mappingMethod = appState.roleMappingMethod || "Contrast Based";
+            const mappingMethod = appState.roleMapping || "Contrast Based";
 
             let inputsHtml = "";
             if (mappingMethod === "Contrast Based") {
@@ -1292,15 +1295,22 @@
                 </div>
               `;
             } else {
+              const mid = Math.floor(appState.colorSteps / 2);
+              const lightBase = (role.baseIndex !== undefined ? role.baseIndex : mid) + 1;
+              const darkBase = (role.darkBaseIndex !== undefined ? role.darkBaseIndex : (role.baseIndex !== undefined ? role.baseIndex : mid)) + 1;
               inputsHtml = `
-                <div class="grid grid-cols-[1fr_0.5fr_0.5fr] items-end gap-2">
+                <div class="grid grid-cols-[1fr_0.5fr_0.5fr_0.5fr] items-end gap-2">
                   <div class="space-y-1">
                     <label for="role-${idx}-name" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Role Name</label>
                     <input type="text" id="role-${idx}-name" value="${role.name || ""}" oninput="updateRole(${idx}, 'name', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
                   </div>
                   <div class="space-y-1">
-                    <label for="role-${idx}-base" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Base Wt</label>
-                    <input type="number" id="role-${idx}-base" value="${role.baseWeight || 1}" onchange="updateRole(${idx}, 'baseWeight', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
+                    <label for="role-${idx}-base" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Base ☀️ (1-${appState.colorSteps})</label>
+                    <input type="number" id="role-${idx}-base" value="${lightBase}" min="1" max="${appState.colorSteps}" onchange="updateRole(${idx}, 'baseIndex', parseInt(this.value) - 1)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
+                  </div>
+                  <div class="space-y-1">
+                    <label for="role-${idx}-darkbase" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Base 🌙 (1-${appState.colorSteps})</label>
+                    <input type="number" id="role-${idx}-darkbase" value="${darkBase}" min="1" max="${appState.colorSteps}" onchange="updateRole(${idx}, 'darkBaseIndex', parseInt(this.value) - 1)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
                   </div>
                   <div class="space-y-1">
                     <label for="role-${idx}-spread" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Spread</label>
@@ -1381,7 +1391,8 @@
       }
 
       function addGroup() {
-        appState.colors.push({ name: "New Color", shortName: "Nc", value: "888888" });
+        const n = appState.colors.length + 1;
+        appState.colors.unshift({ name: `color${n}`, shortName: `C${n}`, value: "888888" });
         renderColorGroups();
       }
 
@@ -1394,10 +1405,10 @@
           let v = parseInt(value);
           if (isNaN(v)) v = 1;
           appState.roles[idx].spread = Math.max(1, Math.min(21, v));
-        } else if (key === "baseWeight") {
+        } else if (key === "baseIndex" || key === "darkBaseIndex") {
           let v = parseInt(value);
-          if (isNaN(v)) v = 1;
-          appState.roles[idx].baseWeight = Math.max(1, Math.min(appState.colorStep, v));
+          if (isNaN(v)) v = 0;
+          appState.roles[idx][key] = Math.max(0, Math.min(appState.colorSteps - 1, v));
         } else {
           appState.roles[idx][key] = value;
         }
@@ -1410,8 +1421,9 @@
       }
 
       function addRole() {
-        const n = appState.roles.length;
-        appState.roles.push({ name: "Role " + n, shortName: "R" + n, spread: 2, minContrast: "4.5", baseWeight: 12 });
+        const n = appState.roles.length + 1;
+        const mid = Math.floor(appState.colorSteps / 2);
+        appState.roles.unshift({ name: "Role " + n, shortName: `r-${n}`, spread: 2, minContrast: 4.5, baseIndex: mid, darkBaseIndex: mid });
         renderRoles();
       }
 

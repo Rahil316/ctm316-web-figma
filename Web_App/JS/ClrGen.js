@@ -343,7 +343,9 @@ function variableMaker(config) {
           const cStart = clrRampsCollection[clrName][lowestWeight].contrast[modeName].ratio;
           const contrastGrowthDir = cEnd > cStart ? 1 : -1;
 
-          let baseIdx = role.baseIndex !== undefined ? parseInt(role.baseIndex) : rampLength >> 1;
+          const isDark = modeName === "dark";
+          const rawBase = isDark && role.darkBaseIndex !== undefined ? role.darkBaseIndex : role.baseIndex;
+          let baseIdx = rawBase !== undefined ? parseInt(rawBase) : rampLength >> 1;
 
           const maxOffset = 2 * spread;
           const minAllowed = maxOffset;
