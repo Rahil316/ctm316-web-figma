@@ -1,0 +1,1131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg-app: #0d0d0d;
+        --bg-panel: #1e1e1e;
+        --bg-card: #2b2b2b;
+        --bg-input: #3c3c3c;
+        --bg-hover: #444;
+        --bg-active: #555;
+        --border: #444;
+        --border-input: #555;
+        --border-focus: #18a0fb;
+        --text-primary: #ffffff;
+        --text-muted: #b3b3b3;
+        --text-dim: #888;
+        --accent: #18a0fb;
+        --accent-hover: #0089e8;
+        --accent-glow: rgba(24, 160, 251, 0.3);
+        --danger: #e74c3c;
+        --success: #2ecc71;
+        --warning: #f59e0b;
+        --creative: #e91e63;
+        --secondary: #9b59b6;
+        --font: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-mono: "SF Mono", "Cascadia Code", "Fira Code", monospace;
+      }
+      body.app-light-mode {
+        --bg-app: #d2d8e5; --bg-panel: #ffffff; --bg-card: #f8f9fa;
+        --bg-input: #ffffff; --bg-hover: #e9ecef; --bg-active: #dee2e6;
+        --border: #dee2e6; --border-input: #ced4da; --text-primary: #212529;
+        --text-muted: #6c757d; --text-dim: #adb5bd;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); }
+      ::-webkit-scrollbar { width: 4px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: var(--bg-active); border-radius: 10px; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--bg-hover); }
+      .bottom-sheet { transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+      .bottom-sheet.open { transform: translateY(0); }
+      .overlay { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+      .overlay.active { opacity: 1; pointer-events: auto; }
+      .toggle-pill {
+        width: 40px; height: 22px; border-radius: 11px; background: var(--border);
+        border: none; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0;
+      }
+      .toggle-pill::after {
+        content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+        border-radius: 50%; background: var(--text-muted); transition: transform 0.2s, background 0.2s;
+      }
+      .toggle-pill.on { background: var(--accent); }
+      .toggle-pill.on::after { transform: translateX(18px); background: #fff; }
+      .seg-btn {
+        flex: 1; height: 34px; border: 1px solid var(--border); background: var(--bg-input);
+        color: var(--text-muted); font-size: 12px; font-weight: 600; border-radius: 8px;
+        cursor: pointer; transition: all 0.15s;
+      }
+      .seg-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .sidebar-tabs {
+        border-bottom: 1px solid var(--border); flex-shrink: 0;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 8px; background: var(--bg-panel);
+      }
+      .sidebar-tab-btn {
+        position: relative; padding: 12px 10px; font-size: 11px; font-weight: 700;
+        color: var(--text-muted); transition: all 0.2s ease; text-transform: uppercase;
+        letter-spacing: 0.5px; background: none; border: none; cursor: pointer;
+      }
+      .sidebar-tab-btn:hover { color: var(--text-primary); }
+      .sidebar-tab-btn.active { color: var(--accent); }
+      .sidebar-tab-btn.active::after {
+        content: ""; position: absolute; bottom: -1px; left: 0; right: 0;
+        height: 2px; background: var(--accent); border-radius: 2px 2px 0 0;
+      }
+      .chevron { transition: transform 0.2s ease; }
+      .role-card.collapsed .chevron { transform: rotate(-180deg); }
+      .role-card-body { overflow: hidden; transition: max-height 0.3s ease, opacity 0.2s ease; max-height: 2000px; opacity: 1; }
+      .role-card.collapsed .role-card-body { max-height: 0; opacity: 0; pointer-events: none; }
+      .preview-tab-btn {
+        padding: 6px 14px; font-size: 11px; font-weight: 600; color: var(--text-muted);
+        border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
+        white-space: nowrap; cursor: pointer; background: none;
+        border-top: none; border-left: none; border-right: none;
+      }
+      .preview-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+      .preview-panel { display: none; }
+      .preview-panel.active { display: block; }
+      .scale-bar-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+      .scale-bar-item:last-child { border-bottom: none; }
+      .role-specimen { padding: 8px 0; border-bottom: 1px solid var(--border); }
+      .role-specimen:last-child { border-bottom: none; }
+      #drop-overlay {
+        background: var(--bg-app); opacity: 0.9; backdrop-filter: blur(8px);
+        border: 2px dashed var(--accent); margin: 16px; border-radius: 24px;
+        pointer-events: none; z-index: 100; display: none; align-items: center; justify-content: center;
+      }
+      #drop-overlay.active { display: flex; pointer-events: auto; }
+      .errors-body { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+      .errors-body.open { max-height: 160px; overflow-y: auto; }
+    </style>
+    <title>ttm316</title>
+  </head>
+  <body class="bg-[var(--bg-app)] text-[var(--text-primary)] selection:bg-[var(--accent)] selection:text-white overflow-hidden">
+    <div id="main-screen" class="h-screen flex flex-col relative overflow-hidden">
+
+      <!-- Header -->
+      <header class="bg-[var(--bg-panel)] border-b border-[var(--border)] px-4 py-2 flex items-center justify-between sticky top-0 z-10">
+        <h1 class="text-[24px] font-bold">ttm316</h1>
+        <div class="flex gap-1.5">
+          <button id="btn-more" title="More Options" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--text-primary)"><path d="M3 8C3 7.44772 3.44772 7 4 7C4.55228 7 5 7.44772 5 8C5 8.55228 4.55228 9 4 9C3.44772 9 3 8.55228 3 8ZM7 8C7 7.44772 7.44772 7 8 7C8.55229 7 9 7.44772 9 8C9 8.55228 8.55229 9 8 9C7.44772 9 7 8.55228 7 8ZM11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44772 13 8C13 8.55228 12.5523 9 12 9C11.4477 9 11 8.55228 11 8Z"/></svg>
+          </button>
+          <button id="btn-import" title="Import JSON" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </button>
+          <button id="btn-preview" title="Preview" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button id="btn-run" class="bg-[var(--accent)] hover:bg-[var(--accent-hover)] flex items-center gap-2 px-4 py-2 rounded-[10px] transition-all shadow-[0_4px_12px_var(--accent-glow)]">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="white"><path fill-rule="evenodd" clip-rule="evenodd" d="M3 3.76846C3 2.8177 4.01933 2.215 4.8524 2.67319L12.5461 6.90474C13.4096 7.37964 13.4096 8.62037 12.5461 9.09527L4.8524 13.3268C4.01933 13.785 3 13.1823 3 12.2316V3.76846Z"/></svg>
+            <span class="text-[14px] font-bold">Run</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Sidebar Tabs -->
+      <div class="sidebar-tabs">
+        <div class="flex gap-1">
+          <button class="sidebar-tab-btn active" data-tab="scale">Scale</button>
+          <button class="sidebar-tab-btn" data-tab="roles">Roles</button>
+          <button class="sidebar-tab-btn" data-tab="preview">Preview</button>
+        </div>
+        <button id="btn-settings" title="Settings" class="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+
+      <!-- Scrollable Content -->
+      <main class="flex-1 overflow-y-auto p-2 space-y-2">
+
+        <!-- Tab: Scale -->
+        <div id="tab-scale" class="tab-content space-y-3">
+          <div class="space-y-1.5">
+            <label class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-1">SCALE METHOD</label>
+            <div class="flex gap-2">
+              <button class="seg-btn scale-method-btn" data-method="Modular">Modular</button>
+              <button class="seg-btn scale-method-btn" data-method="Linear">Linear</button>
+              <button class="seg-btn scale-method-btn" data-method="Custom">Custom</button>
+            </div>
+          </div>
+          <!-- Modular controls -->
+          <div id="modular-controls" class="space-y-3">
+            <div class="grid grid-cols-2 gap-2">
+              <div class="space-y-1">
+                <label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Seed Size (px)</label>
+                <input type="number" id="scale-seed" min="1" max="200" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" />
+              </div>
+              <div class="space-y-1">
+                <label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Steps</label>
+                <input type="number" id="scale-steps" min="1" max="24" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" />
+              </div>
+            </div>
+            <div class="space-y-1">
+              <label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Ratio</label>
+              <select id="scale-ratio" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer">
+                <option value="1.067">Minor Second — 1.067</option>
+                <option value="1.125">Major Second — 1.125</option>
+                <option value="1.200">Minor Third — 1.200</option>
+                <option value="1.250" selected>Major Third — 1.250</option>
+                <option value="1.333">Perfect Fourth — 1.333</option>
+                <option value="1.414">Augmented Fourth — 1.414</option>
+                <option value="1.500">Perfect Fifth — 1.500</option>
+                <option value="1.618">Golden Ratio — 1.618</option>
+                <option value="1.667">Major Sixth — 1.667</option>
+                <option value="1.778">Minor Seventh — 1.778</option>
+                <option value="1.875">Major Seventh — 1.875</option>
+                <option value="2.000">Octave — 2.000</option>
+              </select>
+            </div>
+          </div>
+          <!-- Linear controls -->
+          <div id="linear-controls" class="hidden space-y-3">
+            <div class="grid grid-cols-3 gap-2">
+              <div class="space-y-1"><label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Min (px)</label><input type="number" id="scale-min" min="1" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" /></div>
+              <div class="space-y-1"><label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Max (px)</label><input type="number" id="scale-max" min="1" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" /></div>
+              <div class="space-y-1"><label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Steps</label><input type="number" id="scale-steps-linear" min="1" max="24" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" /></div>
+            </div>
+          </div>
+          <!-- Custom controls -->
+          <div id="custom-controls" class="hidden space-y-2">
+            <div class="space-y-1">
+              <label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Values (comma-separated px)</label>
+              <textarea id="scale-custom" rows="3" placeholder="12, 14, 16, 18, 20, 24, 32, 48" class="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--accent)] resize-none font-mono"></textarea>
+            </div>
+          </div>
+          <!-- Naming -->
+          <div class="space-y-1.5">
+            <label class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-1">STEP NAMING</label>
+            <div class="flex gap-1.5 flex-wrap">
+              <button class="seg-btn naming-btn flex-none px-3 h-[30px] text-[11px]" data-naming="numeric">1,2,3</button>
+              <button class="seg-btn naming-btn flex-none px-3 h-[30px] text-[11px]" data-naming="sizeLabels">xs,s,m,l</button>
+              <button class="seg-btn naming-btn flex-none px-3 h-[30px] text-[11px]" data-naming="rem">rem</button>
+              <button class="seg-btn naming-btn flex-none px-3 h-[30px] text-[11px]" data-naming="px">px</button>
+              <button class="seg-btn naming-btn flex-none px-3 h-[30px] text-[11px]" data-naming="custom">Custom</button>
+            </div>
+          </div>
+          <div id="custom-names-row" class="hidden space-y-1">
+            <label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Custom Step Names (CSV)</label>
+            <input type="text" id="scale-custom-names" placeholder="tiny, small, base, large, huge" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" />
+          </div>
+          <!-- Live preview bar -->
+          <div class="space-y-1">
+            <label class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-1">SCALE PREVIEW</label>
+            <div id="scale-preview-bar" class="bg-[var(--bg-card)] border border-[var(--border)] rounded-[10px] p-2 max-h-[220px] overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- Tab: Roles -->
+        <div id="tab-roles" class="tab-content hidden space-y-2">
+          <button id="btn-add-role" class="w-full h-[40px] border-2 border-dashed border-[var(--border)] hover:border-[var(--accent)] text-[var(--text-muted)] hover:text-[var(--accent)] rounded-[10px] text-[13px] font-semibold transition-all flex items-center justify-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Role
+          </button>
+          <div id="roles-list" class="space-y-2"></div>
+        </div>
+
+        <!-- Tab: Preview -->
+        <div id="tab-preview" class="tab-content hidden">
+          <div class="flex border-b border-[var(--border)] mb-3 -mx-2 px-2">
+            <button class="preview-tab-btn active" data-ptab="preview-scale-panel">Scale</button>
+            <button class="preview-tab-btn" data-ptab="preview-roles-panel">Roles</button>
+          </div>
+          <div id="preview-scale-panel" class="preview-panel active"><div id="scale-specimens" class="space-y-0"></div></div>
+          <div id="preview-roles-panel" class="preview-panel"><div id="role-specimens" class="space-y-4"></div></div>
+        </div>
+
+      </main>
+
+      <!-- Dim overlay -->
+      <div id="overlay" class="overlay absolute inset-0 bg-black/50 z-20 backdrop-blur-sm"></div>
+
+      <!-- Settings Sheet -->
+      <div id="settings-sheet" class="bottom-sheet absolute bottom-0 left-0 right-0 bg-[var(--bg-panel)] rounded-t-[16px] border-t border-[var(--border)] z-30 max-h-[92%] flex flex-col">
+        <div class="px-4 py-3 flex items-center justify-between border-b border-[var(--border)]">
+          <h2 class="text-[18px] font-semibold">Settings</h2>
+          <button id="close-settings" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors">Done</button>
+        </div>
+        <div class="p-4 overflow-y-auto space-y-6">
+          <!-- Basic -->
+          <div class="space-y-3">
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px]">BASIC</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1"><label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">System Name</label><input type="text" id="setting-name" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" /></div>
+              <div class="space-y-1"><label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Base Font Size (px)</label><input type="number" id="setting-base-font" min="1" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" /></div>
+            </div>
+          </div>
+          <!-- Font Families -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px]">FONT FAMILIES</h3>
+              <button onclick="addFontSlot()" class="text-[var(--accent)] text-[12px] font-semibold hover:underline">+ Add</button>
+            </div>
+            <p class="text-[11px] text-[var(--text-muted)]">Font must be available in Figma. Unavailable fonts will cause style creation to fail.</p>
+            <div class="grid grid-cols-3 gap-1 mb-0.5">
+              <span class="text-[11px] text-[var(--text-dim)] ml-1">Slot name</span>
+              <span class="text-[11px] text-[var(--text-dim)] ml-1">Family</span>
+              <span class="text-[11px] text-[var(--text-dim)] ml-1">Fallback</span>
+            </div>
+            <div id="font-slots-list" class="space-y-1.5"></div>
+          </div>
+          <!-- Font Weights -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px]">FONT WEIGHTS</h3>
+              <button id="btn-add-weight" class="text-[var(--accent)] text-[12px] font-semibold hover:underline">+ Add</button>
+            </div>
+            <div class="grid grid-cols-3 gap-1 mb-1">
+              <span class="text-[11px] text-[var(--text-dim)] ml-1">Alias</span>
+              <span class="text-[11px] text-[var(--text-dim)] ml-1">Value</span>
+              <span class="text-[11px] text-[var(--text-dim)] ml-1">Figma Style</span>
+            </div>
+            <div id="font-weights-list" class="space-y-1.5"></div>
+          </div>
+          <!-- Figma Output -->
+          <div class="space-y-3">
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px]">FIGMA OUTPUT</h3>
+            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Type Scale Collection Name</label><input type="text" id="setting-scale-collection" placeholder="Type Scale" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" /></div>
+            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Style Name Separator</label><input type="text" id="setting-separator" maxlength="3" placeholder="/" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" /></div>
+            <div class="flex items-center justify-between p-3 bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)]">
+              <div><p class="text-[13px] font-medium">Skip Scale Variables</p><p class="text-[11px] text-[var(--text-muted)] mt-0.5">Create text styles only, no FLOAT variables</p></div>
+              <button id="toggle-skipScaleVariables" class="toggle-pill" onclick="toggleBoolSetting('skipScaleVariables')"></button>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)]">
+              <div><p class="text-[13px] font-medium">Short Role Names</p><p class="text-[11px] text-[var(--text-muted)] mt-0.5">e.g. Heading → hd</p></div>
+              <button id="toggle-useShortRoleNames" class="toggle-pill" onclick="toggleBoolSetting('useShortRoleNames')"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- More Options Sheet -->
+      <div id="more-sheet" class="bottom-sheet absolute bottom-0 left-0 right-0 bg-[var(--bg-panel)] rounded-t-[16px] border-t border-[var(--border)] z-30 max-h-[70%] flex flex-col">
+        <div class="px-4 py-3 flex items-center justify-between border-b border-[var(--border)]">
+          <h2 class="text-[18px] font-semibold">More Options</h2>
+          <button id="close-more" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors">Done</button>
+        </div>
+        <div class="p-2 overflow-y-auto space-y-4">
+          <div class="space-y-1">
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-3 mb-2">EXPORT</h3>
+            <button id="opt-save-config" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors">
+              <div class="w-8 h-8 rounded-lg bg-[var(--success)]/10 flex items-center justify-center text-[var(--success)]"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></div>
+              <div class="text-left"><p class="text-[14px] font-medium">Save Config JSON</p><p class="text-[11px] text-[var(--text-muted)]">Full plugin config — reimportable</p></div>
+            </button>
+            <button id="opt-export-css" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors">
+              <div class="w-8 h-8 rounded-lg bg-[var(--creative)]/10 flex items-center justify-center text-[var(--creative)]"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+              <div class="text-left"><p class="text-[14px] font-medium">Export CSS Variables</p><p class="text-[11px] text-[var(--text-muted)]">CSS custom properties</p></div>
+            </button>
+            <button id="opt-export-scss" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors">
+              <div class="w-8 h-8 rounded-lg bg-[var(--secondary)]/10 flex items-center justify-center text-[var(--secondary)]"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+              <div class="text-left"><p class="text-[14px] font-medium">Export SCSS</p><p class="text-[11px] text-[var(--text-muted)]">SCSS maps + apply-text-role mixin</p></div>
+            </button>
+          </div>
+          <div class="pt-2 border-t border-[var(--border)]">
+            <button id="opt-clear" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--danger)]/10 text-[var(--danger)] rounded-[10px] transition-colors">
+              <div class="w-8 h-8 rounded-lg bg-[var(--danger)]/10 flex items-center justify-center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+              <span class="text-[14px] font-bold">Clear All</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div id="loading-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)] z-50 flex items-center justify-center p-8 text-center flex-col gap-4">
+        <div class="w-12 h-12 border-4 border-[var(--accent)] border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-xl font-bold">Applying to Figma...</p>
+        <p class="text-[var(--text-muted)]">Creating type scale variables and text styles.</p>
+      </div>
+
+      <!-- Success -->
+      <div id="success-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)] z-50 flex flex-col">
+        <div class="flex-1 flex items-center justify-center p-8 text-center flex-col gap-4">
+          <div class="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center text-green-500">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h2 class="text-2xl font-bold">Success!</h2>
+          <div id="success-results" class="text-[var(--text-muted)] space-y-1"></div>
+          <button onclick="hideOverlay('success-overlay')" class="mt-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] px-8 py-3 rounded-xl font-bold text-white transition-all shadow-lg shadow-[var(--accent-glow)]">Back to Editor</button>
+        </div>
+        <div id="run-errors-bar" class="hidden border-t border-[var(--border)] bg-[var(--bg-input)]">
+          <div class="flex items-center justify-between px-4 py-2 cursor-pointer text-[11px] font-semibold text-[var(--warning)]" onclick="toggleEl('run-errors-body','open')">
+            <span id="run-errors-count"></span>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 10.888L2.646 5.146c-.195-.195-.195-.512 0-.707s.512-.195.707 0L8 9.793l4.646-5.354c.195-.195.512-.195.707 0s.195.512 0 .707L8 10.888z" fill="var(--text-muted)"/></svg>
+          </div>
+          <div id="run-errors-body" class="errors-body"></div>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div id="error-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)] z-50 flex items-center justify-center p-8 text-center flex-col gap-4">
+        <div class="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center text-red-500">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </div>
+        <h2 class="text-2xl font-bold">Error</h2>
+        <p id="error-message" class="text-[var(--danger)]"></p>
+        <button onclick="hideOverlay('error-overlay')" class="mt-4 bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] px-8 py-3 rounded-xl font-bold">Dismiss</button>
+      </div>
+
+      <!-- Run Dialog -->
+      <div id="run-dialog-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)] z-[60] flex flex-col">
+        <div class="px-4 py-3 flex items-center justify-between border-b border-[var(--border)]">
+          <h2 class="text-[17px] font-bold">Apply to Figma</h2>
+          <button onclick="hideOverlay('run-dialog-overlay')" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold">Cancel</button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-5">
+          <div class="space-y-2">
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px]">SCOPE</h3>
+            <div class="flex gap-2">
+              <button id="rd-scope-all" class="seg-btn" onclick="setRunScope('all')">All</button>
+              <button id="rd-scope-scale" class="seg-btn" onclick="setRunScope('scale')">Scale Vars</button>
+              <button id="rd-scope-styles" class="seg-btn" onclick="setRunScope('styles')">Styles Only</button>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px]">SUMMARY</h3>
+            <div id="rd-summary" class="space-y-0 bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)] overflow-hidden"></div>
+          </div>
+          <div id="rd-warnings" class="hidden bg-[var(--warning)]/10 border border-[var(--warning)]/30 rounded-[8px] p-3">
+            <p class="text-[12px] font-bold text-[var(--warning)]">⚠ Existing Collection Detected</p>
+            <p id="rd-warning-text" class="text-[11px] text-[var(--text-muted)] mt-1"></p>
+          </div>
+        </div>
+        <div class="p-4 border-t border-[var(--border)]">
+          <button id="btn-run-confirm" class="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] py-3.5 rounded-xl font-bold transition-all shadow-lg shadow-[var(--accent-glow)] text-white text-[14px]">Apply to Figma</button>
+        </div>
+      </div>
+
+      <!-- Confirm Import -->
+      <div id="confirm-import-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)]/95 backdrop-blur-sm z-[60] flex items-center justify-center p-6 text-center flex-col gap-6">
+        <div class="w-20 h-20 bg-[var(--warning)]/10 rounded-full flex items-center justify-center text-[var(--warning)]">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold mb-2">Import Config?</h2>
+          <p class="text-[var(--text-muted)] text-sm leading-relaxed">This will replace your current configuration.</p>
+        </div>
+        <div class="w-full space-y-3">
+          <button id="btn-import-confirm" class="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] py-3.5 rounded-xl font-bold text-white">Yes, Import</button>
+          <button onclick="hideOverlay('confirm-import-overlay')" class="w-full text-[var(--text-dim)] hover:text-[var(--text-primary)] py-2 text-sm">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Drop Overlay -->
+      <div id="drop-overlay" class="absolute inset-0">
+        <div class="flex flex-col items-center gap-4 text-center pointer-events-none">
+          <div class="w-16 h-16 bg-[var(--accent)]/10 rounded-2xl flex items-center justify-center text-[var(--accent)]">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div><h2 class="text-2xl font-bold mb-1">Import JSON</h2><p class="text-[var(--text-muted)]">Drop here to load config</p></div>
+        </div>
+      </div>
+
+    </div>
+
+    <input type="file" id="file-input" accept=".json" class="hidden" />
+
+    <script>
+    // ── APP STATE ─────────────────────────────────────────────────────────────
+    let appState = {
+      name: "ttm316",
+      baseFontSize: 16,
+      fonts: [
+        { slot: "primary",   family: "Inter",         fallback: "sans-serif" },
+        { slot: "secondary", family: "Merriweather",   fallback: "serif"      },
+        { slot: "tertiary",  family: "JetBrains Mono", fallback: "monospace"  },
+      ],
+      fontWeights: [
+        { alias: "Thin",      value: 100, figmaStyle: "Thin"      },
+        { alias: "Light",     value: 300, figmaStyle: "Light"     },
+        { alias: "Regular",   value: 400, figmaStyle: "Regular"   },
+        { alias: "Medium",    value: 500, figmaStyle: "Medium"    },
+        { alias: "SemiBold",  value: 600, figmaStyle: "SemiBold"  },
+        { alias: "Bold",      value: 700, figmaStyle: "Bold"      },
+        { alias: "ExtraBold", value: 800, figmaStyle: "ExtraBold" },
+        { alias: "Black",     value: 900, figmaStyle: "Black"     },
+      ],
+      scale: {
+        method: "Modular", seedSize: 16, ratio: 1.25, ratioName: "Major Third",
+        steps: 10, minSize: 10, maxSize: 96, customValues: [],
+        namingScheme: "numeric", customStepNames: [], scaleOverrides: {},
+      },
+      roles: [],
+      scaleCollectionName: "Type Scale",
+      skipScaleVariables: false,
+      useShortRoleNames: false,
+      styleNameSeparator: "/",
+    };
+
+    let pendingImportData = null;
+    let runScope = "all";
+
+    // ── SCALE MATH (client-side for live preview) ─────────────────────────────
+    const SIZE_LABELS = ["3xs","2xs","xs","s","m","l","xl","2xl","3xl","4xl","5xl","6xl","7xl","8xl","9xl"];
+
+    function computeScale(scale, base) {
+      const { method, seedSize, ratio, steps, minSize, maxSize, customValues, namingScheme, customStepNames, scaleOverrides } = scale;
+      let px = [];
+      if (method === "Modular") {
+        const mid = Math.floor(steps / 2);
+        for (let i = 0; i < steps; i++) px.push(Math.round(seedSize * Math.pow(ratio, i - mid)));
+      } else if (method === "Linear") {
+        const mn = parseFloat(minSize) || seedSize * 0.5, mx = parseFloat(maxSize) || seedSize * 4;
+        for (let i = 0; i < steps; i++) { const t = steps === 1 ? 0 : i / (steps - 1); px.push(Math.round(mn + t * (mx - mn))); }
+      } else {
+        px = (customValues || []).map(v => Math.round(parseFloat(String(v).trim()))).filter(v => !isNaN(v) && v > 0);
+        if (!px.length) return [];
+      }
+      // Apply per-step overrides
+      if (scaleOverrides) {
+        for (const [idx, val] of Object.entries(scaleOverrides)) {
+          const i = parseInt(idx), v = Math.round(parseFloat(val));
+          if (!isNaN(i) && i >= 0 && i < px.length && !isNaN(v) && v > 0) px[i] = v;
+        }
+      }
+      const n = px.length;
+      let names;
+      if (namingScheme === "sizeLabels") {
+        const c = SIZE_LABELS.indexOf("m"), off = c - Math.floor(n / 2);
+        names = Array.from({length: n}, (_, i) => SIZE_LABELS[Math.max(0, i + off)] || String(i + 1));
+      } else if (namingScheme === "rem") {
+        names = px.map(v => `${Math.round(v / base * 1000) / 1000}rem`);
+      } else if (namingScheme === "px") {
+        names = px.map(v => `${v}px`);
+      } else if (namingScheme === "custom" && customStepNames && customStepNames.length) {
+        const cn = [...customStepNames]; while (cn.length < n) cn.push(String(cn.length + 1));
+        names = cn.slice(0, n);
+      } else {
+        names = Array.from({length: n}, (_, i) => String(i + 1));
+      }
+      return px.map((v, i) => ({ index: i, name: names[i], px: v, rem: Math.round(v / base * 1000) / 1000 }));
+    }
+
+    function resolveRolePreview(role, steps) {
+      const result = [];
+      for (let v = 0; v < role.variationCount; v++) {
+        const ov = (role.variationOverrides || []).find(o => o.index === v) || {};
+        const delta = role.scaleDirection === "descending" ? (role.variationCount - 1 - v) : v;
+        const idx = Math.max(0, Math.min(steps.length - 1, role.baseScaleIndex - delta + (ov.scaleIndexOffset || 0)));
+        const autoName = role.scaleDirection === "descending" ? String(v + 1) : String(role.variationCount - v);
+        const varName = (role.variationNames && role.variationNames[v]) || autoName;
+        const weightAlias = ov.fontWeightAlias || role.fontWeightAlias;
+        const fontSlot = ov.fontSlot || role.fontSlot;
+        const lh = ov.lineHeight || role.lineHeight;
+        const ls = ov.letterSpacing || role.letterSpacing;
+        const fontDef = appState.fonts.find(f => f.slot === fontSlot);
+        const wDef = appState.fontWeights.find(w => w.alias === weightAlias);
+        result.push({
+          variationName: varName, scaleStep: steps[idx],
+          fontFamily: fontDef ? fontDef.family : "Inter",
+          fontWeight: wDef ? wDef.value : 400, weightAlias,
+          lineHeight: lh, letterSpacing: ls,
+        });
+      }
+      return result;
+    }
+
+    function lhHintUI(px) {
+      if (px < 16) return "1.4–1.6"; if (px <= 32) return "1.2–1.4";
+      if (px <= 64) return "1.0–1.2"; return "0.9–1.05";
+    }
+
+    function lhToCss(lh) {
+      if (!lh || lh.unit === "AUTO") return "1.2";
+      if (lh.unit === "PIXELS") return `${lh.value}px`;
+      return String(Math.round(lh.value / 100 * 1000) / 1000);
+    }
+
+    function lsToCss(ls) {
+      if (!ls) return "0";
+      return ls.unit === "PIXELS" ? `${ls.value}px` : `${Math.round(ls.value / 100 * 1000) / 1000}em`;
+    }
+
+    // ── RENDER ────────────────────────────────────────────────────────────────
+
+    function renderAll() {
+      renderScalePreviewBar();
+      renderRolesList();
+      renderPreviewScale();
+      renderPreviewRoles();
+      renderSettingsForm();
+    }
+
+    function renderScalePreviewBar() {
+      const steps = computeScale(appState.scale, appState.baseFontSize);
+      const bar = document.getElementById("scale-preview-bar");
+      if (!steps.length) { bar.innerHTML = `<p class="text-[11px] text-[var(--text-muted)] text-center py-3">No steps — check your settings.</p>`; return; }
+      const pf = appState.fonts.find(f => f.slot === "primary") || appState.fonts[0];
+      const ff = pf ? pf.family : "Inter";
+      const overrides = appState.scale.scaleOverrides || {};
+      bar.innerHTML = steps.map(s => {
+        const isOverridden = overrides[s.index] != null;
+        return `
+        <div class="scale-bar-item">
+          <span class="text-[var(--text-dim)] font-mono text-[10px] w-10 flex-shrink-0">${esc(String(s.name))}</span>
+          <span style="font-family:'${esc(ff)}';font-size:${Math.min(s.px, 32)}px;line-height:1;overflow:hidden;white-space:nowrap;max-width:110px;" class="font-semibold">Aa</span>
+          <span class="text-[var(--text-muted)] text-[10px] ml-auto flex-shrink-0mr-1" style="min-width:48px;text-align:right;">${s.rem}rem</span>
+          <input type="number" min="1" max="999" placeholder="${s.px}" value="${isOverridden ? overrides[s.index] : s.px}"
+            class="w-[52px] h-[22px] text-[10px] text-right bg-[var(--bg-input)] border rounded-[4px] px-1 outline-none focus:border-[var(--accent)] flex-shrink-0 ${isOverridden ? "border-[var(--accent)] text-[var(--accent)]" : "border-[var(--border)]"}"
+            data-step-override="${s.index}" title="Override step ${s.index} size" />
+        </div>`;
+      }).join("");
+      bar.querySelectorAll("[data-step-override]").forEach(el => {
+        el.addEventListener("change", e => {
+          const idx = parseInt(e.target.dataset.stepOverride);
+          const val = Math.round(parseFloat(e.target.value));
+          if (!appState.scale.scaleOverrides) appState.scale.scaleOverrides = {};
+          if (!isNaN(val) && val > 0) {
+            appState.scale.scaleOverrides[idx] = val;
+            e.target.classList.add("border-[var(--accent)]", "text-[var(--accent)]");
+            e.target.classList.remove("border-[var(--border)]");
+          } else {
+            delete appState.scale.scaleOverrides[idx];
+            e.target.classList.remove("border-[var(--accent)]", "text-[var(--accent)]");
+            e.target.classList.add("border-[var(--border)]");
+          }
+          renderScalePreviewBar(); renderPreviewScale(); renderPreviewRoles();
+        });
+      });
+    }
+
+    function renderRolesList() {
+      const list = document.getElementById("roles-list");
+      if (!appState.roles.length) {
+        list.innerHTML = `<p class="text-[var(--text-muted)] text-[12px] text-center py-4">No roles yet. Click "Add Role" to get started.</p>`;
+        return;
+      }
+      list.innerHTML = appState.roles.map((role, idx) => buildRoleCard(role, idx)).join("");
+      // Wire inputs
+      list.querySelectorAll("[data-rf]").forEach(el => {
+        const ev = el.tagName === "SELECT" ? "change" : "input";
+        el.addEventListener(ev, e => {
+          const ri = parseInt(e.target.dataset.ri);
+          const field = e.target.dataset.rf;
+          handleRoleInput(ri, field, e.target.value);
+        });
+      });
+    }
+
+    function buildRoleCard(role, idx) {
+      const steps = computeScale(appState.scale, appState.baseFontSize);
+      const basePx = steps[role.baseScaleIndex] ? `${steps[role.baseScaleIndex].px}px` : "–";
+      const maxIdx = Math.max(0, steps.length - 1);
+      const lhUnit = (role.lineHeight || {}).unit || "PERCENT";
+      const lhVal  = (role.lineHeight || {}).value !== undefined ? (role.lineHeight || {}).value : 150;
+      const lsUnit = (role.letterSpacing || {}).unit || "PERCENT";
+      const lsVal  = (role.letterSpacing || {}).value !== undefined ? (role.letterSpacing || {}).value : 0;
+      const hint   = lhHintUI(steps[role.baseScaleIndex] ? steps[role.baseScaleIndex].px : 16);
+
+      const wOpts = appState.fontWeights.map(w => `<option value="${esc(w.alias)}" ${role.fontWeightAlias === w.alias ? "selected" : ""}>${esc(w.alias)} (${w.value})</option>`).join("");
+      const fOpts = appState.fonts.map(f => `<option value="${esc(f.slot)}" ${role.fontSlot === f.slot ? "selected" : ""}>${cap(f.slot)} — ${esc(f.family)}</option>`).join("");
+
+      return `
+      <div class="role-card bg-[var(--bg-card)] border border-[var(--border)] rounded-[12px] overflow-hidden" data-idx="${idx}">
+        <div class="flex items-center gap-2 p-3 cursor-pointer" onclick="toggleRoleCard(${idx})">
+          <svg class="chevron w-4 h-4 text-[var(--text-muted)] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+          <span class="font-semibold text-[14px] flex-1">${esc(role.name || "Unnamed")}</span>
+          <span class="text-[var(--text-muted)] text-[11px] mr-1">x${role.variationCount}</span>
+          <button class="p-1 text-[var(--danger)] hover:bg-[var(--danger)]/10 rounded" onclick="event.stopPropagation();deleteRole(${idx})">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+        <div class="role-card-body border-t border-[var(--border)] p-3 space-y-2.5">
+          <div class="grid grid-cols-2 gap-2">
+            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Name</label>
+              <input type="text" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" value="${esc(role.name)}" data-ri="${idx}" data-rf="name" /></div>
+            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Short Name</label>
+              <input type="text" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" value="${esc(role.shortName || "")}" data-ri="${idx}" data-rf="shortName" /></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Variations</label>
+              <input type="number" min="1" max="12" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" value="${role.variationCount}" data-ri="${idx}" data-rf="variationCount" /></div>
+            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Names (CSV)</label>
+              <input type="text" placeholder="h1,h2,h3..." class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[12px] outline-none focus:border-[var(--accent)]" value="${(role.variationNames || []).join(",")}" data-ri="${idx}" data-rf="variationNames" /></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Base Step <span class="text-[var(--accent)]">(${basePx})</span></label>
+              <input type="number" min="0" max="${maxIdx}" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" value="${role.baseScaleIndex}" data-ri="${idx}" data-rf="baseScaleIndex" /></div>
+            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Direction</label>
+              <select class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1.5 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer" data-ri="${idx}" data-rf="scaleDirection">
+                <option value="descending" ${role.scaleDirection === "descending" ? "selected" : ""}>↓ Desc (v0=largest)</option>
+                <option value="ascending"  ${role.scaleDirection === "ascending"  ? "selected" : ""}>↑ Asc (v0=smallest)</option>
+              </select></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Font Slot</label>
+              <select class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1.5 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer" data-ri="${idx}" data-rf="fontSlot">${fOpts}</select></div>
+            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Weight</label>
+              <select class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1.5 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer" data-ri="${idx}" data-rf="fontWeightAlias">${wOpts}</select></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="space-y-1">
+              <label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Line Height</label>
+              <div class="flex gap-1">
+                <input type="number" step="0.1" class="flex-1 h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" value="${lhVal}" data-ri="${idx}" data-rf="lineHeightValue" />
+                <select class="w-14 h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer" data-ri="${idx}" data-rf="lineHeightUnit">
+                  <option value="PERCENT" ${lhUnit === "PERCENT" ? "selected" : ""}>%</option>
+                  <option value="PIXELS"  ${lhUnit === "PIXELS"  ? "selected" : ""}>px</option>
+                  <option value="AUTO"    ${lhUnit === "AUTO"    ? "selected" : ""}>auto</option>
+                </select>
+              </div>
+              <p class="text-[10px] text-[var(--text-dim)] ml-1">Hint: ${hint}</p>
+            </div>
+            <div class="space-y-1">
+              <label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Letter Spacing</label>
+              <div class="flex gap-1">
+                <input type="number" step="0.1" class="flex-1 h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" value="${lsVal}" data-ri="${idx}" data-rf="letterSpacingValue" />
+                <select class="w-14 h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer" data-ri="${idx}" data-rf="letterSpacingUnit">
+                  <option value="PERCENT" ${lsUnit === "PERCENT" ? "selected" : ""}>%</option>
+                  <option value="PIXELS"  ${lsUnit === "PIXELS"  ? "selected" : ""}>px</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Text Transform</label>
+            <select class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1.5 text-[12px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer" data-ri="${idx}" data-rf="textTransform">
+              <option value="none"       ${role.textTransform === "none"       ? "selected" : ""}>None</option>
+              <option value="uppercase"  ${role.textTransform === "uppercase"  ? "selected" : ""}>Uppercase</option>
+              <option value="lowercase"  ${role.textTransform === "lowercase"  ? "selected" : ""}>Lowercase</option>
+              <option value="capitalize" ${role.textTransform === "capitalize" ? "selected" : ""}>Capitalize</option>
+            </select></div>
+        </div>
+      </div>`;
+    }
+
+    function handleRoleInput(ri, field, val) {
+      const role = appState.roles[ri];
+      if (!role) return;
+      if (field === "variationCount") {
+        role.variationCount = Math.max(1, parseInt(val) || 1);
+        // Auto-refresh names if they look auto-generated (match shortName+digit pattern)
+        const autoPattern = new RegExp(`^${escRegex(role.shortName || "")}\\d+$`);
+        if (!role.variationNames.length || role.variationNames.every(n => autoPattern.test(n))) {
+          role.variationNames = autoVariationNames(role.shortName, role.variationCount);
+        }
+        renderRolesList();
+      } else if (field === "shortName") {
+        role.shortName = val;
+        // Auto-refresh names if they look auto-generated
+        const autoPattern = new RegExp(`^[a-z0-9]*\\d+$`);
+        if (!role.variationNames.length || role.variationNames.every(n => autoPattern.test(n))) {
+          role.variationNames = autoVariationNames(val, role.variationCount);
+          renderRolesList();
+        }
+      } else if (field === "variationNames") {
+        role.variationNames = val.split(",").map(s => s.trim()).filter(Boolean);
+      } else if (field === "baseScaleIndex") {
+        role.baseScaleIndex = parseInt(val) || 0;
+      } else if (field === "lineHeightValue") {
+        if (!role.lineHeight) role.lineHeight = {unit:"PERCENT",value:150};
+        role.lineHeight.value = parseFloat(val) || 0;
+      } else if (field === "lineHeightUnit") {
+        if (!role.lineHeight) role.lineHeight = {unit:"PERCENT",value:150};
+        role.lineHeight.unit = val;
+      } else if (field === "letterSpacingValue") {
+        if (!role.letterSpacing) role.letterSpacing = {unit:"PERCENT",value:0};
+        role.letterSpacing.value = parseFloat(val) || 0;
+      } else if (field === "letterSpacingUnit") {
+        if (!role.letterSpacing) role.letterSpacing = {unit:"PERCENT",value:0};
+        role.letterSpacing.unit = val;
+      } else {
+        role[field] = val;
+      }
+      renderPreviewRoles();
+    }
+
+    function escRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+    function renderPreviewScale() {
+      const steps = computeScale(appState.scale, appState.baseFontSize);
+      const pf = appState.fonts.find(f => f.slot === "primary") || appState.fonts[0];
+      const ff = pf ? pf.family : "Inter";
+      const el = document.getElementById("scale-specimens");
+      el.innerHTML = steps.map(s => `
+        <div class="scale-bar-item">
+          <span class="text-[var(--text-dim)] font-mono text-[10px] w-10 flex-shrink-0">${esc(String(s.name))}</span>
+          <span style="font-family:'${esc(ff)}';font-size:${Math.min(s.px, 40)}px;line-height:1.2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:210px;" class="font-semibold">Aa</span>
+          <span class="text-[var(--text-muted)] text-[10px] ml-auto flex-shrink-0">${s.px}px</span>
+        </div>`).join("");
+    }
+
+    function renderPreviewRoles() {
+      const steps = computeScale(appState.scale, appState.baseFontSize);
+      const el = document.getElementById("role-specimens");
+      if (!appState.roles.length) { el.innerHTML = `<p class="text-[var(--text-muted)] text-[12px] text-center py-4">No roles defined.</p>`; return; }
+      el.innerHTML = appState.roles.map(role => {
+        const variants = resolveRolePreview(role, steps);
+        return `<div class="space-y-1">
+          <p class="text-[var(--text-muted)] text-[10px] font-bold tracking-wider uppercase">${esc(role.name)}</p>
+          ${variants.map(v => `<div class="role-specimen">
+            <div style="font-family:'${esc(v.fontFamily)}';font-size:${Math.min(v.scaleStep.px, 36)}px;line-height:${lhToCss(v.lineHeight)};letter-spacing:${lsToCss(v.letterSpacing)};font-weight:${v.fontWeight};overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">The quick brown fox</div>
+            <div class="flex gap-2 mt-0.5">
+              <span class="text-[10px] text-[var(--text-dim)]">${esc(v.variationName)}</span>
+              <span class="text-[10px] text-[var(--text-dim)]">·</span>
+              <span class="text-[10px] text-[var(--text-dim)]">${v.scaleStep.px}px</span>
+              <span class="text-[10px] text-[var(--text-dim)]">·</span>
+              <span class="text-[10px] text-[var(--accent)]">${esc(v.weightAlias)}</span>
+            </div>
+          </div>`).join("")}
+        </div>`;
+      }).join("");
+    }
+
+    function renderSettingsForm() {
+      safeSet("setting-name", appState.name);
+      safeSet("setting-base-font", appState.baseFontSize);
+      safeSet("setting-scale-collection", appState.scaleCollectionName);
+      safeSet("setting-separator", appState.styleNameSeparator);
+      syncToggle("toggle-skipScaleVariables", appState.skipScaleVariables);
+      syncToggle("toggle-useShortRoleNames", appState.useShortRoleNames);
+
+      const slotList = document.getElementById("font-slots-list");
+      slotList.innerHTML = appState.fonts.map((f, i) => `
+        <div class="flex gap-1.5 items-center">
+          <input type="text" class="w-[72px] h-[32px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[11px] outline-none focus:border-[var(--accent)]"
+            placeholder="slot name" value="${esc(f.slot)}" data-fi="${i}" data-ff="slot" title="Slot name (used in roles)" />
+          <input type="text" class="flex-1 h-[32px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[12px] outline-none focus:border-[var(--accent)]"
+            placeholder="Font family" value="${esc(f.family)}" data-fi="${i}" data-ff="family" />
+          <input type="text" class="w-[72px] h-[32px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[11px] outline-none focus:border-[var(--accent)]"
+            placeholder="fallback" value="${esc(f.fallback || "")}" data-fi="${i}" data-ff="fallback" />
+          <button class="text-[var(--danger)] p-1.5 hover:bg-[var(--danger)]/10 rounded flex-shrink-0" onclick="deleteFontSlot(${i})" title="Remove font slot">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>`).join("");
+      slotList.querySelectorAll("[data-ff]").forEach(el => el.addEventListener("input", e => {
+        appState.fonts[parseInt(e.target.dataset.fi)][e.target.dataset.ff] = e.target.value;
+        renderRolesList(); renderPreviewScale(); renderPreviewRoles();
+      }));
+
+      const wList = document.getElementById("font-weights-list");
+      wList.innerHTML = appState.fontWeights.map((w, i) => `
+        <div class="flex gap-1.5 items-center">
+          <input type="text"   class="flex-1 h-[32px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[12px] outline-none focus:border-[var(--accent)]" placeholder="Alias"   value="${esc(w.alias)}"      data-wi="${i}" data-wf="alias" />
+          <input type="number" class="w-14  h-[32px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[12px] outline-none focus:border-[var(--accent)]" placeholder="400"    value="${w.value}"           data-wi="${i}" data-wf="value" />
+          <input type="text"   class="flex-1 h-[32px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[12px] outline-none focus:border-[var(--accent)]" placeholder="Regular" value="${esc(w.figmaStyle)}" data-wi="${i}" data-wf="figmaStyle" />
+          <button class="text-[var(--danger)] p-1.5 hover:bg-[var(--danger)]/10 rounded" onclick="deleteFontWeight(${i})">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>`).join("");
+      wList.querySelectorAll("[data-wf]").forEach(el => el.addEventListener("input", e => {
+        const wi = parseInt(e.target.dataset.wi), wf = e.target.dataset.wf;
+        appState.fontWeights[wi][wf] = wf === "value" ? (parseInt(e.target.value) || 400) : e.target.value;
+      }));
+    }
+
+    // ── MUTATIONS ─────────────────────────────────────────────────────────────
+
+    function autoVariationNames(shortName, count) {
+      // Generates placeholder names like h1,h2,h3 from shortName "h" and count 3
+      if (!shortName) return [];
+      return Array.from({ length: count }, (_, i) => `${shortName}${i + 1}`);
+    }
+
+    function addRole() {
+      const steps = computeScale(appState.scale, appState.baseFontSize);
+      const idx = appState.roles.length + 1;
+      const shortName = `r${idx}`;
+      const variationCount = 3;
+      appState.roles.push({
+        name: `Role ${idx}`, shortName,
+        variationCount, variationNames: autoVariationNames(shortName, variationCount),
+        baseScaleIndex: Math.max(0, steps.length - 1),
+        scaleDirection: "descending", fontSlot: appState.fonts[0] ? appState.fonts[0].slot : "primary",
+        fontWeightAlias: (appState.fontWeights[0] || {}).alias || "Regular",
+        lineHeight: { unit: "PERCENT", value: 150 }, letterSpacing: { unit: "PERCENT", value: 0 },
+        textTransform: "none", variationOverrides: [],
+      });
+      renderRolesList(); renderPreviewRoles();
+    }
+
+    function deleteRole(idx) { appState.roles.splice(idx, 1); renderRolesList(); renderPreviewRoles(); }
+
+    function deleteFontWeight(idx) { appState.fontWeights.splice(idx, 1); renderSettingsForm(); }
+
+    function deleteFontSlot(idx) {
+      const removedSlot = appState.fonts[idx] ? appState.fonts[idx].slot : null;
+      appState.fonts.splice(idx, 1);
+      if (removedSlot) {
+        const firstSlot = appState.fonts[0] ? appState.fonts[0].slot : "primary";
+        appState.roles.forEach(r => { if (r.fontSlot === removedSlot) r.fontSlot = firstSlot; });
+      }
+      renderSettingsForm(); renderRolesList(); renderPreviewRoles();
+    }
+
+    function addFontSlot() {
+      const n = appState.fonts.length + 1;
+      appState.fonts.push({ slot: `font${n}`, family: "", fallback: "sans-serif" });
+      renderSettingsForm();
+    }
+
+    function toggleRoleCard(idx) {
+      const card = document.querySelector(`.role-card[data-idx="${idx}"]`);
+      if (card) card.classList.toggle("collapsed");
+    }
+
+    function toggleBoolSetting(key) {
+      appState[key] = !appState[key];
+      syncToggle(`toggle-${key}`, appState[key]);
+    }
+
+    function syncToggle(id, val) { const el = document.getElementById(id); if (el) el.classList.toggle("on", !!val); }
+
+    function toggleEl(id, cls) { document.getElementById(id).classList.toggle(cls); }
+
+    // ── TABS ──────────────────────────────────────────────────────────────────
+
+    function switchTab(name) {
+      document.querySelectorAll(".sidebar-tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.toggle("hidden", el.id !== `tab-${name}`));
+      if (name === "preview") { renderPreviewScale(); renderPreviewRoles(); }
+    }
+
+    function switchPreviewTab(panelId) {
+      document.querySelectorAll("[data-ptab]").forEach(b => b.classList.toggle("active", b.dataset.ptab === panelId));
+      document.querySelectorAll(".preview-panel").forEach(el => el.classList.toggle("active", el.id === panelId));
+    }
+
+    // ── OVERLAYS / SHEETS ─────────────────────────────────────────────────────
+
+    function showOverlay(id) {
+      document.getElementById("overlay").classList.add("active");
+      const el = document.getElementById(id); el.classList.remove("hidden"); el.classList.add("active");
+    }
+
+    function hideOverlay(id) {
+      document.getElementById("overlay").classList.remove("active");
+      const el = document.getElementById(id); el.classList.add("hidden"); el.classList.remove("active");
+      document.getElementById("settings-sheet").classList.remove("open");
+      document.getElementById("more-sheet").classList.remove("open");
+    }
+
+    function showSheet(id) { document.getElementById("overlay").classList.add("active"); document.getElementById(id).classList.add("open"); }
+    function hideSheet(id) { document.getElementById("overlay").classList.remove("active"); document.getElementById(id).classList.remove("open"); }
+
+    // ── RUN DIALOG ────────────────────────────────────────────────────────────
+
+    function setRunScope(scope) {
+      runScope = scope;
+      ["all","scale","styles"].forEach(s => document.getElementById(`rd-scope-${s}`).classList.toggle("active", s === scope));
+    }
+
+    function openRunDialog() {
+      const steps = computeScale(appState.scale, appState.baseFontSize);
+      const weightCount = appState.fontWeights.length || 1;
+      const totalVariations = appState.roles.reduce((s, r) => s + r.variationCount, 0);
+      const totalStyles = totalVariations * weightCount;
+      const fonts = [...new Set(appState.roles.map(r => { const f = appState.fonts.find(fn => fn.slot === r.fontSlot); return f ? f.family : "Inter"; }))];
+      document.getElementById("rd-summary").innerHTML = [
+        row("Scale steps", steps.length),
+        row("Roles", appState.roles.length),
+        row("Variations", totalVariations),
+        row("Weights", weightCount),
+        row("Text styles", `${totalStyles} (${totalVariations} × ${weightCount})`),
+        row("Fonts needed", fonts.join(", ") || "—"),
+      ].join("");
+      setRunScope("all");
+      document.getElementById("rd-warnings").classList.add("hidden");
+      showOverlay("run-dialog-overlay");
+      sendToPlugin({ type: "check-collections", scaleCollectionName: appState.scaleCollectionName || "Type Scale" });
+    }
+
+    function row(label, val) {
+      return `<div class="flex justify-between text-[13px] px-3 py-2 border-b border-[var(--border)] last:border-0"><span class="text-[var(--text-muted)]">${label}</span><span class="font-semibold">${val}</span></div>`;
+    }
+
+    // ── PLUGIN MESSAGE BUS ────────────────────────────────────────────────────
+
+    window.onmessage = evt => {
+      const msg = evt.data.pluginMessage;
+      if (!msg) return;
+
+      if (msg.type === "load-config") {
+        Object.assign(appState, msg.state);
+        renderAll(); syncScaleUI();
+      }
+
+      if (msg.type === "collection-check-result") {
+        const warn = document.getElementById("rd-warnings");
+        if (msg.existing && msg.existing.length) {
+          warn.classList.remove("hidden");
+          document.getElementById("rd-warning-text").textContent = `"${msg.existing.join('", "')}" already exists and will be updated.`;
+        } else {
+          warn.classList.add("hidden");
+        }
+      }
+
+      if (msg.type === "finish") {
+        hideOverlay("loading-overlay");
+        const { tally, errors } = msg;
+        document.getElementById("success-results").innerHTML = [
+          `<p>Created: <strong class="text-[var(--success)]">${tally.created}</strong></p>`,
+          `<p>Updated: <strong class="text-white">${tally.updated}</strong></p>`,
+          tally.failed ? `<p>Failed: <strong class="text-[var(--danger)]">${tally.failed}</strong></p>` : "",
+        ].join("");
+        const issues = [
+          ...(errors.critical || []).map(e => ({ level: "critical", msg: typeof e === "string" ? e : JSON.stringify(e) })),
+          ...(errors.warnings || []).map(w => ({ level: "warn", msg: typeof w === "string" ? w : JSON.stringify(w) })),
+        ];
+        const bar = document.getElementById("run-errors-bar");
+        if (issues.length) {
+          bar.classList.remove("hidden");
+          document.getElementById("run-errors-count").textContent = `${issues.length} issue${issues.length > 1 ? "s" : ""}`;
+          document.getElementById("run-errors-body").innerHTML = issues.map(i =>
+            `<div class="px-4 py-2 text-[11px] border-t border-[var(--border)] ${i.level === "critical" ? "text-[var(--danger)]" : "text-[var(--text-muted)]"}">${esc(i.msg)}</div>`).join("");
+        } else {
+          bar.classList.add("hidden");
+        }
+        showOverlay("success-overlay");
+      }
+
+      if (msg.type === "error") {
+        hideOverlay("loading-overlay");
+        document.getElementById("error-message").textContent = msg.message;
+        showOverlay("error-overlay");
+      }
+
+      if (msg.type === "processed-data-response") {
+        const name = msg.exportType === "json" ? "ttm316-config.json" : msg.exportType === "css" ? "ttm316-tokens.css" : "ttm316-tokens.scss";
+        dlFile(msg.content, name);
+      }
+    };
+
+    function sendToPlugin(msg) { parent.postMessage({ pluginMessage: msg }, "*"); }
+
+    // ── EVENT WIRING ──────────────────────────────────────────────────────────
+
+    document.querySelectorAll(".sidebar-tab-btn").forEach(b => b.addEventListener("click", () => switchTab(b.dataset.tab)));
+    document.querySelectorAll("[data-ptab]").forEach(b => b.addEventListener("click", () => switchPreviewTab(b.dataset.ptab)));
+
+    document.querySelectorAll(".scale-method-btn").forEach(b => b.addEventListener("click", () => {
+      appState.scale.method = b.dataset.method; syncScaleUI(); renderScalePreviewBar(); renderPreviewScale(); renderPreviewRoles();
+    }));
+
+    document.querySelectorAll(".naming-btn").forEach(b => b.addEventListener("click", () => {
+      appState.scale.namingScheme = b.dataset.naming; syncScaleUI(); renderScalePreviewBar(); renderRolesList(); renderPreviewScale();
+    }));
+
+    function wireInput(id, field, parser) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("input", () => {
+        appState.scale[field] = parser ? parser(el.value) : el.value;
+        renderScalePreviewBar(); renderPreviewScale(); renderPreviewRoles();
+      });
+    }
+    wireInput("scale-seed", "seedSize", parseFloat);
+    wireInput("scale-steps", "steps", v => Math.max(1, parseInt(v) || 1));
+    wireInput("scale-steps-linear", "steps", v => Math.max(1, parseInt(v) || 1));
+    wireInput("scale-min", "minSize", parseFloat);
+    wireInput("scale-max", "maxSize", parseFloat);
+    wireInput("scale-custom-names", "customStepNames", v => v.split(",").map(s => s.trim()).filter(Boolean));
+
+    document.getElementById("scale-ratio").addEventListener("change", e => {
+      appState.scale.ratio = parseFloat(e.target.value);
+      appState.scale.ratioName = e.target.options[e.target.selectedIndex].text.split("—")[0].trim();
+      renderScalePreviewBar(); renderPreviewScale(); renderPreviewRoles();
+    });
+
+    document.getElementById("scale-custom").addEventListener("input", e => {
+      appState.scale.customValues = e.target.value.split(",").map(s => parseFloat(s.trim())).filter(v => !isNaN(v) && v > 0);
+      appState.scale.steps = appState.scale.customValues.length || 1;
+      renderScalePreviewBar(); renderPreviewScale();
+    });
+
+    document.getElementById("btn-add-role").addEventListener("click", addRole);
+    document.getElementById("btn-settings").addEventListener("click", () => showSheet("settings-sheet"));
+    document.getElementById("close-settings").addEventListener("click", () => hideSheet("settings-sheet"));
+    document.getElementById("btn-more").addEventListener("click", () => showSheet("more-sheet"));
+    document.getElementById("close-more").addEventListener("click", () => hideSheet("more-sheet"));
+    document.getElementById("overlay").addEventListener("click", () => { hideSheet("settings-sheet"); hideSheet("more-sheet"); });
+    document.getElementById("btn-preview").addEventListener("click", () => switchTab("preview"));
+    document.getElementById("btn-run").addEventListener("click", openRunDialog);
+
+    document.getElementById("btn-run-confirm").addEventListener("click", () => {
+      hideOverlay("run-dialog-overlay");
+      showOverlay("loading-overlay");
+      sendToPlugin({ type: "run-creater", state: appState, scope: runScope });
+    });
+
+    document.getElementById("setting-name").addEventListener("input", e => { appState.name = e.target.value; });
+    document.getElementById("setting-base-font").addEventListener("input", e => {
+      appState.baseFontSize = parseFloat(e.target.value) || 16;
+      renderScalePreviewBar(); renderPreviewScale();
+    });
+    document.getElementById("setting-scale-collection").addEventListener("input", e => { appState.scaleCollectionName = e.target.value || "Type Scale"; });
+    document.getElementById("setting-separator").addEventListener("input", e => { appState.styleNameSeparator = e.target.value || "/"; });
+    document.getElementById("btn-add-weight").addEventListener("click", () => {
+      appState.fontWeights.push({ alias: "New", value: 400, figmaStyle: "Regular" }); renderSettingsForm();
+    });
+
+    document.getElementById("opt-save-config").addEventListener("click", () => { hideSheet("more-sheet"); sendToPlugin({ type: "request-processed-data", exportType: "json", state: appState }); });
+    document.getElementById("opt-export-css").addEventListener("click", () => { hideSheet("more-sheet"); sendToPlugin({ type: "request-processed-data", exportType: "css", state: appState }); });
+    document.getElementById("opt-export-scss").addEventListener("click", () => { hideSheet("more-sheet"); sendToPlugin({ type: "request-processed-data", exportType: "scss", state: appState }); });
+    document.getElementById("opt-clear").addEventListener("click", () => {
+      appState.roles = [];
+      appState.scale = { method: "Modular", seedSize: 16, ratio: 1.25, ratioName: "Major Third", steps: 10, minSize: 10, maxSize: 96, customValues: [], namingScheme: "numeric", customStepNames: [] };
+      hideSheet("more-sheet"); renderAll(); syncScaleUI();
+    });
+
+    document.getElementById("btn-import").addEventListener("click", () => document.getElementById("file-input").click());
+    document.getElementById("file-input").addEventListener("change", e => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => { try { pendingImportData = JSON.parse(ev.target.result); showOverlay("confirm-import-overlay"); } catch(_) { alert("Invalid JSON file."); } };
+      reader.readAsText(file); e.target.value = "";
+    });
+    document.getElementById("btn-import-confirm").addEventListener("click", () => {
+      if (pendingImportData) {
+        Object.assign(appState, pendingImportData.config || pendingImportData);
+        pendingImportData = null; hideOverlay("confirm-import-overlay"); renderAll(); syncScaleUI();
+      }
+    });
+
+    document.addEventListener("dragenter", e => { e.preventDefault(); document.getElementById("drop-overlay").classList.add("active"); });
+    document.addEventListener("dragleave", e => { if (!e.relatedTarget || !document.contains(e.relatedTarget)) document.getElementById("drop-overlay").classList.remove("active"); });
+    document.addEventListener("dragover", e => e.preventDefault());
+    document.addEventListener("drop", e => {
+      e.preventDefault(); document.getElementById("drop-overlay").classList.remove("active");
+      const file = e.dataTransfer.files[0]; if (!file || !file.name.endsWith(".json")) return;
+      const reader = new FileReader();
+      reader.onload = ev => { try { pendingImportData = JSON.parse(ev.target.result); showOverlay("confirm-import-overlay"); } catch(_) { alert("Invalid JSON file."); } };
+      reader.readAsText(file);
+    });
+
+    // ── SYNC UI ← STATE ───────────────────────────────────────────────────────
+
+    function syncScaleUI() {
+      document.querySelectorAll(".scale-method-btn").forEach(b => b.classList.toggle("active", b.dataset.method === appState.scale.method));
+      document.getElementById("modular-controls").classList.toggle("hidden", appState.scale.method !== "Modular");
+      document.getElementById("linear-controls").classList.toggle("hidden", appState.scale.method !== "Linear");
+      document.getElementById("custom-controls").classList.toggle("hidden", appState.scale.method !== "Custom");
+      document.querySelectorAll(".naming-btn").forEach(b => b.classList.toggle("active", b.dataset.naming === appState.scale.namingScheme));
+      document.getElementById("custom-names-row").classList.toggle("hidden", appState.scale.namingScheme !== "custom");
+      safeSet("scale-seed", appState.scale.seedSize);
+      safeSet("scale-steps", appState.scale.steps);
+      safeSet("scale-steps-linear", appState.scale.steps);
+      safeSet("scale-min", appState.scale.minSize);
+      safeSet("scale-max", appState.scale.maxSize);
+      safeSet("scale-custom-names", (appState.scale.customStepNames || []).join(", "));
+      const rEl = document.getElementById("scale-ratio"); if (rEl) rEl.value = String(appState.scale.ratio);
+      const cEl = document.getElementById("scale-custom"); if (cEl) cEl.value = (appState.scale.customValues || []).join(", ");
+    }
+
+    // ── UTILS ─────────────────────────────────────────────────────────────────
+
+    function safeSet(id, val) { const el = document.getElementById(id); if (el && val != null) el.value = String(val); }
+    function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+    function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+    function dlFile(content, name) {
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([content],{type:"text/plain"})); a.download = name; a.click();
+    }
+
+    // ── INIT ──────────────────────────────────────────────────────────────────
+    syncScaleUI();
+    renderAll();
+    </script>
+  </body>
+</html>
