@@ -1,0 +1,14 @@
+{
+  "name": "ttm316",
+  "id": "1631195237687354469",
+  "api": "1.0.0",
+  "main": "scripts.js",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "documentAccess": "dynamic-page",
+  "editorType": ["figma"],
+  "ui": "ui.html",
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}
