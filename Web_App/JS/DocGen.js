@@ -199,7 +199,7 @@ function generateCSV({ data, columns }) {
     return columns
       .map((col) => {
         const val = getValueByPath(row, col.path);
-        return escapeCSV(val ?? "");
+        return escapeCSV(val || "");
       })
       .join(",");
   });
