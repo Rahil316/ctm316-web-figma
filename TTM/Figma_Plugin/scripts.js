@@ -80,21 +80,21 @@ figma.ui.onmessage = async (msg) => {
 // 3. CONFIG TRANSLATOR
 function translateConfig(appState) {
   const scale = appState.scale || {};
-  const fonts = (appState.fonts || [
+  const fonts = appState.fonts || [
     { slot: "primary", family: "Inter", fallback: "sans-serif" },
     { slot: "secondary", family: "Merriweather", fallback: "serif" },
     { slot: "tertiary", family: "JetBrains Mono", fallback: "monospace" },
-  ]);
+  ];
 
   const fontWeights = appState.fontWeights || [
-    { alias: "Thin", value: 100, figmaStyle: "Thin" },
-    { alias: "Light", value: 300, figmaStyle: "Light" },
-    { alias: "Regular", value: 400, figmaStyle: "Regular" },
-    { alias: "Medium", value: 500, figmaStyle: "Medium" },
-    { alias: "SemiBold", value: 600, figmaStyle: "SemiBold" },
-    { alias: "Bold", value: 700, figmaStyle: "Bold" },
-    { alias: "ExtraBold", value: 800, figmaStyle: "ExtraBold" },
-    { alias: "Black", value: 900, figmaStyle: "Black" },
+    { alias: "Thin",      value: 100, figmaStyles: {} },
+    { alias: "Light",     value: 300, figmaStyles: {} },
+    { alias: "Regular",   value: 400, figmaStyles: {} },
+    { alias: "Medium",    value: 500, figmaStyles: {} },
+    { alias: "SemiBold",  value: 600, figmaStyles: {} },
+    { alias: "Bold",      value: 700, figmaStyles: {} },
+    { alias: "ExtraBold", value: 800, figmaStyles: {} },
+    { alias: "Black",     value: 900, figmaStyles: {} },
   ];
 
   return {
@@ -140,7 +140,11 @@ function translateConfig(appState) {
 // 4. EXPORT FORMATTERS
 function cssSlug(str) {
   if (!str) return "";
-  return String(str).toLowerCase().trim().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "");
+  return String(str)
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
 }
 
 function lineHeightToCss(lh) {
@@ -154,7 +158,7 @@ function lineHeightToCss(lh) {
 function letterSpacingToCss(ls) {
   if (!ls) return "0";
   if (ls.unit === "PIXELS") return `${ls.value}px`;
-  if (ls.unit === "PERCENT") return `${Math.round(ls.value / 100 * 1000) / 1000}em`;
+  if (ls.unit === "PERCENT") return `${Math.round((ls.value / 100) * 1000) / 1000}em`;
   return "0";
 }
 
@@ -165,17 +169,21 @@ function resolveWeightValue(alias, fontWeights) {
 
 const ExportFormatter = {
   toJSON(result, config, appState) {
-    return JSON.stringify({
-      meta: {
-        system: "ttm316",
-        name: config.name,
-        generated: new Date().toISOString(),
-        baseFontSize: config.baseFontSize,
+    return JSON.stringify(
+      {
+        meta: {
+          system: "ttm316",
+          name: config.name,
+          generated: new Date().toISOString(),
+          baseFontSize: config.baseFontSize,
+        },
+        scale: result.scaleSteps,
+        roles: result.roleStyles ? groupRoleStylesForExport(result.roleStyles) : [],
+        config: appState || config,
       },
-      scale: result.scaleSteps,
-      roles: result.roleStyles ? groupRoleStylesForExport(result.roleStyles) : [],
-      config: appState || config,
-    }, null, 2);
+      null,
+      2,
+    );
   },
 
   toCSS(result, config) {
@@ -187,7 +195,7 @@ const ExportFormatter = {
       css += `  --scale-${cssSlug(String(step.name))}-rem: ${step.rem}rem;\n`;
     }
     css += `\n  /* ── Role Tokens ── */\n`;
-    for (const spec of (result.roleStyles || [])) {
+    for (const spec of result.roleStyles || []) {
       const prefix = `--${cssSlug(spec.roleName)}-${cssSlug(spec.variationName)}`;
       css += `  ${prefix}-size: var(--scale-${cssSlug(String(spec.scaleStep.name))});\n`;
       css += `  ${prefix}-line-height: ${lineHeightToCss(spec.lineHeight)};\n`;
@@ -217,7 +225,7 @@ const ExportFormatter = {
     }
     scss += `);\n\n`;
     scss += hr("ROLE TOKEN MAPS");
-    for (const spec of (result.roleStyles || [])) {
+    for (const spec of result.roleStyles || []) {
       const varName = `$${cssSlug(spec.roleName)}-${cssSlug(spec.variationName)}`;
       scss += `${varName}: (\n`;
       scss += `  size:           $scale-${cssSlug(String(spec.scaleStep.name))},\n`;
@@ -295,10 +303,16 @@ const TTMManager = {
         if (v) this.propVarMap.fonts[font.slot] = v;
       }
 
-      // Weight STRING vars (figmaStyle name per alias)
-      for (const w of config.fontWeights) {
-        const v = await this.upsertStringVariable(`weights/${w.alias}`, scaleCol, modeId, w.figmaStyle, `Weight style name for "${w.alias}"`);
-        if (v) this.propVarMap.weights[w.alias] = v;
+      // Weight STRING vars — one per alias per font slot (e.g. weights/primary/Bold)
+      for (const font of config.fonts) {
+        for (const w of config.fontWeights) {
+          const styleName = getFigmaStyle(w, font.slot);
+          const v = await this.upsertStringVariable(`weights/${font.slot}/${w.alias}`, scaleCol, modeId, styleName, `"${w.alias}" figma style name for ${font.slot}`);
+          if (v) {
+            if (!this.propVarMap.weights[font.slot]) this.propVarMap.weights[font.slot] = {};
+            this.propVarMap.weights[font.slot][w.alias] = v;
+          }
+        }
       }
 
       // Per-variation FLOAT vars for line height and letter spacing (deduplicated)
@@ -321,9 +335,7 @@ const TTMManager = {
     // STAGE 2: Text styles
     if (scope === "all" || scope === "styles") {
       const fontRequests = this.collectRequiredFonts(result.roleStyles);
-      const fontLoadResults = await Promise.allSettled(
-        fontRequests.map((f) => figma.loadFontAsync(f))
-      );
+      const fontLoadResults = await Promise.allSettled(fontRequests.map((f) => figma.loadFontAsync(f)));
       const loadedFonts = new Set();
       fontRequests.forEach((f, i) => {
         if (fontLoadResults[i].status === "fulfilled") {
@@ -337,7 +349,10 @@ const TTMManager = {
 
       for (const spec of result.roleStyles) {
         const fontKey = `${spec.fontFamily}::${spec.fontStyle}`;
-        if (!loadedFonts.has(fontKey)) { this.tally.failed++; continue; }
+        if (!loadedFonts.has(fontKey)) {
+          this.tally.failed++;
+          continue;
+        }
         try {
           const styleName = this.buildStyleName(spec, config);
           let style = this.cache.textStyles.find((s) => s.name === styleName);
@@ -361,9 +376,7 @@ const TTMManager = {
 
   buildStyleName(spec, config) {
     const sep = config.styleNameSeparator || "/";
-    const roleName = config.useShortRoleNames
-      ? (spec.roleShortName || spec.roleName.substring(0, 2))
-      : spec.roleName;
+    const roleName = config.useShortRoleNames ? spec.roleShortName || spec.roleName.substring(0, 2) : spec.roleName;
     return `${roleName}${sep}${spec.variationName}${sep}${spec.fontWeightAlias}`;
   },
 
@@ -376,9 +389,7 @@ const TTMManager = {
       else style.lineHeight = { unit: "PERCENT", value: spec.lineHeight.value };
     }
     if (spec.letterSpacing) {
-      style.letterSpacing = spec.letterSpacing.unit === "PIXELS"
-        ? { unit: "PIXELS", value: spec.letterSpacing.value }
-        : { unit: "PERCENT", value: spec.letterSpacing.value };
+      style.letterSpacing = spec.letterSpacing.unit === "PIXELS" ? { unit: "PIXELS", value: spec.letterSpacing.value } : { unit: "PERCENT", value: spec.letterSpacing.value };
     }
     const caseMap = { uppercase: "UPPER", lowercase: "LOWER", capitalize: "TITLE" };
     style.textCase = caseMap[spec.textTransform] || "ORIGINAL";
@@ -386,20 +397,31 @@ const TTMManager = {
 
     if (!config.skipScaleVariables) {
       if (this.scaleVarMap[spec.scaleStep.index]) {
-        try { style.setBoundVariable("fontSize", this.scaleVarMap[spec.scaleStep.index]); } catch (_) {}
+        try {
+          style.setBoundVariable("fontSize", this.scaleVarMap[spec.scaleStep.index]);
+        } catch (_) {}
       }
       if (this.propVarMap.fonts[spec.fontSlot]) {
-        try { style.setBoundVariable("fontFamily", this.propVarMap.fonts[spec.fontSlot]); } catch (_) {}
+        try {
+          style.setBoundVariable("fontFamily", this.propVarMap.fonts[spec.fontSlot]);
+        } catch (_) {}
       }
-      if (this.propVarMap.weights[spec.fontWeightAlias]) {
-        try { style.setBoundVariable("fontStyle", this.propVarMap.weights[spec.fontWeightAlias]); } catch (_) {}
+      const weightVar = this.propVarMap.weights[spec.fontSlot] && this.propVarMap.weights[spec.fontSlot][spec.fontWeightAlias];
+      if (weightVar) {
+        try {
+          style.setBoundVariable("fontStyle", weightVar);
+        } catch (_) {}
       }
       const varKey = `${spec.roleName}/${spec.variationName}`;
       if (this.propVarMap.lineHeights[varKey]) {
-        try { style.setBoundVariable("lineHeight", this.propVarMap.lineHeights[varKey]); } catch (_) {}
+        try {
+          style.setBoundVariable("lineHeight", this.propVarMap.lineHeights[varKey]);
+        } catch (_) {}
       }
       if (this.propVarMap.letterSpacings[varKey]) {
-        try { style.setBoundVariable("letterSpacing", this.propVarMap.letterSpacings[varKey]); } catch (_) {}
+        try {
+          style.setBoundVariable("letterSpacing", this.propVarMap.letterSpacings[varKey]);
+        } catch (_) {}
       }
     }
   },
@@ -409,7 +431,10 @@ const TTMManager = {
     const requests = [];
     for (const spec of roleStyles) {
       const key = `${spec.fontFamily}::${spec.fontStyle}`;
-      if (!seen.has(key)) { seen.add(key); requests.push({ family: spec.fontFamily, style: spec.fontStyle }); }
+      if (!seen.has(key)) {
+        seen.add(key);
+        requests.push({ family: spec.fontFamily, style: spec.fontStyle });
+      }
     }
     return requests;
   },
@@ -456,9 +481,7 @@ const TTMManager = {
 
   async saveConfig(appState, collection, modeId) {
     try {
-      let cfgVar = this.cache.variables.find(
-        (v) => v.name === "__ttm316_config__" && v.variableCollectionId === collection.id
-      );
+      let cfgVar = this.cache.variables.find((v) => v.name === "__ttm316_config__" && v.variableCollectionId === collection.id);
       if (!cfgVar) {
         cfgVar = figma.variables.createVariable("__ttm316_config__", collection, "STRING");
         this.cache.variables.push(cfgVar);
@@ -483,28 +506,26 @@ const TTMManager = {
 
 // 6. SCALE GENERATOR
 const MODULAR_RATIOS = {
-  "Minor Second":    1.067,
-  "Major Second":    1.125,
-  "Minor Third":     1.200,
-  "Major Third":     1.250,
-  "Perfect Fourth":  1.333,
-  "Augmented Fourth":1.414,
-  "Perfect Fifth":   1.500,
-  "Golden Ratio":    1.618,
-  "Major Sixth":     1.667,
-  "Minor Seventh":   1.778,
-  "Major Seventh":   1.875,
-  "Octave":          2.000,
+  "Minor Second": 1.067,
+  "Major Second": 1.125,
+  "Minor Third": 1.2,
+  "Major Third": 1.25,
+  "Perfect Fourth": 1.333,
+  "Augmented Fourth": 1.414,
+  "Perfect Fifth": 1.5,
+  "Golden Ratio": 1.618,
+  "Major Sixth": 1.667,
+  "Minor Seventh": 1.778,
+  "Major Seventh": 1.875,
+  Octave: 2.0,
 };
 
-const SIZE_LABEL_LIST = ["3xs","2xs","xs","s","m","l","xl","2xl","3xl","4xl","5xl","6xl","7xl","8xl","9xl"];
+const SIZE_LABEL_LIST = ["3xs", "2xs", "xs", "s", "m", "l", "xl", "2xl", "3xl", "4xl", "5xl", "6xl", "7xl", "8xl", "9xl"];
 
 function generateModularScale(seed, ratio, steps) {
-  const midPoint = Math.floor(steps / 2);
   const result = [];
   for (let i = 0; i < steps; i++) {
-    const exp = i - midPoint;
-    result.push(Math.round(seed * Math.pow(ratio, exp)));
+    result.push(Math.round(seed * Math.pow(ratio, i)));
   }
   return result;
 }
@@ -530,10 +551,10 @@ function generateStepNames(steps, scheme, baseFontSize, customNames, pxValues) {
     case "sizeLabels": {
       const center = SIZE_LABEL_LIST.indexOf("m");
       const offset = center - Math.floor(steps / 2);
-      return Array.from({ length: steps }, (_, i) => SIZE_LABEL_LIST[Math.max(0, i + offset)] || String(i + 1));
+      return Array.from({ length: steps }, (_, i) => SIZE_LABEL_LIST[i + offset] || String(i + 1));
     }
     case "rem":
-      return pxValues.map((px) => `${Math.round(px / baseFontSize * 1000) / 1000}rem`);
+      return pxValues.map((px) => `${Math.round((px / baseFontSize) * 1000) / 1000}rem`);
     case "px":
       return pxValues.map((px) => `${px}px`);
     case "custom":
@@ -581,11 +602,23 @@ function scaleGenerator(config) {
     index: i,
     name: names[i],
     px,
-    rem: Math.round(px / base * 1000) / 1000,
+    rem: Math.round((px / base) * 1000) / 1000,
   }));
 }
 
 // 7. ROLE STYLE RESOLVER
+
+// Resolves the Figma style name for a weight + font slot combo.
+// Falls back to: slot override → alias (e.g. "Bold") as last resort.
+function getFigmaStyle(weightDef, slotName) {
+  if (weightDef.figmaStyles && weightDef.figmaStyles[slotName]) {
+    return weightDef.figmaStyles[slotName];
+  }
+  // legacy single-field support
+  if (weightDef.figmaStyle) return weightDef.figmaStyle;
+  return weightDef.alias;
+}
+
 function lineHeightHint(pxSize) {
   if (pxSize < 16) return "1.4–1.6 (small text needs more air)";
   if (pxSize <= 32) return "1.2–1.4 (body reading range)";
@@ -599,7 +632,7 @@ function resolveRoleStyles(role, scaleSteps, config) {
 
   for (let v = 0; v < role.variationCount; v++) {
     const override = role.variationOverrides.find((o) => o.index === v) || {};
-    const delta = role.scaleDirection === "descending" ? (role.variationCount - 1 - v) : v;
+    const delta = role.scaleDirection === "descending" ? role.variationCount - 1 - v : v;
     const rawIdx = role.baseScaleIndex - delta + (override.scaleIndexOffset || 0);
     const scaleIdx = Math.max(0, Math.min(scaleSteps.length - 1, rawIdx));
     if (rawIdx !== scaleIdx) errors.push(`Role "${role.name}" variation ${v}: scale index ${rawIdx} clamped to ${scaleIdx}.`);
@@ -624,7 +657,7 @@ function resolveRoleStyles(role, scaleSteps, config) {
         scaleStep: scaleSteps[scaleIdx],
         fontFamily: fontDef ? fontDef.family : "Inter",
         fontSlot,
-        fontStyle: weightDef.figmaStyle,
+        fontStyle: getFigmaStyle(weightDef, fontSlot),
         fontWeightAlias: weightDef.alias,
         lineHeight,
         letterSpacing,
