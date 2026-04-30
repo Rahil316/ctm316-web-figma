@@ -17,19 +17,19 @@ const DEFAULT_STATE = {
   name: "ttm316",
   baseFontSize: 16,
   fonts: [
-    { slot: "primary",   family: "Inter",         fallback: "sans-serif" },
-    { slot: "secondary", family: "Merriweather",   fallback: "serif"     },
-    { slot: "tertiary",  family: "JetBrains Mono", fallback: "monospace" },
+    { slot: "primary", family: "Inter", fallback: "sans-serif" },
+    { slot: "secondary", family: "Merriweather", fallback: "serif" },
+    { slot: "tertiary", family: "JetBrains Mono", fallback: "monospace" },
   ],
   fontWeights: [
-    { alias: "Thin",      value: 100, figmaStyles: {} },
-    { alias: "Light",     value: 300, figmaStyles: {} },
-    { alias: "Regular",   value: 400, figmaStyles: {} },
-    { alias: "Medium",    value: 500, figmaStyles: {} },
-    { alias: "SemiBold",  value: 600, figmaStyles: {} },
-    { alias: "Bold",      value: 700, figmaStyles: {} },
+    { alias: "Thin", value: 100, figmaStyles: {} },
+    { alias: "Light", value: 300, figmaStyles: {} },
+    { alias: "Regular", value: 400, figmaStyles: {} },
+    { alias: "Medium", value: 500, figmaStyles: {} },
+    { alias: "SemiBold", value: 600, figmaStyles: {} },
+    { alias: "Bold", value: 700, figmaStyles: {} },
     { alias: "ExtraBold", value: 800, figmaStyles: {} },
-    { alias: "Black",     value: 900, figmaStyles: {} },
+    { alias: "Black", value: 900, figmaStyles: {} },
   ],
   scale: {
     method: "Modular",
@@ -63,7 +63,9 @@ function loadFromStorage() {
 }
 
 function saveToStorage() {
-  try { localStorage.setItem("ttm316_state", JSON.stringify(appState)); } catch (_) {}
+  try {
+    localStorage.setItem("ttm316_state", JSON.stringify(appState));
+  } catch (_) {}
 }
 
 let _saveTimer = null;
@@ -74,7 +76,7 @@ function scheduleSave() {
 
 // ── 2. SCALE MATH ─────────────────────────────────────────────────────────────
 
-const SIZE_LABELS = ["3xs","2xs","xs","s","m","l","xl","2xl","3xl","4xl","5xl","6xl","7xl","8xl","9xl"];
+const SIZE_LABELS = ["3xs", "2xs", "xs", "s", "m", "l", "xl", "2xl", "3xl", "4xl", "5xl", "6xl", "7xl", "8xl", "9xl"];
 
 function computeScale(scale, base) {
   const { method, seedSize, ratio, steps, minSize, maxSize, customValues, namingScheme, customStepNames, scaleOverrides } = scale;
@@ -94,14 +96,16 @@ function computeScale(scale, base) {
   }
   if (scaleOverrides) {
     for (const [idx, val] of Object.entries(scaleOverrides)) {
-      const i = parseInt(idx), v = Math.round(parseFloat(val));
+      const i = parseInt(idx),
+        v = Math.round(parseFloat(val));
       if (!isNaN(i) && i >= 0 && i < px.length && !isNaN(v) && v > 0) px[i] = v;
     }
   }
   const n = px.length;
   let names;
   if (namingScheme === "sizeLabels") {
-    const c = SIZE_LABELS.indexOf("m"), off = c - Math.floor(n / 2);
+    const c = SIZE_LABELS.indexOf("m"),
+      off = c - Math.floor(n / 2);
     names = Array.from({ length: n }, (_, i) => SIZE_LABELS[i + off] || String(i + 1));
   } else if (namingScheme === "rem") {
     names = px.map((v) => `${Math.round((v / base) * 1000) / 1000}rem`);
@@ -165,7 +169,11 @@ function lsToCss(ls) {
 // ── 3. EXPORT FORMATTERS ──────────────────────────────────────────────────────
 
 function cssSlug(str) {
-  return String(str || "").toLowerCase().trim().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "");
+  return String(str || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
 }
 
 function lineHeightToCss(lh) {
@@ -285,22 +293,32 @@ const ExportFormatter = {
       const key = spec.variationName;
       if (!grouped[spec.roleName].variations[key]) {
         grouped[spec.roleName].variations[key] = {
-          name: key, scaleName: String(spec.scaleStep.name),
-          px: spec.scaleStep.px, rem: spec.scaleStep.rem,
-          lineHeight: spec.lineHeight, letterSpacing: spec.letterSpacing,
-          textTransform: spec.textTransform, weights: [],
+          name: key,
+          scaleName: String(spec.scaleStep.name),
+          px: spec.scaleStep.px,
+          rem: spec.scaleStep.rem,
+          lineHeight: spec.lineHeight,
+          letterSpacing: spec.letterSpacing,
+          textTransform: spec.textTransform,
+          weights: [],
         };
       }
       grouped[spec.roleName].variations[key].weights.push({
-        alias: spec.fontWeightAlias, value: spec.fontWeight, fontFamily: spec.fontFamily,
+        alias: spec.fontWeightAlias,
+        value: spec.fontWeight,
+        fontFamily: spec.fontFamily,
       });
     }
-    return JSON.stringify({
-      meta: { system: "ttm316", name: appState.name, generated: new Date().toISOString(), baseFontSize: appState.baseFontSize },
-      scale: scaleSteps,
-      roles: Object.values(grouped).map((r) => ({ role: r.role, variations: Object.values(r.variations) })),
-      config: appState,
-    }, null, 2);
+    return JSON.stringify(
+      {
+        meta: { system: "ttm316", name: appState.name, generated: new Date().toISOString(), baseFontSize: appState.baseFontSize },
+        scale: scaleSteps,
+        roles: Object.values(grouped).map((r) => ({ role: r.role, variations: Object.values(r.variations) })),
+        config: appState,
+      },
+      null,
+      2,
+    );
   },
 };
 
@@ -327,9 +345,10 @@ function renderScalePreviewBar() {
   const pf = appState.fonts.find((f) => f.slot === "primary") || appState.fonts[0];
   const ff = pf ? pf.family : "Inter";
   const overrides = appState.scale.scaleOverrides || {};
-  bar.innerHTML = steps.map((s) => {
-    const isOv = overrides[s.index] != null;
-    return `
+  bar.innerHTML = steps
+    .map((s) => {
+      const isOv = overrides[s.index] != null;
+      return `
     <div class="scale-bar-item">
       <span class="text-[var(--text-dim)] font-mono text-[10px] w-10 flex-shrink-0">${esc(String(s.name))}</span>
       <span style="font-family:'${esc(ff)}';font-size:${Math.min(s.px, 48)}px;" class="truncate whitespace-nowrap leading-none flex-1 overflow-hidden">The quick brown fox jumps over the lazy dog</span>
@@ -338,16 +357,23 @@ function renderScalePreviewBar() {
         class="w-[52px] h-[22px] text-[10px] text-right bg-[var(--bg-input)] border rounded-[4px] px-1 outline-none focus:border-[var(--border-focus)] flex-shrink-0 ${isOv ? "border-[var(--accent)] text-[var(--accent)]" : "border-[var(--border)]"}"
         data-step-override="${s.index}" title="Override step ${s.index} size" />
     </div>`;
-  }).join("");
+    })
+    .join("");
   bar.querySelectorAll("[data-step-override]").forEach((el) => {
     el.addEventListener("change", (e) => {
       const idx = parseInt(e.target.dataset.stepOverride);
       const val = Math.round(parseFloat(e.target.value));
       if (!appState.scale.scaleOverrides) appState.scale.scaleOverrides = {};
-      if (!isNaN(val) && val > 0) { appState.scale.scaleOverrides[idx] = val; }
-      else { delete appState.scale.scaleOverrides[idx]; }
-      renderScalePreviewBar(); renderPreviewScale(); renderPreviewRoles();
-      scheduleExportRefresh(); scheduleSave();
+      if (!isNaN(val) && val > 0) {
+        appState.scale.scaleOverrides[idx] = val;
+      } else {
+        delete appState.scale.scaleOverrides[idx];
+      }
+      renderScalePreviewBar();
+      renderPreviewScale();
+      renderPreviewRoles();
+      scheduleExportRefresh();
+      scheduleSave();
     });
   });
 }
@@ -371,9 +397,9 @@ function buildRoleCard(role, idx) {
   const basePx = steps[role.baseScaleIndex] ? `${steps[role.baseScaleIndex].px}px` : "–";
   const maxIdx = Math.max(0, steps.length - 1);
   const lhUnit = (role.lineHeight || {}).unit || "PERCENT";
-  const lhVal  = (role.lineHeight || {}).value !== undefined ? (role.lineHeight || {}).value : 150;
+  const lhVal = (role.lineHeight || {}).value !== undefined ? (role.lineHeight || {}).value : 150;
   const lsUnit = (role.letterSpacing || {}).unit || "PERCENT";
-  const lsVal  = (role.letterSpacing || {}).value !== undefined ? (role.letterSpacing || {}).value : 0;
+  const lsVal = (role.letterSpacing || {}).value !== undefined ? (role.letterSpacing || {}).value : 0;
   const hint = lhHintUI(steps[role.baseScaleIndex] ? steps[role.baseScaleIndex].px : 16);
   const fOpts = appState.fonts.map((f) => `<option value="${esc(f.slot)}" ${role.fontSlot === f.slot ? "selected" : ""}>${cap(f.slot)} — ${esc(f.family)}</option>`).join("");
 
@@ -401,12 +427,12 @@ function buildRoleCard(role, idx) {
           <input type="text" placeholder="h1,h2,h3..." class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[12px] outline-none focus:border-[var(--border-focus)]" value="${(role.variationNames || []).join(",")}" data-ri="${idx}" data-rf="variationNames" /></div>
       </div>
       <div class="grid grid-cols-2 gap-2">
-        <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Base Step <span class="text-[var(--accent)]">(${basePx})</span></label>
+        <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Base MF Step <span type="button" onclick=(this.innerHTML=${basePx} console.log("hi")) class="text-[var(--accent)]">(${basePx} dsfsdf)</span></label>
           <input type="number" min="0" max="${maxIdx}" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)]" value="${role.baseScaleIndex}" data-ri="${idx}" data-rf="baseScaleIndex" /></div>
         <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Direction</label>
           <select class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1.5 text-[11px] outline-none focus:border-[var(--border-focus)] appearance-none cursor-pointer" data-ri="${idx}" data-rf="scaleDirection">
             <option value="descending" ${role.scaleDirection === "descending" ? "selected" : ""}>↓ Desc (v0=largest)</option>
-            <option value="ascending"  ${role.scaleDirection === "ascending"  ? "selected" : ""}>↑ Asc (v0=smallest)</option>
+            <option value="ascending"  ${role.scaleDirection === "ascending" ? "selected" : ""}>↑ Asc (v0=smallest)</option>
           </select></div>
       </div>
       <div class="grid grid-cols-2 gap-2">
@@ -418,9 +444,9 @@ function buildRoleCard(role, idx) {
         <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Text Transform</label>
           <div class="relative">
             <select class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] pl-2 pr-7 text-[11px] outline-none focus:border-[var(--border-focus)] appearance-none cursor-pointer" data-ri="${idx}" data-rf="textTransform">
-              <option value="none"       ${role.textTransform === "none"       ? "selected" : ""}>None</option>
-              <option value="uppercase"  ${role.textTransform === "uppercase"  ? "selected" : ""}>Uppercase</option>
-              <option value="lowercase"  ${role.textTransform === "lowercase"  ? "selected" : ""}>Lowercase</option>
+              <option value="none"       ${role.textTransform === "none" ? "selected" : ""}>None</option>
+              <option value="uppercase"  ${role.textTransform === "uppercase" ? "selected" : ""}>Uppercase</option>
+              <option value="lowercase"  ${role.textTransform === "lowercase" ? "selected" : ""}>Lowercase</option>
               <option value="capitalize" ${role.textTransform === "capitalize" ? "selected" : ""}>Capitalize</option>
             </select>
             <svg class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
@@ -432,8 +458,8 @@ function buildRoleCard(role, idx) {
           <div class="flex gap-1 items-center">
             <select class="w-[60px] h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1 text-[11px] outline-none focus:border-[var(--border-focus)] appearance-none cursor-pointer flex-shrink-0" data-ri="${idx}" data-rf="lineHeightUnit">
               <option value="PERCENT" ${lhUnit === "PERCENT" ? "selected" : ""}>%</option>
-              <option value="PIXELS"  ${lhUnit === "PIXELS"  ? "selected" : ""}>px</option>
-              <option value="AUTO"    ${lhUnit === "AUTO"    ? "selected" : ""}>auto</option>
+              <option value="PIXELS"  ${lhUnit === "PIXELS" ? "selected" : ""}>px</option>
+              <option value="AUTO"    ${lhUnit === "AUTO" ? "selected" : ""}>auto</option>
             </select>
             <input type="number" step="0.1" class="flex-1 h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] ${lhUnit === "AUTO" ? "opacity-30 pointer-events-none" : ""}" value="${lhVal}" data-ri="${idx}" data-rf="lineHeightValue" ${lhUnit === "AUTO" ? "disabled" : ""} />
           </div>
@@ -444,7 +470,7 @@ function buildRoleCard(role, idx) {
           <div class="flex gap-1 items-center">
             <select class="w-[60px] h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1 text-[11px] outline-none focus:border-[var(--border-focus)] appearance-none cursor-pointer flex-shrink-0" data-ri="${idx}" data-rf="letterSpacingUnit">
               <option value="PERCENT" ${lsUnit === "PERCENT" ? "selected" : ""}>%</option>
-              <option value="PIXELS"  ${lsUnit === "PIXELS"  ? "selected" : ""}>px</option>
+              <option value="PIXELS"  ${lsUnit === "PIXELS" ? "selected" : ""}>px</option>
             </select>
             <input type="number" step="0.1" class="flex-1 h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)]" value="${lsVal}" data-ri="${idx}" data-rf="letterSpacingValue" />
           </div>
@@ -472,7 +498,10 @@ function handleRoleInput(ri, field, val) {
       renderRolesList();
     }
   } else if (field === "variationNames") {
-    role.variationNames = val.split(",").map((s) => s.trim()).filter(Boolean);
+    role.variationNames = val
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
   } else if (field === "baseScaleIndex") {
     role.baseScaleIndex = parseInt(val) || 0;
   } else if (field === "lineHeightValue") {
@@ -503,12 +532,16 @@ function renderPreviewScale() {
   const ff = pf ? pf.family : "Inter";
   const el = document.getElementById("scale-specimens");
   if (!el) return;
-  el.innerHTML = steps.map((s) => `
+  el.innerHTML = steps
+    .map(
+      (s) => `
     <div class="scale-bar-item">
       <span class="text-[var(--text-dim)] font-mono text-[10px] w-12 flex-shrink-0">${esc(String(s.name))}</span>
       <span style="font-family:'${esc(ff)}';font-size:${Math.min(s.px, 72)}px;" class="truncate whitespace-nowrap leading-none flex-1 overflow-hidden">The quick brown fox jumps over the lazy dog</span>
       <span class="text-[var(--text-muted)] text-[10px] ml-2 flex-shrink-0">${s.px}px / ${s.rem}rem</span>
-    </div>`).join("");
+    </div>`,
+    )
+    .join("");
 }
 
 function renderPreviewRoles() {
@@ -519,11 +552,14 @@ function renderPreviewRoles() {
     el.innerHTML = `<p class="text-[var(--text-muted)] text-[12px] text-center py-4">No roles defined.</p>`;
     return;
   }
-  el.innerHTML = appState.roles.map((role) => {
-    const variants = resolveRolePreview(role, steps);
-    return `<div class="space-y-1">
+  el.innerHTML = appState.roles
+    .map((role) => {
+      const variants = resolveRolePreview(role, steps);
+      return `<div class="space-y-1">
       <p class="text-[var(--text-muted)] text-[10px] font-bold tracking-wider uppercase mb-2">${esc(role.name)}</p>
-      ${variants.map((v) => `
+      ${variants
+        .map(
+          (v) => `
         <div class="role-specimen">
           <div style="font-family:'${esc(v.fontFamily)}';font-size:${Math.min(v.scaleStep.px, 80)}px;line-height:${lhToCss(v.lineHeight)};letter-spacing:${lsToCss(v.letterSpacing)};font-weight:${v.fontWeight};text-transform:${v.textTransform !== "none" ? v.textTransform : ""};" class="truncate whitespace-nowrap overflow-hidden">The quick brown fox jumps over the lazy dog</div>
           <div class="flex gap-2 mt-1">
@@ -533,9 +569,12 @@ function renderPreviewRoles() {
             <span class="text-[10px] text-[var(--text-dim)]">·</span>
             <span class="text-[10px] text-[var(--accent)]">${esc(v.fontFamily)}</span>
           </div>
-        </div>`).join("")}
+        </div>`,
+        )
+        .join("")}
     </div>`;
-  }).join("");
+    })
+    .join("");
 }
 
 let _currentExportFmt = "css";
@@ -570,7 +609,9 @@ function renderSettingsForm() {
 
   const slotList = document.getElementById("font-slots-list");
   if (slotList) {
-    slotList.innerHTML = appState.fonts.map((f, i) => `
+    slotList.innerHTML = appState.fonts
+      .map(
+        (f, i) => `
       <div class="flex gap-1.5 items-center">
         <input type="text" class="w-[72px] h-[32px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[11px] outline-none focus:border-[var(--border-focus)]"
           placeholder="slot" value="${esc(f.slot)}" data-fi="${i}" data-ff="slot" />
@@ -581,13 +622,18 @@ function renderSettingsForm() {
         <button class="text-[var(--danger)] p-1.5 hover:bg-[var(--danger)]/10 rounded flex-shrink-0" onclick="deleteFontSlot(${i})">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
-      </div>`).join("");
+      </div>`,
+      )
+      .join("");
     slotList.querySelectorAll("[data-ff]").forEach((el) =>
       el.addEventListener("input", (e) => {
         appState.fonts[parseInt(e.target.dataset.fi)][e.target.dataset.ff] = e.target.value;
-        renderRolesList(); renderPreviewScale(); renderPreviewRoles();
-        scheduleSave(); scheduleExportRefresh();
-      })
+        renderRolesList();
+        renderPreviewScale();
+        renderPreviewRoles();
+        scheduleSave();
+        scheduleExportRefresh();
+      }),
     );
   }
 
@@ -595,16 +641,17 @@ function renderSettingsForm() {
   const wList = document.getElementById("font-weights-list");
   if (wHeader && wList) {
     const slotHeaders = appState.fonts.map((f) => `<span class="text-[11px] text-[var(--text-dim)] ml-1 flex-1">${esc(f.slot)}</span>`).join("");
-    wHeader.innerHTML = `<span class="text-[11px] text-[var(--text-dim)] ml-1 w-[80px]">Alias</span>` +
-      `<span class="text-[11px] text-[var(--text-dim)] ml-1 w-12">Value</span>` +
-      slotHeaders + `<span class="w-7"></span>`;
-    wList.innerHTML = appState.fontWeights.map((w, i) => {
-      const slotInputs = appState.fonts.map((f) => {
-        const val = (w.figmaStyles && w.figmaStyles[f.slot]) || w.figmaStyle || w.alias;
-        return `<input type="text" class="flex-1 h-[32px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[11px] outline-none focus:border-[var(--border-focus)]"
+    wHeader.innerHTML = `<span class="text-[11px] text-[var(--text-dim)] ml-1 w-[80px]">Alias</span>` + `<span class="text-[11px] text-[var(--text-dim)] ml-1 w-12">Value</span>` + slotHeaders + `<span class="w-7"></span>`;
+    wList.innerHTML = appState.fontWeights
+      .map((w, i) => {
+        const slotInputs = appState.fonts
+          .map((f) => {
+            const val = (w.figmaStyles && w.figmaStyles[f.slot]) || w.figmaStyle || w.alias;
+            return `<input type="text" class="flex-1 h-[32px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[11px] outline-none focus:border-[var(--border-focus)]"
           placeholder="${esc(w.alias)}" value="${esc(val)}" data-wi="${i}" data-wf="figmaStyles" data-slot="${esc(f.slot)}" />`;
-      }).join("");
-      return `<div class="flex gap-1.5 items-center">
+          })
+          .join("");
+        return `<div class="flex gap-1.5 items-center">
         <input type="text"   class="w-[80px] h-[32px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[12px] outline-none focus:border-[var(--border-focus)]" value="${esc(w.alias)}" data-wi="${i}" data-wf="alias" />
         <input type="number" class="w-12    h-[32px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[11px] outline-none focus:border-[var(--border-focus)]" value="${w.value}" data-wi="${i}" data-wf="value" />
         ${slotInputs}
@@ -612,17 +659,22 @@ function renderSettingsForm() {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>`;
-    }).join("");
+      })
+      .join("");
     wList.querySelectorAll("[data-wf]").forEach((el) =>
       el.addEventListener("input", (e) => {
-        const wi = parseInt(e.target.dataset.wi), wf = e.target.dataset.wf;
+        const wi = parseInt(e.target.dataset.wi),
+          wf = e.target.dataset.wf;
         if (wf === "value") appState.fontWeights[wi].value = parseInt(e.target.value) || 400;
         else if (wf === "figmaStyles") {
           if (!appState.fontWeights[wi].figmaStyles) appState.fontWeights[wi].figmaStyles = {};
           appState.fontWeights[wi].figmaStyles[e.target.dataset.slot] = e.target.value;
-        } else { appState.fontWeights[wi][wf] = e.target.value; }
-        scheduleSave(); scheduleExportRefresh();
-      })
+        } else {
+          appState.fontWeights[wi][wf] = e.target.value;
+        }
+        scheduleSave();
+        scheduleExportRefresh();
+      }),
     );
   }
 }
@@ -632,8 +684,11 @@ function renderStyleNamePreview() {
   if (!el) return;
   const sep = appState.styleNameSeparator || "/";
   const role = appState.roles[0];
-  if (!role) { el.textContent = "— (add a role to preview)"; return; }
-  const roleName = appState.useShortRoleNames ? (role.shortName || role.name) : role.name;
+  if (!role) {
+    el.textContent = "— (add a role to preview)";
+    return;
+  }
+  const roleName = appState.useShortRoleNames ? role.shortName || role.name : role.name;
   const varName = (role.variationNames && role.variationNames[0]) || "1";
   const weightAlias = (appState.fontWeights[0] || {}).alias || "Regular";
   el.textContent = `${roleName}${sep}${varName}${sep}${weightAlias}`;
@@ -652,7 +707,9 @@ function addRole() {
   const shortName = `r${idx}`;
   const variationCount = 3;
   appState.roles.push({
-    name: `Role ${idx}`, shortName, variationCount,
+    name: `Role ${idx}`,
+    shortName,
+    variationCount,
     variationNames: autoVariationNames(shortName, variationCount),
     baseScaleIndex: Math.max(0, steps.length - 1),
     scaleDirection: "descending",
@@ -663,19 +720,27 @@ function addRole() {
     textTransform: "none",
     variationOverrides: [],
   });
-  renderRolesList(); renderPreviewRoles(); renderStyleNamePreview();
-  scheduleExportRefresh(); scheduleSave();
+  renderRolesList();
+  renderPreviewRoles();
+  renderStyleNamePreview();
+  scheduleExportRefresh();
+  scheduleSave();
 }
 
 function deleteRole(idx) {
   appState.roles.splice(idx, 1);
-  renderRolesList(); renderPreviewRoles(); renderStyleNamePreview();
-  scheduleExportRefresh(); scheduleSave();
+  renderRolesList();
+  renderPreviewRoles();
+  renderStyleNamePreview();
+  scheduleExportRefresh();
+  scheduleSave();
 }
 
 function deleteFontWeight(idx) {
   appState.fontWeights.splice(idx, 1);
-  renderSettingsForm(); scheduleExportRefresh(); scheduleSave();
+  renderSettingsForm();
+  scheduleExportRefresh();
+  scheduleSave();
 }
 
 function deleteFontSlot(idx) {
@@ -684,15 +749,21 @@ function deleteFontSlot(idx) {
   appState.fonts.splice(idx, 1);
   if (removedSlot) {
     const firstSlot = appState.fonts[0] ? appState.fonts[0].slot : "primary";
-    appState.roles.forEach((r) => { if (r.fontSlot === removedSlot) r.fontSlot = firstSlot; });
+    appState.roles.forEach((r) => {
+      if (r.fontSlot === removedSlot) r.fontSlot = firstSlot;
+    });
   }
-  renderSettingsForm(); renderRolesList(); renderPreviewRoles(); scheduleSave();
+  renderSettingsForm();
+  renderRolesList();
+  renderPreviewRoles();
+  scheduleSave();
 }
 
 function addFontSlot() {
   const n = appState.fonts.length + 1;
   appState.fonts.push({ slot: `font${n}`, family: "", fallback: "sans-serif" });
-  renderSettingsForm(); scheduleSave();
+  renderSettingsForm();
+  scheduleSave();
 }
 
 function toggleRoleCard(idx) {
@@ -735,7 +806,10 @@ function hideSheet(id) {
 function hideOverlay(id) {
   document.getElementById("overlay").classList.remove("active");
   const el = document.getElementById(id);
-  if (el) { el.classList.add("hidden"); el.classList.remove("active"); }
+  if (el) {
+    el.classList.add("hidden");
+    el.classList.remove("active");
+  }
 }
 
 function syncScaleUI() {
@@ -762,10 +836,18 @@ function safeSet(id, val) {
   if (el && val != null) el.value = String(val);
 }
 function esc(s) {
-  return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  return String(s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
-function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-function escRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+function cap(s) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function escRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 function syncToggle(id, val) {
   const el = document.getElementById(id);
   if (el) el.classList.toggle("on", !!val);
@@ -773,7 +855,8 @@ function syncToggle(id, val) {
 function dlFile(content, name) {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([content], { type: "text/plain" }));
-  a.download = name; a.click();
+  a.download = name;
+  a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 function wireInput(id, field, parser) {
@@ -781,8 +864,11 @@ function wireInput(id, field, parser) {
   if (!el) return;
   el.addEventListener("input", () => {
     appState.scale[field] = parser ? parser(el.value) : el.value;
-    renderScalePreviewBar(); renderPreviewScale(); renderPreviewRoles();
-    scheduleExportRefresh(); scheduleSave();
+    renderScalePreviewBar();
+    renderPreviewScale();
+    renderPreviewRoles();
+    scheduleExportRefresh();
+    scheduleSave();
   });
 }
 
@@ -794,77 +880,109 @@ function wireInput(id, field, parser) {
   let _pendingImport = null;
 
   // Tabs
-  document.querySelectorAll(".sidebar-tab-btn").forEach((b) =>
-    b.addEventListener("click", () => switchSidebarTab(b.dataset.tab)));
-  document.querySelectorAll(".right-tab-btn").forEach((b) =>
-    b.addEventListener("click", () => switchRightTab(b.dataset.rtab)));
-  document.querySelectorAll("[data-ptab]").forEach((b) =>
-    b.addEventListener("click", () => switchPreviewTab(b.dataset.ptab)));
+  document.querySelectorAll(".sidebar-tab-btn").forEach((b) => b.addEventListener("click", () => switchSidebarTab(b.dataset.tab)));
+  document.querySelectorAll(".right-tab-btn").forEach((b) => b.addEventListener("click", () => switchRightTab(b.dataset.rtab)));
+  document.querySelectorAll("[data-ptab]").forEach((b) => b.addEventListener("click", () => switchPreviewTab(b.dataset.ptab)));
 
   // Scale method + naming
   document.querySelectorAll(".scale-method-btn").forEach((b) =>
     b.addEventListener("click", () => {
       appState.scale.method = b.dataset.method;
-      syncScaleUI(); renderScalePreviewBar(); renderPreviewScale(); renderPreviewRoles();
-      scheduleSave(); scheduleExportRefresh();
-    }));
+      syncScaleUI();
+      renderScalePreviewBar();
+      renderPreviewScale();
+      renderPreviewRoles();
+      scheduleSave();
+      scheduleExportRefresh();
+    }),
+  );
   document.querySelectorAll(".naming-btn").forEach((b) =>
     b.addEventListener("click", () => {
       appState.scale.namingScheme = b.dataset.naming;
-      syncScaleUI(); renderScalePreviewBar(); renderRolesList(); renderPreviewScale();
-      scheduleExportRefresh(); scheduleSave();
-    }));
+      syncScaleUI();
+      renderScalePreviewBar();
+      renderRolesList();
+      renderPreviewScale();
+      scheduleExportRefresh();
+      scheduleSave();
+    }),
+  );
 
   wireInput("scale-seed", "seedSize", parseFloat);
   wireInput("scale-steps", "steps", (v) => Math.max(1, parseInt(v) || 1));
   wireInput("scale-steps-linear", "steps", (v) => Math.max(1, parseInt(v) || 1));
   wireInput("scale-min", "minSize", parseFloat);
   wireInput("scale-max", "maxSize", parseFloat);
-  wireInput("scale-custom-names", "customStepNames", (v) => v.split(",").map((s) => s.trim()).filter(Boolean));
+  wireInput("scale-custom-names", "customStepNames", (v) =>
+    v
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+  );
 
   document.getElementById("scale-ratio").addEventListener("change", (e) => {
     appState.scale.ratio = parseFloat(e.target.value);
     appState.scale.ratioName = e.target.options[e.target.selectedIndex].text.split("—")[0].trim();
-    renderScalePreviewBar(); renderPreviewScale(); renderPreviewRoles();
-    scheduleExportRefresh(); scheduleSave();
+    renderScalePreviewBar();
+    renderPreviewScale();
+    renderPreviewRoles();
+    scheduleExportRefresh();
+    scheduleSave();
   });
 
   document.getElementById("scale-custom").addEventListener("input", (e) => {
-    appState.scale.customValues = e.target.value.split(",").map((s) => parseFloat(s.trim())).filter((v) => !isNaN(v) && v > 0);
+    appState.scale.customValues = e.target.value
+      .split(",")
+      .map((s) => parseFloat(s.trim()))
+      .filter((v) => !isNaN(v) && v > 0);
     appState.scale.steps = appState.scale.customValues.length || 1;
-    renderScalePreviewBar(); renderPreviewScale();
-    scheduleExportRefresh(); scheduleSave();
+    renderScalePreviewBar();
+    renderPreviewScale();
+    scheduleExportRefresh();
+    scheduleSave();
   });
 
   document.getElementById("btn-add-role").addEventListener("click", addRole);
 
   // Settings
   document.getElementById("btn-settings").addEventListener("click", () => {
-    renderSettingsForm(); showSheet("settings-sheet");
+    renderSettingsForm();
+    showSheet("settings-sheet");
   });
   document.getElementById("close-settings").addEventListener("click", () => hideSheet("settings-sheet"));
   document.getElementById("overlay").addEventListener("click", () => hideSheet("settings-sheet"));
 
   document.getElementById("setting-name").addEventListener("input", (e) => {
-    appState.name = e.target.value; scheduleSave(); scheduleExportRefresh();
+    appState.name = e.target.value;
+    scheduleSave();
+    scheduleExportRefresh();
   });
   document.getElementById("setting-base-font").addEventListener("input", (e) => {
     appState.baseFontSize = parseFloat(e.target.value) || 16;
-    renderScalePreviewBar(); renderPreviewScale(); scheduleSave(); scheduleExportRefresh();
+    renderScalePreviewBar();
+    renderPreviewScale();
+    scheduleSave();
+    scheduleExportRefresh();
   });
   document.getElementById("setting-separator").addEventListener("input", (e) => {
     appState.styleNameSeparator = e.target.value || "/";
-    renderStyleNamePreview(); scheduleExportRefresh(); scheduleSave();
+    renderStyleNamePreview();
+    scheduleExportRefresh();
+    scheduleSave();
   });
   document.getElementById("btn-add-weight").addEventListener("click", () => {
     appState.fontWeights.push({ alias: "New", value: 400, figmaStyles: {} });
-    renderSettingsForm(); scheduleSave(); scheduleExportRefresh();
+    renderSettingsForm();
+    scheduleSave();
+    scheduleExportRefresh();
   });
   document.getElementById("btn-clear").addEventListener("click", () => {
     if (!confirm("Reset all settings to defaults?")) return;
     appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
     hideSheet("settings-sheet");
-    syncScaleUI(); renderAll(); saveToStorage();
+    syncScaleUI();
+    renderAll();
+    saveToStorage();
   });
 
   // Export panel
@@ -873,7 +991,8 @@ function wireInput(id, field, parser) {
       _currentExportFmt = b.dataset.fmt;
       document.querySelectorAll(".export-fmt-btn").forEach((x) => x.classList.toggle("active", x.dataset.fmt === _currentExportFmt));
       renderExportPanel();
-    }));
+    }),
+  );
   document.getElementById("btn-copy-export").addEventListener("click", () => {
     const el = document.getElementById("export-code");
     if (!el) return;
@@ -881,7 +1000,9 @@ function wireInput(id, field, parser) {
       const btn = document.getElementById("btn-copy-export");
       const orig = btn.innerHTML;
       btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
-      setTimeout(() => { btn.innerHTML = orig; }, 1800);
+      setTimeout(() => {
+        btn.innerHTML = orig;
+      }, 1800);
     });
   });
   document.getElementById("btn-download-export").addEventListener("click", () => {
@@ -902,7 +1023,9 @@ function wireInput(id, field, parser) {
         _pendingImport = JSON.parse(ev.target.result);
         document.getElementById("confirm-import-overlay").classList.remove("hidden");
         document.getElementById("overlay").classList.add("active");
-      } catch (_) { alert("Invalid JSON file."); }
+      } catch (_) {
+        alert("Invalid JSON file.");
+      }
     };
     reader.readAsText(file);
     e.target.value = "";
@@ -914,7 +1037,9 @@ function wireInput(id, field, parser) {
       if (!appState.scale.scaleOverrides) appState.scale.scaleOverrides = {};
       _pendingImport = null;
       hideOverlay("confirm-import-overlay");
-      syncScaleUI(); renderAll(); saveToStorage();
+      syncScaleUI();
+      renderAll();
+      saveToStorage();
     }
   });
 
@@ -924,8 +1049,7 @@ function wireInput(id, field, parser) {
     document.getElementById("drop-overlay").classList.add("active");
   });
   document.addEventListener("dragleave", (e) => {
-    if (!e.relatedTarget || !document.contains(e.relatedTarget))
-      document.getElementById("drop-overlay").classList.remove("active");
+    if (!e.relatedTarget || !document.contains(e.relatedTarget)) document.getElementById("drop-overlay").classList.remove("active");
   });
   document.addEventListener("dragover", (e) => e.preventDefault());
   document.addEventListener("drop", (e) => {
@@ -939,7 +1063,9 @@ function wireInput(id, field, parser) {
         _pendingImport = JSON.parse(ev.target.result);
         document.getElementById("confirm-import-overlay").classList.remove("hidden");
         document.getElementById("overlay").classList.add("active");
-      } catch (_) { alert("Invalid JSON file."); }
+      } catch (_) {
+        alert("Invalid JSON file.");
+      }
     };
     reader.readAsText(file);
   });

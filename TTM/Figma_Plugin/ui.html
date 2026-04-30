@@ -30,6 +30,9 @@
         --font: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
         --font-mono: "SF Mono", "Cascadia Code", "Fira Code", monospace;
       }
+      * {
+        user-select: none;
+      }
       body.app-light-mode {
         --bg-app: #d2d8e5;
         --bg-panel: #ffffff;
@@ -347,7 +350,7 @@
                   <option value="1.875">Major Seventh — 1.875</option>
                   <option value="2.000">Octave — 2.000</option>
                 </select>
-                <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5"><polyline points="6 9 12 15 18 9" /></svg>
               </div>
             </div>
           </div>
@@ -406,7 +409,6 @@
           </button>
           <div id="roles-list" class="space-y-2"></div>
         </div>
-
       </main>
 
       <!-- Dim overlay -->
@@ -494,7 +496,14 @@
                 <p class="text-[13px] font-medium">Short Role Names</p>
                 <p class="text-[11px] text-[var(--text-muted)] mt-0.5">e.g. Heading → hd</p>
               </div>
-              <button id="toggle-useShortRoleNames" class="toggle-pill" onclick="toggleBoolSetting('useShortRoleNames'); renderStyleNamePreview()"></button>
+              <button
+                id="toggle-useShortRoleNames"
+                class="toggle-pill"
+                onclick="
+                  toggleBoolSetting('useShortRoleNames');
+                  renderStyleNamePreview();
+                "
+              ></button>
             </div>
             <!-- Style name preview -->
             <div class="space-y-1">
@@ -679,8 +688,8 @@
     </div>
 
     <!-- Resize Handle -->
-    <div id="resize-handle" class="fixed bottom-0 right-0 w-8 h-8 cursor-nwse-resize z-[999] flex items-end justify-end p-1 hover:bg-[var(--accent)]/20 transition-colors rounded-tl-2xl" style="pointer-events:auto!important">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M11 1L1 11M11 5L5 11M11 9L9 11" stroke="var(--text-dim)" stroke-width="2" stroke-linecap="round"/></svg>
+    <div id="resize-handle" class="fixed bottom-0 right-0 w-8 h-8 cursor-nwse-resize z-[999] flex items-end justify-end p-1 hover:bg-[var(--accent)]/20 transition-colors rounded-tl-2xl" style="pointer-events: auto !important">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M11 1L1 11M11 5L5 11M11 9L9 11" stroke="var(--text-dim)" stroke-width="2" stroke-linecap="round" /></svg>
     </div>
 
     <input type="file" id="file-input" accept=".json" class="hidden" />
@@ -898,7 +907,8 @@
 
       function buildRoleCard(role, idx) {
         const steps = computeScale(appState.scale, appState.baseFontSize);
-        const basePx = steps[role.baseScaleIndex] ? `${steps[role.baseScaleIndex].px}px` : "–";
+        const step = steps[role.baseScaleIndex];
+        const basePreview = step ? `${step.name}: ${step.px}px` : "–";
         const maxIdx = Math.max(0, steps.length - 1);
         const lhUnit = (role.lineHeight || {}).unit || "PERCENT";
         const lhVal = (role.lineHeight || {}).value !== undefined ? (role.lineHeight || {}).value : 150;
@@ -932,8 +942,8 @@
               <input type="text" placeholder="h1,h2,h3..." class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[12px] outline-none focus:border-[var(--accent)]" value="${(role.variationNames || []).join(",")}" data-ri="${idx}" data-rf="variationNames" /></div>
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Base Step <span class="text-[var(--accent)]">(${basePx})</span></label>
-              <input type="number" min="0" max="${maxIdx}" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" value="${role.baseScaleIndex}" data-ri="${idx}" data-rf="baseScaleIndex" /></div>
+            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Base Step <span class="text-[var(--accent)] base-step-preview">(${basePreview})</span></label>
+              <input type="number" min="1" max="${steps.length}" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" value="${role.baseScaleIndex + 1}" data-ri="${idx}" data-rf="baseScaleIndex" /></div>
             <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Direction</label>
               <select class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1.5 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer" data-ri="${idx}" data-rf="scaleDirection">
                 <option value="descending" ${role.scaleDirection === "descending" ? "selected" : ""}>↓ Desc (v0=largest)</option>
@@ -949,9 +959,9 @@
             <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Text Transform</label>
               <div class="relative">
                 <select class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] pl-2 pr-7 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer" data-ri="${idx}" data-rf="textTransform">
-                  <option value="none"       ${role.textTransform === "none"       ? "selected" : ""}>None</option>
-                  <option value="uppercase"  ${role.textTransform === "uppercase"  ? "selected" : ""}>Uppercase</option>
-                  <option value="lowercase"  ${role.textTransform === "lowercase"  ? "selected" : ""}>Lowercase</option>
+                  <option value="none"       ${role.textTransform === "none" ? "selected" : ""}>None</option>
+                  <option value="uppercase"  ${role.textTransform === "uppercase" ? "selected" : ""}>Uppercase</option>
+                  <option value="lowercase"  ${role.textTransform === "lowercase" ? "selected" : ""}>Lowercase</option>
                   <option value="capitalize" ${role.textTransform === "capitalize" ? "selected" : ""}>Capitalize</option>
                 </select>
                 <svg class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
@@ -960,24 +970,24 @@
           <div class="grid grid-cols-2 gap-2">
             <div class="space-y-1">
               <label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Line Height <span class="text-[var(--text-dim)]">(${lhUnit === "PERCENT" ? "% of font size" : lhUnit === "PIXELS" ? "px fixed" : "auto"})</span></label>
-              <div class="flex gap-1 items-center">
-                <select class="w-[60px] h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer flex-shrink-0" data-ri="${idx}" data-rf="lineHeightUnit">
+              <div class="grid grid-cols-[44px_1fr] gap-1 items-center">
+                <select class="h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer flex-shrink-0" data-ri="${idx}" data-rf="lineHeightUnit">
                   <option value="PERCENT" ${lhUnit === "PERCENT" ? "selected" : ""}>%</option>
                   <option value="PIXELS"  ${lhUnit === "PIXELS" ? "selected" : ""}>px</option>
                   <option value="AUTO"    ${lhUnit === "AUTO" ? "selected" : ""}>auto</option>
                 </select>
-                <input type="number" step="0.1" class="flex-1 h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)] ${lhUnit === "AUTO" ? "opacity-30 pointer-events-none" : ""}" value="${lhVal}" data-ri="${idx}" data-rf="lineHeightValue" ${lhUnit === "AUTO" ? "disabled" : ""} />
+                <input type="number" step="10" class="w-full flex-1 h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)] ${lhUnit === "AUTO" ? "opacity-30 pointer-events-none" : ""}" value="${lhVal}" data-ri="${idx}" data-rf="lineHeightValue" ${lhUnit === "AUTO" ? "disabled" : ""} />
               </div>
-              <p class="text-[10px] text-[var(--text-dim)] ml-1">Hint: ${hint}</p>
+              <p class="text-[10px] text-[var(--text-dim)] ml-1 lh-hint">Hint: ${hint}</p>
             </div>
             <div class="space-y-1">
               <label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Letter Spacing <span class="text-[var(--text-dim)]">(${lsUnit === "PERCENT" ? "% of size" : "px fixed"})</span></label>
-              <div class="flex gap-1 items-center">
-                <select class="w-[60px] h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer flex-shrink-0" data-ri="${idx}" data-rf="letterSpacingUnit">
+              <div class="grid grid-cols-[44px_1fr] gap-1 items-center">
+                <select class="h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer flex-shrink-0" data-ri="${idx}" data-rf="letterSpacingUnit">
                   <option value="PERCENT" ${lsUnit === "PERCENT" ? "selected" : ""}>%</option>
                   <option value="PIXELS"  ${lsUnit === "PIXELS" ? "selected" : ""}>px</option>
                 </select>
-                <input type="number" step="0.1" class="flex-1 h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" value="${lsVal}" data-ri="${idx}" data-rf="letterSpacingValue" />
+                <input type="number" step="0.1" class="w-full flex-1 h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)] ${lsUnit === "AUTO" ? "opacity-30 pointer-events-none" : ""}" value="${lsVal}" data-ri="${idx}" data-rf="letterSpacingValue" />
               </div>
             </div>
           </div>
@@ -1010,7 +1020,21 @@
             .map((s) => s.trim())
             .filter(Boolean);
         } else if (field === "baseScaleIndex") {
-          role.baseScaleIndex = parseInt(val) || 0;
+          role.baseScaleIndex = Math.max(0, (parseInt(val) || 1) - 1);
+          // Surgical update
+          const card = document.querySelector(`.role-card[data-idx="${ri}"]`);
+          if (card) {
+            const steps = computeScale(appState.scale, appState.baseFontSize);
+            const step = steps[role.baseScaleIndex];
+            const basePreview = step ? `${step.name}: ${step.px}px` : "–";
+            const span = card.querySelector(".base-step-preview");
+            if (span) span.textContent = `(${basePreview})`;
+
+            // Update hint
+            const hint = lhHintUI(step ? step.px : 16);
+            const hintEl = card.querySelector(".lh-hint");
+            if (hintEl) hintEl.textContent = `Hint: ${hint}`;
+          }
         } else if (field === "lineHeightValue") {
           if (!role.lineHeight) role.lineHeight = { unit: "PERCENT", value: 150 };
           role.lineHeight.value = parseFloat(val) || 0;
@@ -1249,7 +1273,8 @@
       }
 
       function openPreviewSheet() {
-        renderPreviewScale(); renderPreviewRoles();
+        renderPreviewScale();
+        renderPreviewRoles();
         showSheet("preview-sheet");
       }
 
@@ -1258,8 +1283,11 @@
         if (!el) return;
         const sep = appState.styleNameSeparator || "/";
         const role = appState.roles[0];
-        if (!role) { el.textContent = "—  (add a role to preview)"; return; }
-        const roleName = appState.useShortRoleNames ? (role.shortName || role.name) : role.name;
+        if (!role) {
+          el.textContent = "—  (add a role to preview)";
+          return;
+        }
+        const roleName = appState.useShortRoleNames ? role.shortName || role.name : role.name;
         const varName = (role.variationNames && role.variationNames[0]) || "1";
         const weightAlias = (appState.fontWeights[0] || {}).alias || "Regular";
         el.textContent = `${roleName}${sep}${varName}${sep}${weightAlias}`;
@@ -1618,7 +1646,7 @@
 
       // ── RESIZE ───────────────────────────────────────────────────────────────
       let isResizing = false;
-      document.getElementById("resize-handle").onmousedown = function() {
+      document.getElementById("resize-handle").onmousedown = function () {
         isResizing = true;
         document.addEventListener("mousemove", onResizeMove);
         document.addEventListener("mouseup", onResizeUp);
@@ -1627,7 +1655,11 @@
         if (!isResizing) return;
         parent.postMessage({ pluginMessage: { type: "resize", width: Math.max(380, e.clientX), height: Math.max(500, e.clientY) } }, "*");
       }
-      function onResizeUp() { isResizing = false; document.removeEventListener("mousemove", onResizeMove); document.removeEventListener("mouseup", onResizeUp); }
+      function onResizeUp() {
+        isResizing = false;
+        document.removeEventListener("mousemove", onResizeMove);
+        document.removeEventListener("mouseup", onResizeUp);
+      }
 
       // ── INIT ──────────────────────────────────────────────────────────────────
       syncScaleUI();
