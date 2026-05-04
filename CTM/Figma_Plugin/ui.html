@@ -81,23 +81,53 @@
         pointer-events: auto;
       }
       .toggle-pill {
-        width: 40px; height: 22px; border-radius: 11px;
-        background: var(--border); border: none; cursor: pointer;
-        position: relative; transition: background 0.2s; flex-shrink: 0;
+        width: 40px;
+        height: 22px;
+        border-radius: 11px;
+        background: var(--border);
+        border: none;
+        cursor: pointer;
+        position: relative;
+        transition: background 0.2s;
+        flex-shrink: 0;
       }
       .toggle-pill::after {
-        content: ""; position: absolute; top: 3px; left: 3px;
-        width: 16px; height: 16px; border-radius: 50%;
-        background: var(--text-muted); transition: transform 0.2s, background 0.2s;
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--text-muted);
+        transition:
+          transform 0.2s,
+          background 0.2s;
       }
-      .toggle-pill.on { background: var(--accent); }
-      .toggle-pill.on::after { transform: translateX(18px); background: #fff; }
+      .toggle-pill.on {
+        background: var(--accent);
+      }
+      .toggle-pill.on::after {
+        transform: translateX(18px);
+        background: #fff;
+      }
       .seg-btn {
-        flex: 1; height: 34px; border: 1px solid var(--border); background: var(--bg-input);
-        color: var(--text-muted); font-size: 12px; font-weight: 600; border-radius: 8px;
-        cursor: pointer; transition: all 0.15s;
+        flex: 1;
+        height: 34px;
+        border: 1px solid var(--border);
+        background: var(--bg-input);
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s;
       }
-      .seg-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .seg-btn.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
       .chevron {
         transition: transform 0.2s ease;
       }
@@ -116,6 +146,7 @@
         max-height: 0;
         opacity: 0;
         pointer-events: none;
+        display: none;
       }
 
       /* === SIDEBAR TABS === */
@@ -187,102 +218,95 @@
         display: block;
       }
 
-      .preview-swatches-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-        gap: 4px;
-        margin-bottom: 12px;
-      }
-      .preview-swatch {
-        border-radius: 8px;
-        padding: 6px;
-        min-height: 56px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        cursor: pointer;
-        transition:
-          opacity 0.15s,
-          transform 0.1s;
-        position: relative;
-        overflow: hidden;
-      }
-      .preview-swatch:hover {
-        opacity: 0.88;
-        transform: scale(1.03);
-      }
-      .preview-swatch__hex {
-        font-size: 9px;
-        font-weight: 700;
-        font-family: monospace;
-        line-height: 1.2;
-      }
-      .preview-swatch__name {
-        font-size: 8px;
-        opacity: 0.75;
-        line-height: 1.2;
-      }
-      .preview-swatch__contrast {
-        font-size: 8px;
-        opacity: 0.6;
-      }
-      .preview-swatch__adjusted {
-        position: absolute;
-        top: 4px;
-        right: 4px;
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--warning);
-      }
-
-      .preview-copy-flash::after {
-        content: "✓";
+      /* === PREMIUM PREVIEW OVERLAY === */
+      #preview-overlay {
         position: absolute;
         inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(24, 160, 251, 0.85);
-        font-size: 20px;
-        font-weight: 700;
-        color: white;
-        border-radius: 8px;
-        animation: fadeFlash 0.7s ease forwards;
+        z-index: 50;
+        transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        display: none;
+        flex-direction: column;
       }
-      @keyframes fadeFlash {
-        0% {
-          opacity: 1;
-        }
-        70% {
-          opacity: 1;
-        }
-        100% {
+      #preview-overlay:not(.hidden) {
+        display: flex;
+      }
+      #preview-overlay.theme-light {
+        background-color: #fcfcfc;
+        color: #111;
+      }
+      #preview-overlay.theme-dark {
+        background-color: #0a0a0a;
+        color: #eee;
+      }
+      #preview-overlay.theme-raw {
+        background-color: var(--bg-app);
+        color: var(--text-primary);
+      }
+
+      .preview-section {
+        margin-bottom: 24px;
+        animation: fadeIn 0.4s ease-out;
+      }
+      @keyframes fadeIn {
+        from {
           opacity: 0;
+          transform: translateY(15px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
       }
 
-      .preview-group-title {
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.8px;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        margin-bottom: 6px;
+      /* Raw Ramp - Interactive Spectrum */
+      .preview-spectrum {
+        display: flex;
+        width: 100%;
+        height: 80px;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(128, 128, 128, 0.1);
+        cursor: crosshair;
       }
-      .preview-token-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
-        gap: 4px;
-        margin-bottom: 8px;
+      .preview-spectrum-step {
+        flex: 1;
+        height: 100%;
+        transition:
+          transform 0.1s cubic-bezier(0.33, 1, 0.68, 1),
+          flex 0.15s cubic-bezier(0.33, 1, 0.68, 1),
+          border-radius 0.1s ease;
+        position: relative;
       }
-      .preview-role-label {
-        font-size: 9px;
+      .preview-spectrum-step:hover {
+        flex: 2.5;
+        z-index: 10;
+        transform: scaleY(1.15);
+        border-radius: 8px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Toast Notification */
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: var(--accent);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 12px;
         font-weight: 600;
-        color: var(--text-dim);
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        margin-bottom: 3px;
+        z-index: 1000;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
       }
 
       .preview-errors-bar {
@@ -310,13 +334,6 @@
         max-height: 160px;
         overflow-y: auto;
       }
-      .preview-error-item {
-        padding: 4px 12px;
-        font-size: 10px;
-        color: var(--text-muted);
-        border-top: 1px solid var(--border);
-      }
-
       #drop-overlay {
         background: var(--bg-app);
         opacity: 0.9;
@@ -344,7 +361,7 @@
       <header class="bg-[var(--bg-panel)] border-b border-[var(--border)] px-4 py-2 flex items-center justify-between sticky top-0 z-10">
         <h1 class="text-[24px] font-bold">ctm316</h1>
         <div class="flex gap-1.5">
-          <button id="btn-more" title="More Options" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
+          <button id="btn-more" title="More Options" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[8px] transition-colors">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
               <path
                 d="M3 8C3 7.44772 3.44772 7 4 7C4.55228 7 5 7.44772 5 8C5 8.55228 4.55228 9 4 9C3.44772 9 3 8.55228 3 8ZM7 8C7 7.44772 7.44772 7 8 7C8.55229 7 9 7.44772 9 8C9 8.55228 8.55229 9 8 9C7.44772 9 7 8.55228 7 8ZM11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44772 13 8C13 8.55228 12.5523 9 12 9C11.4477 9 11 8.55228 11 8Z"
@@ -352,7 +369,7 @@
               />
             </svg>
           </button>
-          <button id="btn-import" title="Import JSON" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
+          <button id="btn-import" title="Import JSON" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[8px] transition-colors">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M12.5 8.5C12.5 7.94772 12.0523 7.5 11.5 7.5V11.5C11.5 12.6046 10.6046 13.5 9.5 13.5H5.5C5.5 14.0523 5.94772 14.5 6.5 14.5H11.5C12.0523 14.5 12.5 14.0523 12.5 13.5V8.5ZM6.5 1C6.5 0.723858 6.72386 0.5 7 0.5C7.27614 0.5 7.5 0.723858 7.5 1V8.29297L8.64648 7.14648C8.84175 6.95122 9.15825 6.95122 9.35352 7.14648C9.54878 7.34175 9.54878 7.65825 9.35352 7.85352L7.35352 9.85352C7.25975 9.94728 7.13261 10 7 10C6.86739 10 6.74025 9.94728 6.64648 9.85352L4.64648 7.85352C4.45122 7.65825 4.45122 7.34175 4.64648 7.14648C4.84175 6.95122 5.15825 6.95122 5.35352 7.14648L6.5 8.29297V1ZM13.5 13.5C13.5 14.6046 12.6046 15.5 11.5 15.5H6.5C5.39543 15.5 4.5 14.6046 4.5 13.5C3.39543 13.5 2.5 12.6046 2.5 11.5V6.5C2.5 5.39543 3.39543 4.5 4.5 4.5H5C5.27614 4.5 5.5 4.72386 5.5 5C5.5 5.27614 5.27614 5.5 5 5.5H4.5C3.94772 5.5 3.5 5.94772 3.5 6.5V11.5C3.5 12.0523 3.94772 12.5 4.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6.5C10.5 5.94772 10.0523 5.5 9.5 5.5H9C8.72386 5.5 8.5 5.27614 8.5 5C8.5 4.72386 8.72386 4.5 9 4.5H9.5C10.6046 4.5 11.5 5.39543 11.5 6.5C12.6046 6.5 13.5 7.39543 13.5 8.5V13.5Z"
@@ -360,13 +377,13 @@
               />
             </svg>
           </button>
-          <button id="btn-preview" title="Preview Colors" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
+          <button id="btn-preview" title="Preview Colors" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[8px] transition-colors">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
           </button>
-          <button id="btn-run" class="bg-[var(--accent)] hover:bg-[var(--accent-hover)] flex items-center gap-2 px-4 py-2 rounded-[10px] transition-all shadow-[0_4px_12px_var(--accent-glow)]">
+          <button id="btn-run" class="bg-[var(--accent)] hover:bg-[var(--accent-hover)] flex items-center gap-2 px-4 py-2 rounded-[8px] transition-all shadow-[0_4px_12px_var(--accent-glow)]">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M3 3.76846C3 2.8177 4.01933 2.215 4.8524 2.67319L12.5461 6.90474C13.4096 7.37964 13.4096 8.62037 12.5461 9.09527L4.8524 13.3268C4.01933 13.785 3 13.1823 3 12.2316V3.76846Z" fill="white" />
             </svg>
@@ -396,6 +413,12 @@
         <div id="sidebar-content-container"></div>
       </main>
 
+      <!-- Toast -->
+      <div id="toast" class="toast">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <span id="toast-msg">Copied!</span>
+      </div>
+
       <!-- Overlays -->
       <div id="overlay" class="overlay absolute inset-0 bg-black/50 z-20 backdrop-blur-sm"></div>
 
@@ -403,7 +426,7 @@
       <div id="settings-sheet" class="bottom-sheet absolute bottom-0 left-0 right-0 bg-[var(--bg-panel)] rounded-t-[16px] border-t border-[var(--border)] z-30 max-h-[90%] flex flex-col">
         <div class="px-4 py-3 flex flex-row items-center justify-between gap-2 border-b border-[var(--border)]">
           <h2 class="text-[18px] font-semibold text-[var(--text-primary)]">Settings</h2>
-          <button id="close-settings" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors text-[var(--text-primary)]">Done</button>
+          <button id="close-settings" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[8px] text-[13px] font-bold transition-colors text-[var(--text-primary)]">Done</button>
         </div>
         <div class="p-4 overflow-y-auto space-y-6">
           <div class="space-y-3">
@@ -451,6 +474,8 @@
                 <label for="setting-rampType" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Weights Creation Method</label>
                 <select id="setting-rampType" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer">
                   <option value="Balanced">Balanced</option>
+                  <option value="Balanced (Natural)">Balanced (Natural)</option>
+                  <option value="Balanced (Dynamic)">Balanced (Dynamic)</option>
                   <option value="Linear">Linear</option>
                   <option value="Symmetric">Symmetric</option>
                 </select>
@@ -535,13 +560,13 @@
       <div id="more-sheet" class="bottom-sheet absolute bottom-0 left-0 right-0 bg-[var(--bg-panel)] rounded-t-[16px] border-t border-[var(--border)] z-30 max-h-[90%] flex flex-col">
         <div class="px-4 py-3 flex flex-row items-center justify-between gap-2 border-b border-[var(--border)]">
           <h2 class="text-[18px] font-semibold text-[var(--text-primary)]">More Options</h2>
-          <button id="close-more" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors text-[var(--text-primary)]">Done</button>
+          <button id="close-more" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[8px] text-[13px] font-bold transition-colors text-[var(--text-primary)]">Done</button>
         </div>
         <div class="p-2 overflow-y-auto space-y-4">
           <!-- Export Options -->
           <div class="space-y-1">
             <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-3 mb-2">Export</h3>
-            <button id="opt-save-config" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors text-[var(--text-primary)]">
+            <button id="opt-save-config" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[8px] transition-colors text-[var(--text-primary)]">
               <div class="w-8 h-8 rounded-lg bg-[var(--success)]/10 flex items-center justify-center text-[var(--success)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
@@ -554,7 +579,7 @@
                 <p class="text-[11px] text-[var(--text-muted)]">Full plugin config — reimportable</p>
               </div>
             </button>
-            <button id="opt-export-css" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors text-[var(--text-primary)]">
+            <button id="opt-export-css" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[8px] transition-colors text-[var(--text-primary)]">
               <div class="w-8 h-8 rounded-lg bg-[var(--creative)]/10 flex items-center justify-center text-[var(--creative)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="16 18 22 12 16 6"></polyline>
@@ -566,7 +591,7 @@
                 <p class="text-[11px] text-[var(--text-muted)]">CSS custom properties</p>
               </div>
             </button>
-            <button id="opt-export-csv" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors text-[var(--text-primary)]">
+            <button id="opt-export-csv" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[8px] transition-colors text-[var(--text-primary)]">
               <div class="w-8 h-8 rounded-lg bg-[var(--discovery)]/10 flex items-center justify-center text-[var(--discovery)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -580,7 +605,7 @@
                 <p class="text-[11px] text-[var(--text-muted)]">Color token spreadsheet</p>
               </div>
             </button>
-            <button id="opt-export-scss" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors text-[var(--text-primary)]">
+            <button id="opt-export-scss" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[8px] transition-colors text-[var(--text-primary)]">
               <div class="w-8 h-8 rounded-lg bg-[var(--secondary)]/10 flex items-center justify-center text-[var(--secondary)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
@@ -596,7 +621,7 @@
           </div>
 
           <div class="pt-2 border-t border-[var(--border)]">
-            <button id="opt-clear" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--danger)]/10 text-[var(--danger)] rounded-[10px] transition-colors">
+            <button id="opt-clear" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--danger)]/10 text-[var(--danger)] rounded-[8px] transition-colors">
               <div class="w-8 h-8 rounded-lg bg-[var(--danger)]/10 flex items-center justify-center">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="3 6 5 6 21 6"></polyline>
@@ -660,7 +685,7 @@
         <!-- Header -->
         <div class="bg-[var(--bg-panel)] border-b border-[var(--border)] px-4 py-2 flex items-center justify-between shrink-0">
           <h2 class="text-[16px] font-semibold text-[var(--text-primary)]">Color Preview</h2>
-          <button id="preview-close" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors text-[var(--text-primary)]">Back to Editor</button>
+          <button id="preview-close" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[8px] text-[13px] font-bold transition-colors text-[var(--text-primary)]">Back to Editor</button>
         </div>
         <!-- Tab Navigation -->
         <div id="preview-tabs" class="flex border-b border-[var(--border)] bg-[var(--bg-panel)] shrink-0 overflow-x-auto">
@@ -669,10 +694,12 @@
           <button class="preview-tab-btn" data-target="preview-dark">Dark Theme</button>
         </div>
         <!-- Tab Panels -->
-        <div id="preview-content" class="flex-1 overflow-y-auto p-3">
-          <div id="preview-raw" class="preview-panel active"></div>
-          <div id="preview-light" class="preview-panel"></div>
-          <div id="preview-dark" class="preview-panel"></div>
+        <div id="preview-content" class="flex-1 overflow-y-auto">
+          <div class="p-2">
+            <div id="preview-raw" class="preview-panel active"></div>
+            <div id="preview-light" class="preview-panel"></div>
+            <div id="preview-dark" class="preview-panel"></div>
+          </div>
         </div>
         <!-- Error Bar -->
         <div id="preview-errors-bar" class="preview-errors-bar hidden">
@@ -708,17 +735,16 @@
       <div id="run-dialog-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)] z-[60] flex flex-col">
         <div class="px-4 py-3 flex items-center justify-between border-b border-[var(--border)]">
           <h2 class="text-[17px] font-bold text-[var(--text-primary)]">Apply to Figma</h2>
-          <button onclick="hideOverlay('run-dialog-overlay')" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold text-[var(--text-primary)]">Cancel</button>
+          <button onclick="hideOverlay('run-dialog-overlay')" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[8px] text-[13px] font-bold text-[var(--text-primary)]">Cancel</button>
         </div>
         <div class="flex-1 overflow-y-auto p-4 space-y-5">
-
           <!-- SCOPE -->
           <div class="space-y-2">
             <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px]">SCOPE</h3>
             <div class="flex gap-2">
-              <button id="rd-scope-all"    class="seg-btn" onclick="setRunScope('all')">All</button>
+              <button id="rd-scope-all" class="seg-btn" onclick="setRunScope('all')">All</button>
               <button id="rd-scope-groups" class="seg-btn" onclick="setRunScope('groups')">Raw Ramps Only</button>
-              <button id="rd-scope-roles"  class="seg-btn" onclick="setRunScope('roles')">Roles Only</button>
+              <button id="rd-scope-roles" class="seg-btn" onclick="setRunScope('roles')">Roles Only</button>
             </div>
           </div>
 
@@ -730,22 +756,61 @@
                 <p class="text-[13px] font-medium text-[var(--text-primary)]">Skip Raw Ramps</p>
                 <p class="text-[11px] text-[var(--text-muted)] mt-0.5">Use hex values directly, no raw collection</p>
               </div>
-              <button id="rd-toggle-skipRawRamps" class="toggle-pill" onclick="toggleBoolSetting('skipRawRamps'); refreshRunDialog()"></button>
+              <button
+                id="rd-toggle-skipRawRamps"
+                class="toggle-pill"
+                onclick="
+                  toggleBoolSetting('skipRawRamps');
+                  refreshRunDialog();
+                "
+              ></button>
             </div>
             <div class="space-y-1">
               <label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Token Grouping</label>
               <div class="flex gap-2">
-                <button id="rd-seg-group-color" class="seg-btn" onclick="setTokenGrouping('color'); refreshRunDialog()">By Color&nbsp;color/role/step</button>
-                <button id="rd-seg-group-role"  class="seg-btn" onclick="setTokenGrouping('role');  refreshRunDialog()">By Role&nbsp;role/color/step</button>
+                <button
+                  id="rd-seg-group-color"
+                  class="seg-btn"
+                  onclick="
+                    setTokenGrouping('color');
+                    refreshRunDialog();
+                  "
+                >
+                  By Color&nbsp;color/role/step
+                </button>
+                <button
+                  id="rd-seg-group-role"
+                  class="seg-btn"
+                  onclick="
+                    setTokenGrouping('role');
+                    refreshRunDialog();
+                  "
+                >
+                  By Role&nbsp;role/color/step
+                </button>
               </div>
             </div>
             <div class="flex items-center justify-between p-3 bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)]">
               <p class="text-[13px] font-medium text-[var(--text-primary)]">Short names — Colors</p>
-              <button id="rd-toggle-useShortColorNames" class="toggle-pill" onclick="toggleBoolSetting('useShortColorNames'); refreshRunDialog()"></button>
+              <button
+                id="rd-toggle-useShortColorNames"
+                class="toggle-pill"
+                onclick="
+                  toggleBoolSetting('useShortColorNames');
+                  refreshRunDialog();
+                "
+              ></button>
             </div>
             <div class="flex items-center justify-between p-3 bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)]">
               <p class="text-[13px] font-medium text-[var(--text-primary)]">Short names — Roles</p>
-              <button id="rd-toggle-useShortRoleNames" class="toggle-pill" onclick="toggleBoolSetting('useShortRoleNames'); refreshRunDialog()"></button>
+              <button
+                id="rd-toggle-useShortRoleNames"
+                class="toggle-pill"
+                onclick="
+                  toggleBoolSetting('useShortRoleNames');
+                  refreshRunDialog();
+                "
+              ></button>
             </div>
             <div class="bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] px-3 py-2">
               <p class="text-[11px] text-[var(--text-muted)]">Example variable name:</p>
@@ -1124,8 +1189,11 @@
         const maxV = Math.log(1.05);
         const step = (maxV - minV) / (rampLength + 1);
 
-        if (rampType === "Balanced") {
+        if (rampType === "Balanced" || rampType === "Balanced (Natural)" || rampType === "Balanced (Dynamic)") {
           const output = [];
+          const isNatural = rampType.includes("Natural") || rampType.includes("Dynamic");
+          const isDynamic = rampType.includes("Dynamic");
+
           for (let i = 1; i <= rampLength; i++) {
             const targetLum = Math.exp(minV + step * i) - 0.05;
             let low = 0,
@@ -1133,13 +1201,34 @@
               closestL = 50;
             for (let j = 0; j < 30; j++) {
               const mid = (low + high) / 2;
-              const midLum = relLum(hslToHex(hue, satu, mid));
+
+              const searchS = isNatural ? satu * (1 - Math.pow(Math.abs(mid - 50) / 50, 1.5) * 0.4) : satu;
+              let searchH = hue;
+              if (isDynamic) {
+                const dist = (mid - 50) / 50;
+                if (dist > 0) searchH += (60 - hue) * dist * 0.15;
+                else searchH += (240 - hue) * Math.abs(dist) * 0.15;
+              }
+
+              const midLum = relLum(hslToHex(searchH, searchS, mid));
               closestL = mid;
               if (Math.abs(midLum - targetLum) < 0.0001) break;
               if (midLum < targetLum) low = mid;
               else high = mid;
             }
-            output.push(hslToHex(hue, satu, closestL) || "#000000");
+
+            let finalS = satu;
+            let finalH = hue;
+            if (isNatural) {
+              finalS = satu * (1 - Math.pow(Math.abs(closestL - 50) / 50, 1.5) * 0.4);
+            }
+            if (isDynamic) {
+              const dist = (closestL - 50) / 50;
+              if (dist > 0) finalH += (60 - hue) * dist * 0.15;
+              else finalH += (240 - hue) * Math.abs(dist) * 0.15;
+            }
+
+            output.push(hslToHex(finalH, finalS, closestL) || "#000000");
           }
           return output.reverse();
         }
@@ -1328,7 +1417,7 @@
           const fragment = document.createDocumentFragment();
 
           const addButton = document.createElement("button");
-          addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--accent)]/10 flex items-center justify-center gap-2";
+          addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[8px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--accent)]/10 flex items-center justify-center gap-2";
           addButton.innerHTML = `<span>+ Add Color Group</span>`;
           addButton.onclick = addGroup;
           fragment.appendChild(addButton);
@@ -1351,12 +1440,12 @@
                   </div>
                   <div class="flex-[4] space-y-1">
                     <label for="${gId}-hex" class="text-[var(--text-muted)] text-[12px] font-medium">Seed Hex</label>
-                    <div class="flex items-center gap-2 w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[14px] outline-none focus:border-[var(--border-focus)] h-[40px]">
-                        <input type="color" value="${hexValue}" oninput="updateGroup(${idx}, 'value', this.value)" class="cursor-pointer size[32p] bg-transparent border-none">
+                    <div class="flex items-center gap-2 w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 pl-1 text-[14px] outline-none focus:border-[var(--border-focus)] h-[40px]">
+                        <input type="color" value="${hexValue}" onchange="updateGroup(${idx}, 'value', this.value)" class="cursor-pointer size- bg-transparent border-none rounded-[8px]">
                         <input type="text" id="${gId}-hex" value="${group.value}" oninput="updateGroup(${idx}, 'value', this.value, this)" class="w-full bg-transparent text-[13px] uppercase outline-none text-[var(--text-primary)]">
                     </div>
                   </div>
-                  <button onclick="removeGroup(${idx})" class="bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/20 self-end size-[40px] flex items-center justify-center rounded-[10px] transition-all hover:bg-[var(--danger)]/20">
+                  <button onclick="removeGroup(${idx})" class="bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/20 self-end size-[40px] flex items-center justify-center rounded-[8px] transition-all hover:bg-[var(--danger)]/20">
                     <svg width="16" height="16" viewBox="0 0 12 14" fill="none"><path d="M8.00021 1.98568C8.00021 1.4562 7.5944 1.03371 7.09136 1.01758C6.72911 1.00599 6.36531 1 6.00021 1C5.63511 1 5.27131 1.00599 4.90906 1.01758C4.40602 1.03371 4.00021 1.4562 4.00021 1.98568V2.0612C4.6618 2.02102 5.32864 2 6.00021 2C6.67179 2 7.33862 2.02102 8.00021 2.0612V1.98568ZM6.00021 3C5.17177 3 4.35078 3.03229 3.53862 3.09505C2.92606 3.14239 2.31853 3.20784 1.71636 3.28971L2.39214 12.0768C2.43227 12.5978 2.86704 13 3.38953 13H8.61089C9.13338 13 9.56815 12.5978 9.60828 12.0768L10.2834 3.28971C9.68144 3.20789 9.07415 3.14237 8.4618 3.09505C7.64964 3.03229 6.82865 3 6.00021 3ZM4.15386 4.50065C4.42969 4.49004 4.66196 4.70468 4.67274 4.98047L4.90386 10.9805C4.91447 11.2564 4.69927 11.4887 4.42339 11.4993C4.14756 11.51 3.91529 11.2953 3.90451 11.0195L3.67339 5.01953C3.66278 4.74367 3.87803 4.51138 4.15386 4.50065ZM7.84656 4.50065C8.12239 4.51138 8.33764 4.74367 8.32703 5.01953L8.09591 11.0195C8.08513 11.2953 7.85287 11.51 7.57703 11.4993C7.30115 11.4887 7.08595 11.2564 7.09656 10.9805L7.32768 4.98047C7.33846 4.70468 7.57073 4.49004 7.84656 4.50065ZM9.00021 2.13737C9.63667 2.19563 10.2681 2.27144 10.8934 2.36589C11.125 2.40085 11.3556 2.43869 11.5855 2.47852C11.8575 2.52564 12.04 2.78399 11.993 3.05599C11.9459 3.32806 11.687 3.51064 11.4149 3.46354C11.3684 3.45548 11.3216 3.44861 11.2749 3.44076L10.605 12.1536C10.5247 13.1955 9.65587 14 8.61089 14H3.38953C2.34455 14 1.47568 13.1955 1.39539 12.1536L0.72482 3.44076C0.678419 3.44858 0.631829 3.45552 0.585497 3.46354C0.313427 3.51064 0.0545012 3.32806 0.00737211 3.05599C-0.0396145 2.78399 0.142913 2.52563 0.414924 2.47852C0.644818 2.43869 0.875465 2.40085 1.10698 2.36589C1.73236 2.27144 2.36375 2.19563 3.00021 2.13737V1.98568C3.00021 0.9427 3.80857 0.0524197 4.87716 0.0182292C5.25006 0.00630041 5.62445 0 6.00021 0C6.37597 0 6.75036 0.00630037 7.12326 0.0182292C8.19185 0.0524197 9.00021 0.9427 9.00021 1.98568V2.13737Z" fill="currentColor"/></svg>
                   </button>
                 </div>
@@ -1396,7 +1485,7 @@
           const fragment = document.createDocumentFragment();
 
           const addButton = document.createElement("button");
-          addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--accent)]/10 flex items-center justify-center gap-2";
+          addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[8px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--accent)]/10 flex items-center justify-center gap-2";
           addButton.innerHTML = `<span>+ Add Theme Role</span>`;
           addButton.onclick = addRole;
           fragment.appendChild(addButton);
@@ -1455,7 +1544,7 @@
                   <label for="role-${idx}-short" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Short</label>
                   <input type="text" id="role-${idx}-short" value="${role.shortName || ""}" oninput="updateRole(${idx}, 'shortName', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
                 </div>
-                <button onclick="removeRole(${idx})" class="bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/20 size-[40px] shrink-0 flex items-center justify-center rounded-[10px] transition-all hover:bg-[var(--danger)]/20">${trashSvg}</button>
+                <button onclick="removeRole(${idx})" class="bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/20 size-[40px] shrink-0 flex items-center justify-center rounded-[8px] transition-all hover:bg-[var(--danger)]/20">${trashSvg}</button>
               </div>
               ${secondRowHtml}`;
             fragment.appendChild(card);
@@ -1580,7 +1669,10 @@
           });
         });
         // Sync grouping segment buttons
-        [["seg-group-color", "rd-seg-group-color"], ["seg-group-role", "rd-seg-group-role"]].forEach(([settingsId, rdId]) => {
+        [
+          ["seg-group-color", "rd-seg-group-color"],
+          ["seg-group-role", "rd-seg-group-role"],
+        ].forEach(([settingsId, rdId]) => {
           const isColor = tg === "color";
           const isRole = tg === "role";
           const s = document.getElementById(settingsId);
@@ -1597,8 +1689,8 @@
         const sampleColor = appState.colors && appState.colors[0];
         const sampleRole = appState.roles && appState.roles[0];
         if (sampleColor && sampleRole) {
-          const cLabel = appState.useShortColorNames ? (sampleColor.shortName || sampleColor.name) : sampleColor.name;
-          const rLabel = appState.useShortRoleNames ? (sampleRole.shortName || sampleRole.name) : sampleRole.name;
+          const cLabel = appState.useShortColorNames ? sampleColor.shortName || sampleColor.name : sampleColor.name;
+          const rLabel = appState.useShortRoleNames ? sampleRole.shortName || sampleRole.name : sampleRole.name;
           const stepLabel = (appState.roleStepNames || "base").split(",")[2]?.trim() || "base";
           const preview = tg === "role" ? `${rLabel}/${cLabel}/${stepLabel}` : `${cLabel}/${rLabel}/${stepLabel}`;
           const el = document.getElementById("name-format-preview");
@@ -1690,13 +1782,16 @@
           return;
         }
         pendingScope = scope;
-        parent.postMessage({
-          pluginMessage: {
-            type: "check-collections",
-            rawName: appState.rawCollectionName || "_raw",
-            contextualName: appState.contextualCollectionName || "contextual",
+        parent.postMessage(
+          {
+            pluginMessage: {
+              type: "check-collections",
+              rawName: appState.rawCollectionName || "_raw",
+              contextualName: appState.contextualCollectionName || "contextual",
+            },
           },
-        }, "*");
+          "*",
+        );
       }
 
       function proceedWithSync() {
@@ -1706,11 +1801,6 @@
         }, 50);
       }
 
-      /**
-       * 6b. PREVIEW PANEL LOGIC
-       * Reads from appState, calls color engine (section 4) in-thread, renders read-only swatches.
-       */
-
       function renderPreviewPanel(result) {
         const lightBgHex = normalizeHex(appState.themes[0].bg) || "#FFFFFF";
         const darkBgHex = normalizeHex(appState.themes[1].bg) || "#000000";
@@ -1719,73 +1809,106 @@
         const rawEl = document.getElementById("preview-raw");
         rawEl.innerHTML = "";
         for (const [colorName, ramp] of Object.entries(result.colorRamps)) {
-          const groupEl = document.createElement("div");
-          groupEl.innerHTML = `<div class="preview-group-title">${colorName}</div>`;
-          const grid = document.createElement("div");
-          grid.className = "preview-swatches-grid";
+          const baseColor = ramp[Object.keys(ramp)[Math.floor(Object.keys(ramp).length / 2)]].value;
+          const section = document.createElement("div");
+          section.className = "preview-section";
+          section.innerHTML = `
+            <div class="grid grid-cols-[28px_auto_1fr] items-center gap-2 mb-2">
+              <div class="size-6 rounded-md bg-[${baseColor}]"></div>
+              <div class="text-[12px] font-bold">${colorName}</div>
+              <div class="flex items-center gap-2 text-[12px] font-mono">
+                <span id="spec-num-${colorName}"></span>
+                <span id="spec-hex-${colorName}" class="font-bold"></span>
+                <span id="spec-info-${colorName}" class="ml-auto"></span>
+              </div>
+            </div>
+            <div class="relative">
+              <div class="preview-spectrum"></div>
+            </div>`;
+
+          const spectrum = section.querySelector(".preview-spectrum");
+          const hexDisplay = section.querySelector(`#spec-hex-${colorName}`);
+          const infoDisplay = section.querySelector(`#spec-info-${colorName}`);
+          const numDisplay = section.querySelector(`#spec-num-${colorName}`);
+
           for (const [weight, data] of Object.entries(ramp)) {
-            const textColor = (contrastRatio(data.value, "#FFFFFF") || 0) > (contrastRatio(data.value, "#000000") || 0) ? "#FFFFFF" : "#000000";
-            const swatch = document.createElement("div");
-            swatch.className = "preview-swatch";
-            swatch.style.backgroundColor = data.value;
-            swatch.style.color = textColor;
-            swatch.setAttribute("data-copy", data.value);
-            swatch.innerHTML = `
-              <div class="preview-swatch__hex">${data.value}</div>
-              <div class="preview-swatch__name">${weight}</div>
-              <div class="preview-swatch__contrast">L:${(data.contrast.light.ratio || 0).toFixed(1)} D:${(data.contrast.dark.ratio || 0).toFixed(1)}</div>`;
-            grid.appendChild(swatch);
+            const step = document.createElement("div");
+            step.className = "preview-spectrum-step";
+            step.style.backgroundColor = data.value;
+            step.setAttribute("data-copy", data.value);
+
+            step.onmouseenter = () => {
+              hexDisplay.textContent = data.value;
+              numDisplay.textContent = weight;
+              infoDisplay.textContent = `☀️ ${data.contrast.light.ratio.toFixed(1)} 🌙 ${data.contrast.dark.ratio.toFixed(1)}`;
+              hexDisplay.style.color = data.value;
+            };
+
+            spectrum.appendChild(step);
           }
-          groupEl.appendChild(grid);
-          rawEl.appendChild(groupEl);
+          rawEl.appendChild(section);
         }
 
         // Theme tabs helper
         function renderThemePanel(panelId, themeTokens, bgHex) {
           const el = document.getElementById(panelId);
           el.innerHTML = "";
-          el.style.backgroundColor = "";
+
           for (const [colorName, roles] of Object.entries(themeTokens)) {
-            const groupEl = document.createElement("div");
-            groupEl.innerHTML = `<div class="preview-group-title">${colorName}</div>`;
+            const ramp = result.colorRamps[colorName];
+            const baseColor = ramp ? ramp[Object.keys(ramp)[Math.floor(Object.keys(ramp).length / 2)]].value : "#888";
+
+            const section = document.createElement("div");
+            section.className = "preview-section";
+            section.innerHTML = `
+              <div class="grid grid-col-3[32px_1fr_auto]>
+                <div class="size-6 rounded-md bg-[${baseColor}]"></div>
+                <div class="text-[12px] font-bold">${colorName}</div>
+              </div>
+              <div class="preview-section-content"></div>`;
+
+            const content = section.querySelector(".preview-section-content");
             for (const [roleName, variations] of Object.entries(roles)) {
-              const roleEl = document.createElement("div");
-              roleEl.innerHTML = `<div class="preview-role-label">${roleName}</div>`;
-              const grid = document.createElement("div");
-              grid.className = "preview-token-grid";
+              const roleGroup = document.createElement("div");
+              roleGroup.className = "mb-12";
+              const rName = (appState.roles[roleName] && appState.roles[roleName].name) || roleName;
+              roleGroup.innerHTML = `
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="text-[11px] font-extrabold opacity-40 uppercase tracking-[0.15em] whitespace-nowrap">${rName}</div>
+                  <div class="flex-1 h-px bg-current opacity-10"></div>
+                </div>
+                <div class="grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(140px,1fr))]"></div>`;
+
+              const grid = roleGroup.querySelector(".grid");
               for (const [varKey, token] of Object.entries(variations)) {
                 if (!token) continue;
-                const textColor = (contrastRatio(token.value, "#FFFFFF") || 0) > (contrastRatio(token.value, "#000000") || 0) ? "#FFFFFF" : "#000000";
-                const swatch = document.createElement("div");
-                swatch.className = "preview-swatch";
-                swatch.style.backgroundColor = token.value;
-                swatch.style.color = textColor;
-                swatch.setAttribute("data-copy", token.value);
-                swatch.setAttribute("data-copy-name", token.tknName);
-                if (token.isAdjusted) {
-                  const dot = document.createElement("div");
-                  dot.className = "preview-swatch__adjusted";
-                  dot.title = "Adjusted";
-                  swatch.appendChild(dot);
-                }
-                swatch.innerHTML += `
-                  <div class="preview-swatch__hex">${token.value}</div>
-                  <div class="preview-swatch__name">${varKey}</div>
-                  <div class="preview-swatch__contrast">${(token.contrast.ratio || 0).toFixed(1)}:1 ${token.contrast.rating || ""}</div>`;
-                grid.appendChild(swatch);
+                const card = document.createElement("div");
+                card.className = "bg-[rgba(128,128,128,0.05)] border border-[rgba(128,128,128,0.1)] rounded-[20px] p-1.5 flex flex-col gap-1.5 transition-all duration-300 ease-in-out cursor-pointer hover:bg-[rgba(128,128,128,0.1)] hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(0,0,0,0.1)]";
+                card.setAttribute("data-copy", token.value);
+                card.setAttribute("data-copy-name", token.tknName);
+
+                const contrastColor = (contrastRatio(token.value, "#FFFFFF") || 0) > (contrastRatio(token.value, "#000000") || 0) ? "#FFFFFF" : "#000000";
+
+                card.innerHTML = `
+                  <div class="h-20 rounded-2xl relative overflow-hidden flex items-center justify-center" style="background:${token.value};color:${contrastColor}">
+                    <div class="text-2xl font-black tracking-[-0.05em] opacity-90">${token.contrast.ratio.toFixed(1)}</div>
+                    <div class="absolute top-2 right-2 text-[9px] font-black px-1.5 py-0.5 bg-black/20 backdrop-blur-sm rounded-[6px] border border-white/10 text-white">${token.contrast.rating}</div>
+                    ${token.isAdjusted ? `<div class="absolute bottom-2 right-2 bg-[var(--warning)] text-black w-3.5 h-3.5 rounded-[4px] flex items-center justify-center text-[10px] font-black">!</div>` : ""}
+                  </div>
+                  <div class="px-2 pt-1 pb-2">
+                    <div class="text-[11px] font-extrabold uppercase tracking-[0.05em] mb-0.5">${varKey}</div>
+                    <div class="text-[10px] font-mono opacity-50 font-semibold">${token.value}</div>
+                  </div>`;
+                grid.appendChild(card);
               }
-              roleEl.appendChild(grid);
-              groupEl.appendChild(roleEl);
+              content.appendChild(roleGroup);
             }
-            el.appendChild(groupEl);
+            el.appendChild(section);
           }
         }
 
         renderThemePanel("preview-light", result.colorTokens.light, lightBgHex);
         renderThemePanel("preview-dark", result.colorTokens.dark, darkBgHex);
-
-        // Dark theme panel background
-        document.getElementById("preview-dark").style.backgroundColor = darkBgHex;
 
         // Error bar
         const allErrors = result.errors;
@@ -1799,14 +1922,14 @@
           body.innerHTML = "";
           for (const e of allErrors.critical) {
             const item = document.createElement("div");
-            item.className = "preview-error-item";
+            item.className = "py-1 px-3 text-[10px] text-[var(--text-muted)] border-t border-[var(--border)]";
             item.textContent = `⛔ ${e.color} · ${e.role} [${e.theme}]: ${e.error}`;
             body.appendChild(item);
           }
-          for (const w of allErrors.warnings) {
+          for (const e of allErrors.warnings) {
             const item = document.createElement("div");
-            item.className = "preview-error-item";
-            item.textContent = `⚠ ${w.color} · ${w.role}${w.variation ? ` · ${w.variation}` : ""} [${w.theme}]: ${w.warning}`;
+            item.className = "py-1 px-3 text-[10px] text-[var(--warning)] border-t border-[var(--border)]";
+            item.textContent = `⚠️ ${e.color} · ${e.role} [${e.theme}]: ${e.error}`;
             body.appendChild(item);
           }
         } else {
@@ -1840,27 +1963,40 @@
         body.innerHTML = "";
         for (const e of errors.critical) {
           const item = document.createElement("div");
-          item.className = "preview-error-item";
+          item.className = "py-1 px-3 text-[10px] text-[var(--text-muted)] border-t border-[var(--border)]";
           item.textContent = `⛔ ${e.color} · ${e.role} [${e.theme}]: ${e.error}`;
           body.appendChild(item);
         }
         for (const w of errors.warnings) {
           const item = document.createElement("div");
-          item.className = "preview-error-item";
+          item.className = "py-1 px-3 text-[10px] text-[var(--warning)] border-t border-[var(--border)]";
           item.textContent = `⚠ ${w.color} · ${w.role}${w.variation ? ` · ${w.variation}` : ""} [${w.theme}]: ${w.warning}`;
           body.appendChild(item);
+        }
+      }
+
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        if (t) {
+          document.getElementById("toast-msg").textContent = msg;
+          t.classList.add("show");
+          setTimeout(() => t.classList.remove("show"), 2000);
         }
       }
 
       // Copy-to-clipboard inside preview (delegated)
       document.addEventListener("click", async (e) => {
         const swatch = e.target.closest(".preview-swatch[data-copy]");
-        if (!swatch || !document.getElementById("preview-overlay").contains(swatch)) return;
-        const text = swatch.getAttribute("data-copy");
+        if (!swatch) return;
+
+        const val = swatch.getAttribute("data-copy");
+        const name = swatch.getAttribute("data-copy-name");
+
         try {
+          // Alt+Click copies the name
+          const text = e.altKey && name ? name : val;
           await navigator.clipboard.writeText(text);
-          swatch.classList.add("preview-copy-flash");
-          setTimeout(() => swatch.classList.remove("preview-copy-flash"), 750);
+          showToast(`Copied ${text}`);
         } catch (_) {}
       });
 
@@ -1868,10 +2004,22 @@
       document.getElementById("preview-tabs").addEventListener("click", (e) => {
         const btn = e.target.closest(".preview-tab-btn");
         if (!btn) return;
+
+        const target = btn.dataset.target;
+        const overlay = document.getElementById("preview-overlay");
+
+        // Remove old theme classes
+        overlay.classList.remove("theme-light", "theme-dark", "theme-raw");
+
+        // Add new theme class
+        if (target === "preview-light") overlay.classList.add("theme-light");
+        else if (target === "preview-dark") overlay.classList.add("theme-dark");
+        else overlay.classList.add("theme-raw");
+
         document.querySelectorAll(".preview-tab-btn").forEach((b) => b.classList.remove("active"));
         document.querySelectorAll(".preview-panel").forEach((p) => p.classList.remove("active"));
         btn.classList.add("active");
-        document.getElementById(btn.dataset.target).classList.add("active");
+        document.getElementById(target).classList.add("active");
       });
 
       // 6. INITIALIZATIONS & GLOBAL LISTENERS
@@ -1895,7 +2043,10 @@
         showOverlay("preview-overlay");
       };
 
-      document.getElementById("preview-close").onclick = () => hideOverlay("preview-overlay");
+      document.getElementById("preview-close").onclick = () => {
+        hideOverlay("preview-overlay");
+        document.getElementById("preview-overlay").classList.remove("theme-light", "theme-dark", "theme-raw");
+      };
 
       // Sidebar Tab Logic
       const sidebarTabs = document.querySelectorAll(".sidebar-tab-btn");
@@ -2112,8 +2263,8 @@
         // Name preview
         const sampleColor = appState.colors[0] || { name: "Primary", shortName: "pr" };
         const sampleRole = appState.roles[0] || { name: "Text", shortName: "tx" };
-        const cLabel = shortC ? (sampleColor.shortName || sampleColor.name) : sampleColor.name;
-        const rLabel = shortR ? (sampleRole.shortName || sampleRole.name) : sampleRole.name;
+        const cLabel = shortC ? sampleColor.shortName || sampleColor.name : sampleColor.name;
+        const rLabel = shortR ? sampleRole.shortName || sampleRole.name : sampleRole.name;
         const stepLabel = (appState.roleStepNames || "weakest, weak, base").split(",")[2]?.trim() || "base";
         const exName = tg === "role" ? `${rLabel}/${cLabel}/${stepLabel}` : `${cLabel}/${rLabel}/${stepLabel}`;
         const previewEl = document.getElementById("rd-name-preview");
@@ -2139,8 +2290,7 @@
           const relevant = existing.filter((n) => (n === rawName && !skipRaw && scope !== "roles") || (n === ctxName && scope !== "groups"));
           if (relevant.length > 0) {
             warnEl.classList.remove("hidden");
-            document.getElementById("rd-warning-text").textContent =
-              `${relevant.map((n) => `"${n}"`).join(" and ")} already exist. Variables will be added or updated — nothing deleted.`;
+            document.getElementById("rd-warning-text").textContent = `${relevant.map((n) => `"${n}"`).join(" and ")} already exist. Variables will be added or updated — nothing deleted.`;
           } else {
             warnEl.classList.add("hidden");
           }
@@ -2166,7 +2316,7 @@
 
         if (msg.type === "collection-check-result") {
           lastCollectionCheckResult = msg.existing || [];
-          setRunScope(pendingScope || "all");  // initialises scope buttons + calls refreshRunDialog
+          setRunScope(pendingScope || "all"); // initialises scope buttons + calls refreshRunDialog
           showOverlay("run-dialog-overlay");
           return;
         }

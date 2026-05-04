@@ -536,32 +536,62 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
     return output.reverse();
   }
 
-  if (rampType === "Balanced") {
+  if (rampType === "Balanced" || rampType === "Balanced (Natural)" || rampType === "Balanced (Dynamic)") {
     // Space target luminances logarithmically so perceptual steps feel even.
     const minV = Math.log(0.05);
     const maxV = Math.log(1.05);
     const step = (maxV - minV) / (rampLength + 1);
     const output = [];
+    
+    const isNatural = rampType.includes("Natural") || rampType.includes("Dynamic");
+    const isDynamic = rampType.includes("Dynamic");
+
     for (let i = 1; i <= rampLength; i++) {
       const targetLum = Math.exp(minV + step * i) - 0.05;
       let low = 0,
         high = 100,
         closestL = 50;
+      
+      // Binary search for HSL lightness to match target Relative Luminance
       for (let j = 0; j < 30; j++) {
         const mid = (low + high) / 2;
-        const midLum = relLum(hslToHex(hue, satu, mid));
+        // Apply temporary saturation/hue for search if needed, but search usually depends on L mostly.
+        // For accuracy in search, we use the potentially shifted values.
+        const searchS = isNatural ? satu * (1 - Math.pow(Math.abs(mid - 50) / 50, 1.5) * 0.4) : satu;
+        let searchH = hue;
+        if (isDynamic) {
+          const dist = (mid - 50) / 50;
+          if (dist > 0) searchH += (60 - hue) * dist * 0.15; // Shift towards yellow in lights
+          else searchH += (240 - hue) * Math.abs(dist) * 0.15; // Shift towards blue in darks
+        }
+        
+        const midLum = relLum(hslToHex(searchH, searchS, mid));
         closestL = mid;
         if (Math.abs(midLum - targetLum) < 0.0001) break;
         if (midLum < targetLum) low = mid;
         else high = mid;
       }
-      output.push(hslToHex(hue, satu, closestL) || "#000000");
+
+      // Final values for this step
+      let finalS = satu;
+      let finalH = hue;
+      if (isNatural) {
+        finalS = satu * (1 - Math.pow(Math.abs(closestL - 50) / 50, 1.5) * 0.4);
+      }
+      if (isDynamic) {
+        const dist = (closestL - 50) / 50;
+        if (dist > 0) finalH += (60 - hue) * dist * 0.15;
+        else finalH += (240 - hue) * Math.abs(dist) * 0.15;
+      }
+
+      output.push(hslToHex(finalH, finalS, closestL) || "#000000");
     }
     return output.reverse();
   }
 
   if (rampType === "Symmetric") {
     // Same as Balanced, then shifts steps so the midpoint lands near 50% lightness.
+    // (We'll use standard Balanced logic here for simplicity, but it could be updated too)
     const minV = Math.log(0.05);
     const maxV = Math.log(1.05);
     const step = (maxV - minV) / (rampLength + 1);

@@ -115,20 +115,47 @@ function translateConfig(appState) {
       customStepNames: scale.customStepNames || [],
       scaleOverrides: scale.scaleOverrides || {},
     },
-    roles: (appState.roles || []).map((role) => ({
-      name: role.name || "Role",
-      shortName: role.shortName || role.name.substring(0, 2).toLowerCase(),
-      variationCount: Math.max(1, parseInt(role.variationCount) || 1),
-      variationNames: role.variationNames || [],
-      baseScaleIndex: parseInt(role.baseScaleIndex) || 0,
-      scaleDirection: role.scaleDirection || "descending",
-      fontSlot: role.fontSlot || "primary",
-      fontWeightAlias: role.fontWeightAlias || "Regular",
-      lineHeight: role.lineHeight || { unit: "PERCENT", value: 150 },
-      letterSpacing: role.letterSpacing || { unit: "PERCENT", value: 0 },
-      textTransform: role.textTransform || "none",
-      variationOverrides: role.variationOverrides || [],
-    })),
+    roles: (appState.roles || []).map(function(role) {
+      // Migrate old format (variationCount/baseScaleIndex) to new variations array
+      if (role.variations) {
+        return {
+          name: role.name || "Role",
+          shortName: role.shortName || role.name.substring(0, 2).toLowerCase(),
+          fontSlot: role.fontSlot || "primary",
+          textTransform: role.textTransform || "none",
+          variations: role.variations.map(function(vr) {
+            return {
+              name: vr.name || "v",
+              scaleIndex: parseInt(vr.scaleIndex) || 0,
+              lineHeight: vr.lineHeight || { unit: "PERCENT", value: 150 },
+              letterSpacing: vr.letterSpacing || { unit: "PERCENT", value: 0 },
+            };
+          }),
+        };
+      }
+      // Legacy format migration
+      var count = Math.max(1, parseInt(role.variationCount) || 1);
+      var variations = [];
+      for (var v = 0; v < count; v++) {
+        var delta = role.scaleDirection === "descending" ? count - 1 - v : v;
+        var scaleIndex = Math.max(0, (parseInt(role.baseScaleIndex) || 0) - delta);
+        var ov = (role.variationOverrides || []).filter(function(o) { return o.index === v; })[0] || {};
+        var varName = (role.variationNames && role.variationNames[v]) || ((role.shortName || "r") + (v + 1));
+        variations.push({
+          name: varName,
+          scaleIndex: scaleIndex,
+          lineHeight: ov.lineHeight || role.lineHeight || { unit: "PERCENT", value: 150 },
+          letterSpacing: ov.letterSpacing || role.letterSpacing || { unit: "PERCENT", value: 0 },
+        });
+      }
+      return {
+        name: role.name || "Role",
+        shortName: role.shortName || role.name.substring(0, 2).toLowerCase(),
+        fontSlot: role.fontSlot || "primary",
+        textTransform: role.textTransform || "none",
+        variations: variations,
+      };
+    }),
     scaleCollectionName: appState.scaleCollectionName || "Type Scale",
     skipScaleVariables: appState.skipScaleVariables || false,
     tokenGrouping: appState.tokenGrouping || "role",
@@ -627,46 +654,43 @@ function lineHeightHint(pxSize) {
 }
 
 function resolveRoleStyles(role, scaleSteps, config) {
-  const styles = [];
-  const errors = [];
+  var styles = [];
+  var errors = [];
+  var variations = role.variations || [];
 
-  for (let v = 0; v < role.variationCount; v++) {
-    const override = role.variationOverrides.find((o) => o.index === v) || {};
-    const delta = role.scaleDirection === "descending" ? role.variationCount - 1 - v : v;
-    const rawIdx = role.baseScaleIndex - delta + (override.scaleIndexOffset || 0);
-    const scaleIdx = Math.max(0, Math.min(scaleSteps.length - 1, rawIdx));
-    if (rawIdx !== scaleIdx) errors.push(`Role "${role.name}" variation ${v}: scale index ${rawIdx} clamped to ${scaleIdx}.`);
+  for (var v = 0; v < variations.length; v++) {
+    var vr = variations[v];
+    var rawIdx = parseInt(vr.scaleIndex) || 0;
+    var scaleIdx = Math.max(0, Math.min(scaleSteps.length - 1, rawIdx));
+    if (rawIdx !== scaleIdx) errors.push("Role \"" + role.name + "\" variation " + v + ": scale index " + rawIdx + " clamped to " + scaleIdx + ".");
 
-    const fontSlot = override.fontSlot || role.fontSlot;
-    const lineHeight = override.lineHeight || role.lineHeight;
-    const letterSpacing = override.letterSpacing || role.letterSpacing;
-    const textTransform = override.textTransform || role.textTransform;
-    const fontDef = config.fonts.find((f) => f.slot === fontSlot);
-
-    const autoName = role.scaleDirection === "descending" ? String(v + 1) : String(role.variationCount - v);
-    const variationName = (role.variationNames && role.variationNames[v]) || autoName;
+    var fontDef = config.fonts.filter(function(f) { return f.slot === role.fontSlot; })[0];
+    var lineHeight = vr.lineHeight || { unit: "PERCENT", value: 150 };
+    var letterSpacing = vr.letterSpacing || { unit: "PERCENT", value: 0 };
+    var variationName = vr.name || String(v + 1);
 
     // One sub-style per weight from settings
-    for (const weightDef of config.fontWeights) {
+    for (var wi = 0; wi < config.fontWeights.length; wi++) {
+      var weightDef = config.fontWeights[wi];
       styles.push({
         roleName: role.name,
         roleShortName: role.shortName,
-        variationName,
+        variationName: variationName,
         weightAlias: weightDef.alias,
         scaleIndex: scaleIdx,
         scaleStep: scaleSteps[scaleIdx],
         fontFamily: fontDef ? fontDef.family : "Inter",
-        fontSlot,
-        fontStyle: getFigmaStyle(weightDef, fontSlot),
+        fontSlot: role.fontSlot,
+        fontStyle: getFigmaStyle(weightDef, role.fontSlot),
         fontWeightAlias: weightDef.alias,
-        lineHeight,
-        letterSpacing,
-        textTransform: textTransform || "none",
+        lineHeight: lineHeight,
+        letterSpacing: letterSpacing,
+        textTransform: role.textTransform || "none",
         lineHeightHint: lineHeightHint(scaleSteps[scaleIdx].px),
       });
     }
   }
-  return { styles, errors };
+  return { styles: styles, errors: errors };
 }
 
 // 8. TYPE SYSTEM GENERATOR

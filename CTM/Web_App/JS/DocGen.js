@@ -94,7 +94,6 @@ function generateSeparateCssFiles(cssVars) {
 function downloadCss(scheme) {
   try {
     const currentScheme = scheme || window.currentEditableScheme || demoConfig;
-    console.log("Generating CSS for scheme:", currentScheme.name);
     const collection = variableMaker(currentScheme);
     if (!collection || !collection.colorRamps) {
       throw new Error("Invalid collection generated from variableMaker");
@@ -108,7 +107,6 @@ function downloadCss(scheme) {
     a.download = `${slugify(currentScheme.name)}-tokens.css`;
     a.click();
     URL.revokeObjectURL(url);
-    console.log("CSS downloaded successfully");
   } catch (error) {
     console.error("Error generating CSS:", error);
     alert(`Error generating CSS: ${error.message}`);

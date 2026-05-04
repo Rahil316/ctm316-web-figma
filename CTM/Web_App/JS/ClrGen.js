@@ -32,7 +32,7 @@ const demoConfig = {
   ],
 };
 const roleMappingMethods = ["Contrast Based", "Manual Base Index"];
-const rampTypes = ["Linear", "Balanced", "Symmetric"];
+const rampTypes = ["Linear", "Balanced", "Balanced (Natural)", "Balanced (Dynamic)", "Symmetric"];
 
 // Simple hash-based cache: skip regeneration when config hasn't changed.
 let lastInputHash = null;
@@ -54,7 +54,7 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
     return output.reverse();
   }
 
-  if (rampType === "Balanced") {
+  if (rampType === "Balanced" || rampType === "Balanced (Natural)" || rampType === "Balanced (Dynamic)") {
     // Space target luminances logarithmically so perceptual steps feel even.
     // Binary search finds the HSL lightness that hits each target luminance.
     const minL = 0;
@@ -63,6 +63,9 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
     const maxV = Math.log(maxL + 0.05);
     const step = (maxV - minV) / (rampLength + 1);
     const output = [];
+
+    const isNatural = rampType.includes("Natural") || rampType.includes("Dynamic");
+    const isDynamic = rampType.includes("Dynamic");
 
     for (let i = 1; i <= rampLength; i++) {
       const targetV = minV + step * i;
@@ -74,14 +77,35 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
 
       for (let j = 0; j < 30; j++) {
         let mid = (low + high) / 2;
-        let midHex = hslToHex(hue, satu, mid);
+        
+        const searchS = isNatural ? satu * (1 - Math.pow(Math.abs(mid - 50) / 50, 1.5) * 0.4) : satu;
+        let searchH = hue;
+        if (isDynamic) {
+          const dist = (mid - 50) / 50;
+          if (dist > 0) searchH += (60 - hue) * dist * 0.15;
+          else searchH += (240 - hue) * Math.abs(dist) * 0.15;
+        }
+
+        let midHex = hslToHex(searchH, searchS, mid);
         let midLum = relLum(midHex);
         closestL = mid;
         if (Math.abs(midLum - targetLum) < 0.0001) break;
         if (midLum < targetLum) low = mid;
         else high = mid;
       }
-      output.push(hslToHex(hue, satu, closestL) || "#000000");
+
+      let finalS = satu;
+      let finalH = hue;
+      if (isNatural) {
+        finalS = satu * (1 - Math.pow(Math.abs(closestL - 50) / 50, 1.5) * 0.4);
+      }
+      if (isDynamic) {
+        const dist = (closestL - 50) / 50;
+        if (dist > 0) finalH += (60 - hue) * dist * 0.15;
+        else finalH += (240 - hue) * Math.abs(dist) * 0.15;
+      }
+
+      output.push(hslToHex(finalH, finalS, closestL) || "#000000");
     }
     return output.reverse();
   }

@@ -94,13 +94,13 @@ function createErrorSection(errors) {
         if (e.color) ctxArray.push(`Group: <strong>${e.color.toUpperCase()}</strong>`);
         if (e.role) ctxArray.push(`Role: <strong>${e.role}</strong>`);
         if (e.variation) ctxArray.push(`Var: <strong>${e.variation}</strong>`);
-        const prefixHTML = ctxArray.length ? `<span style="opacity:0.85;margin-right:8px;">[ ${ctxArray.join(" | ")} ]</span>` : "";
+        const prefixHTML = ctxArray.length ? `<span class="opacity-[0.85] mr-2">[ ${ctxArray.join(" | ")} ]</span>` : "";
         return `<div class="px-2 py-1.5 bg-[var(--bg-card)] rounded-[8px] font-mono text-[10px] text-[var(--text-muted)] mb-1 last:mb-0">${prefixHTML}${e.error || e.warning || e.notice}</div>`;
       })
       .join("");
 
   const section = document.createElement("div");
-  section.className = "bg-[var(--warning)]/10 border border-[var(--warning)]/30 mb-4 rounded-[10px] overflow-hidden";
+  section.className = "bg-[var(--warning)]/10 border border-[var(--warning)]/30 mb-4 rounded-[8px] overflow-hidden";
   section.innerHTML = `
     <div class="errors-header px-3.5 py-2.5 cursor-pointer flex justify-between items-center transition-colors duration-150 hover:bg-[var(--warning)]/5">
       <h4 class="text-[var(--warning)] text-[12px] font-bold tracking-[0.5px]">⚠️ Warnings &amp; Errors</h4>
@@ -135,7 +135,7 @@ function createErrorSection(errors) {
 
 function createRawSection(colorRamps) {
   // const section = document.createElement("div");
-  // section.className = "bg-[var(--bg-card)] border border-[var(--border)] mb-4 p-4 rounded-[10px]";
+  // section.className = "bg-[var(--bg-card)] border border-[var(--border)] mb-4 p-4 rounded-[8px]";
 
   const rawHTML = Object.entries(colorRamps)
     .map(([colorGroup, weights]) => {
@@ -171,9 +171,9 @@ function createRawSection(colorRamps) {
         })
         .join("");
       return `
-      <div class="bg-[var(--bg-card)] border border-[var(--border)] mb-4 p-4 rounded-[10px]">
+      <div class="bg-[var(--bg-card)] border border-[var(--border)] mb-4 p-4 rounded-[8px]">
         <h3 class="text-[14px] font-bold tracking-[0.8px] text-[var(--text-muted)] mb-2.5">${colorGroup}</h3>
-        <div class="grid gap-2" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">${swatchesHTML}</div>
+        <div class="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">${swatchesHTML}</div>
       </div>`;
     })
     .join("");
@@ -196,7 +196,7 @@ function createThemeSection(colorTokens, theme) {
   for (const [colorGroup, roles] of Object.entries(colorTokens)) {
     if (!roles || Object.keys(roles).length === 0) {
       container.innerHTML = `
-      <div class="p-4 rounded-[10px] border border-[var(--border)] mb-4 ${isDark ? "bg-black" : "bg-[var(--bg-card)]"}">
+      <div class="p-4 rounded-[8px] border border-[var(--border)] mb-4 ${isDark ? "bg-black" : "bg-[var(--bg-card)]"}">
         <h4 class="text-[11px] font-bold tracking-[0.8px] mb-3 ${isDark ? "text-[var(--text-dim)]" : "text-[var(--text-muted)]"}">${colorGroup}</h4>
         <p>No roles generated</p>
       </div>`;
@@ -205,7 +205,7 @@ function createThemeSection(colorTokens, theme) {
 
     // Main group container
     const groupDiv = document.createElement("div");
-    groupDiv.className = `p-4 rounded-[10px] border border-[var(--border)] mb-4 ${isDark ? "bg-black" : "bg-[var(--bg-card)]"}`;
+    groupDiv.className = `p-4 rounded-[8px] border border-[var(--border)] mb-4 ${isDark ? "bg-black" : "bg-[var(--bg-card)]"}`;
 
     // Group title
     groupDiv.innerHTML = `
@@ -228,8 +228,7 @@ function createThemeSection(colorTokens, theme) {
 
       // Grid container for color cards
       const grid = document.createElement("div");
-      grid.className = "grid gap-2";
-      grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(180px, 1fr))";
+      grid.className = "grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]";
 
       // Iterate over each variation (color) inside the role using for...in
       for (const variationKey in variations) {
@@ -397,7 +396,7 @@ function createColorInputs(colorScheme, onUpdate) {
 function createColorGroupsSection(colorScheme, hideHeader = false) {
   const section = createSection("Color Groups", "color-groups", hideHeader);
   const addButton = document.createElement("button");
-  addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--accent)]/10";
+  addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[8px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--accent)]/10";
   addButton.textContent = "+ Add Color";
   addButton.onclick = () => {
     const newGroup = {
@@ -406,6 +405,7 @@ function createColorGroupsSection(colorScheme, hideHeader = false) {
       value: "888888",
     };
     colorScheme.colors.unshift(newGroup);
+    window.currentEditableScheme = colorScheme;
     createColorInputs(colorScheme, (updated) => {
       window.currentEditableScheme = updated;
       displayColorTokens(variableMaker(updated));
@@ -421,13 +421,13 @@ function createColorGroupsSection(colorScheme, hideHeader = false) {
 
 function createColorGroupInput(group, index, colorScheme) {
   const div = document.createElement("div");
-  div.className = "bg-[var(--bg-card)] rounded-[10px] border border-[var(--border)] p-3 flex flex-col gap-2 mb-2";
+  div.className = "bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)] p-3 flex flex-col gap-2 mb-2";
   div.innerHTML = `
     <div class="flex justify-between items-center">
       <input type="text"
         class="bg-transparent border border-transparent rounded-[8px] text-[14px] font-semibold text-[var(--text-primary)] px-1.5 py-0.5 w-full mr-2 transition-all duration-150 focus:outline-none hover:bg-[var(--bg-hover)] hover:border-[var(--border)] focus:bg-[var(--bg-input)] focus:border-[var(--border-focus)]"
         value="${group.name}" data-path="colors.${index}.name" placeholder="Group Name">
-      <button class="delete-group-btn bg-[var(--danger-bg)] text-[var(--danger)] border border-[rgba(231,76,60,0.2)] rounded-[10px] w-8 h-8 flex items-center justify-center text-sm cursor-pointer flex-shrink-0 transition-colors duration-150 hover:bg-[rgba(231,76,60,0.2)]"
+      <button class="delete-group-btn bg-[var(--danger-bg)] text-[var(--danger)] border border-[rgba(231,76,60,0.2)] rounded-[8px] w-8 h-8 flex items-center justify-center text-sm cursor-pointer flex-shrink-0 transition-colors duration-150 hover:bg-[rgba(231,76,60,0.2)]"
         data-index="${index}">×</button>
     </div>
     <div class="flex flex-col gap-1">
@@ -454,13 +454,12 @@ function createColorGroupInput(group, index, colorScheme) {
       e.stopPropagation();
       const idx = parseInt(e.currentTarget.dataset.index);
       colorScheme.colors.splice(idx, 1);
-      const updatedScheme = JSON.parse(JSON.stringify(colorScheme));
-      window.currentEditableScheme = updatedScheme;
-      createColorInputs(updatedScheme, (s) => {
+      window.currentEditableScheme = colorScheme;
+      createColorInputs(colorScheme, (s) => {
         window.currentEditableScheme = s;
         displayColorTokens(variableMaker(s));
       });
-      displayColorTokens(variableMaker(updatedScheme));
+      displayColorTokens(variableMaker(colorScheme));
     };
   }
   return div;
@@ -500,7 +499,7 @@ function setupColorInputSync(container) {
 function createRolesSection(colorScheme, onUpdate, hideHeader = false) {
   const section = createSection("Roles Configuration", "roles-config", hideHeader);
   const addButton = document.createElement("button");
-  addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[rgba(24,160,251,0.1)]";
+  addButton.className = "w-full h-10 px-4 mb-2 bg-transparent text-[var(--accent)] border-2 border-dashed border-[var(--accent)] rounded-[8px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[rgba(24,160,251,0.1)]";
   addButton.textContent = "+ Add Role";
   addButton.onclick = () => {
     const roleId = colorScheme.roles.length + 1;
@@ -529,13 +528,13 @@ function createRolesSection(colorScheme, onUpdate, hideHeader = false) {
     const roleDiv = document.createElement("div");
     const roleInputs = document.createElement("div");
     roleInputs.className = `grid ${isManualMode ? "grid-cols-4" : "grid-cols-3"} items-end gap-2`;
-    roleDiv.className = "bg-[var(--bg-card)] rounded-[10px] border border-[var(--border)] p-3 mb-2 flex flex-col gap-2";
+    roleDiv.className = "bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)] p-3 mb-2 flex flex-col gap-2";
     roleDiv.innerHTML = `
       <div class="flex justify-between items-center">
         <input type="text"
           class="bg-transparent border border-transparent rounded-[8px] text-[14px] font-semibold text-[var(--text-primary)] px-1.5 py-0.5 w-full mr-2 transition-all duration-150 focus:outline-none hover:bg-[var(--bg-hover)] hover:border-[var(--border)] focus:bg-[var(--bg-input)] focus:border-[var(--border-focus)]"
           value="${role.name}" data-path="roles.${roleKey}.name" placeholder="Role Name">
-        <button class="delete-group-btn bg-[var(--danger-bg)] text-[var(--danger)] border border-[rgba(231,76,60,0.2)] rounded-[10px] w-8 h-8 flex items-center justify-center text-sm cursor-pointer flex-shrink-0 transition-colors duration-150 hover:bg-[rgba(231,76,60,0.2)]"
+        <button class="delete-group-btn bg-[var(--danger-bg)] text-[var(--danger)] border border-[rgba(231,76,60,0.2)] rounded-[8px] w-8 h-8 flex items-center justify-center text-sm cursor-pointer flex-shrink-0 transition-colors duration-150 hover:bg-[rgba(231,76,60,0.2)]"
           data-role="${roleKey}">×</button>
       </div>
     `;
@@ -598,13 +597,12 @@ function createRolesSection(colorScheme, onUpdate, hideHeader = false) {
         e.stopPropagation();
         const rKey = parseInt(e.currentTarget.dataset.role);
         colorScheme.roles.splice(rKey, 1);
-        const updatedScheme = JSON.parse(JSON.stringify(colorScheme));
-        window.currentEditableScheme = updatedScheme;
-        createColorInputs(updatedScheme, (s) => {
+        window.currentEditableScheme = colorScheme;
+        createColorInputs(colorScheme, (s) => {
           window.currentEditableScheme = s;
           displayColorTokens(variableMaker(s));
         });
-        displayColorTokens(variableMaker(updatedScheme));
+        displayColorTokens(variableMaker(colorScheme));
       };
     }
     section.content.appendChild(roleDiv);
@@ -857,9 +855,11 @@ function parseSchemeFile(file, onValid) {
   reader.readAsText(file);
 }
 
+// Compare against the frozen initial snapshot, not the mutable demoConfig.
+const _initialConfigSnapshot = JSON.stringify(demoConfig);
 function isCurrentSchemeDirty() {
   if (!window.currentEditableScheme) return false;
-  return JSON.stringify(window.currentEditableScheme) !== JSON.stringify(demoConfig);
+  return JSON.stringify(window.currentEditableScheme) !== _initialConfigSnapshot;
 }
 
 function applyImportedScheme(scheme) {
@@ -887,7 +887,7 @@ function handleDroppedFile(file) {
 function createMainBtnGroup() {
   const container = document.getElementById("mainActionBtns");
   if (!container) return;
-  const iconBtn = "bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors cursor-pointer text-[var(--text-primary)]";
+  const iconBtn = "bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[8px] transition-colors cursor-pointer text-[var(--text-primary)]";
   container.innerHTML = `
     <button id="downloadCsv" title="Export CSV" class="${iconBtn}">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -907,7 +907,7 @@ function createMainBtnGroup() {
       </svg>
       <input type="file" id="importConfig" accept=".json" class="hidden" />
     </label>
-    <button id="exportCss" class="bg-[var(--accent)] hover:bg-[var(--accent-hover)] flex items-center gap-2 px-4 py-2 rounded-[10px] transition-all shadow-[0_4px_12px_var(--accent-glow)] border-none cursor-pointer h-10">
+    <button id="exportCss" class="bg-[var(--accent)] hover:bg-[var(--accent-hover)] flex items-center gap-2 px-4 py-2 rounded-[8px] transition-all shadow-[0_4px_12px_var(--accent-glow)] border-none cursor-pointer h-10">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
         <path d="M2 2.5A.5.5 0 0 1 2.5 2h11a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H2.5a.5.5 0 0 1-.5-.5v-1ZM2 13.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5ZM2 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7Z" fill="white"/>
       </svg>
@@ -935,7 +935,7 @@ function initializeColorControls() {
     displayColorTokens(variableMaker(updatedScheme));
   });
 
-  setTimeout(createMainBtnGroup, 50);
+  createMainBtnGroup();
   displayColorTokens(variableMaker(editable));
 
   if (!window.globalListenersSet) {

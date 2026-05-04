@@ -228,7 +228,7 @@
     <app class="flex flex-col h-[100vh] w-full">
       <header class="bg-[var(--bg-panel)] border-b border-[var(--border)] px-4 py-2 flex items-center justify-between flex-shrink-0">
         <div class="flex items-center gap-3">
-          <button id="toggleSidebarBtn" title="Toggle Sidebar" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors text-[var(--text-primary)]">
+          <button id="toggleSidebarBtn" title="Toggle Sidebar" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[8px] transition-colors text-[var(--text-primary)]">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="3" y1="6" x2="21" y2="6" />
               <line x1="3" y1="12" x2="21" y2="12" />
@@ -238,7 +238,7 @@
           <h1 class="text-[24px] font-bold">ctm316</h1>
         </div>
         <div class="flex gap-1.5 items-center">
-          <button id="toggleThemeBtn" title="Toggle Light / Dark" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors text-[var(--text-primary)]">
+          <button id="toggleThemeBtn" title="Toggle Light / Dark" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[8px] transition-colors text-[var(--text-primary)]">
             <svg id="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none">
               <circle cx="12" cy="12" r="5" />
               <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
@@ -261,7 +261,9 @@
             <button id="openSettingsBtn" class="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors" title="Basic Settings">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+                ></path>
               </svg>
             </button>
           </div>
@@ -269,28 +271,28 @@
         </aside>
 
         <main class="custom-scrollbar rounded-[16px] p-4 overflow-y-auto bg-[var(--bg-panel)] border border-[var(--border)] flex-1 min-w-0">
-        <div class="tabs-navigation flex gap-1 mb-4 border-b-2 border-[var(--border)]">
-          <button
-            class="tab-btn active px-4 py-2 bg-transparent border-none border-b-2 border-transparent -mb-0.5 text-[13px] font-semibold text-[var(--text-muted)] cursor-pointer transition-all duration-150 rounded-t-[8px] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-            data-target="panel-colorRamps"
-          >
-            Raw Colors
-          </button>
-          <button
-            class="tab-btn px-4 py-2 bg-transparent border-none border-b-2 border-transparent -mb-0.5 text-[13px] font-semibold text-[var(--text-muted)] cursor-pointer transition-all duration-150 rounded-t-[8px] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-            data-target="panel-tokens-light"
-          >
-            Light Theme
-          </button>
-          <button
-            class="tab-btn px-4 py-2 bg-transparent border-none border-b-2 border-transparent -mb-0.5 text-[13px] font-semibold text-[var(--text-muted)] cursor-pointer transition-all duration-150 rounded-t-[8px] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-            data-target="panel-tokens-dark"
-          >
-            Dark Theme
-          </button>
-        </div>
-        <div id="rawColorsContainer"></div>
-      </main>
+          <div class="tabs-navigation flex gap-1 mb-4 border-b-2 border-[var(--border)]">
+            <button
+              class="tab-btn active px-4 py-2 bg-transparent border-none border-b-2 border-transparent -mb-0.5 text-[13px] font-semibold text-[var(--text-muted)] cursor-pointer transition-all duration-150 rounded-t-[8px] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+              data-target="panel-colorRamps"
+            >
+              Raw Colors
+            </button>
+            <button
+              class="tab-btn px-4 py-2 bg-transparent border-none border-b-2 border-transparent -mb-0.5 text-[13px] font-semibold text-[var(--text-muted)] cursor-pointer transition-all duration-150 rounded-t-[8px] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+              data-target="panel-tokens-light"
+            >
+              Light Theme
+            </button>
+            <button
+              class="tab-btn px-4 py-2 bg-transparent border-none border-b-2 border-transparent -mb-0.5 text-[13px] font-semibold text-[var(--text-muted)] cursor-pointer transition-all duration-150 rounded-t-[8px] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+              data-target="panel-tokens-dark"
+            >
+              Dark Theme
+            </button>
+          </div>
+          <div id="rawColorsContainer"></div>
+        </main>
       </div>
     </app>
 
@@ -316,8 +318,8 @@
       <h2 class="text-[18px] font-bold mb-2.5">Overwrite current config?</h2>
       <p class="text-[13px] text-[var(--text-muted)] leading-relaxed mb-6">You have unsaved changes. Importing will replace all color groups and roles.</p>
       <div class="flex flex-col gap-2.5">
-        <button id="import-dialog-overwrite" class="w-full h-10 px-4 bg-[var(--accent)] text-white rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--accent-hover)] shadow-[0_4px_12px_var(--accent-glow)]">Import &amp; Overwrite</button>
-        <button id="import-dialog-cancel" class="w-full h-10 px-4 bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] rounded-[10px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--bg-hover)]">Cancel</button>
+        <button id="import-dialog-overwrite" class="w-full h-10 px-4 bg-[var(--accent)] text-white rounded-[8px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--accent-hover)] shadow-[0_4px_12px_var(--accent-glow)]">Import &amp; Overwrite</button>
+        <button id="import-dialog-cancel" class="w-full h-10 px-4 bg-[var(--bg-input)] text-[var(--text-primary)] border border-[var(--border)] rounded-[8px] text-[13px] font-semibold cursor-pointer transition-colors duration-150 hover:bg-[var(--bg-hover)]">Cancel</button>
       </div>
     </dialog>
   </body>

@@ -184,6 +184,7 @@
       .role-card.collapsed .role-card-body {
         max-height: 0;
         opacity: 0;
+        display: none;
         pointer-events: none;
       }
       .preview-tab-btn {
@@ -264,27 +265,27 @@
       <header class="bg-[var(--bg-panel)] border-b border-[var(--border)] px-4 py-2 flex items-center justify-between sticky top-0 z-10">
         <h1 class="text-[24px] font-bold">ttm316</h1>
         <div class="flex gap-1.5">
-          <button id="btn-more" title="More Options" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
+          <button id="btn-more" title="More Options" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[8px] transition-colors">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--text-primary)">
               <path
                 d="M3 8C3 7.44772 3.44772 7 4 7C4.55228 7 5 7.44772 5 8C5 8.55228 4.55228 9 4 9C3.44772 9 3 8.55228 3 8ZM7 8C7 7.44772 7.44772 7 8 7C8.55229 7 9 7.44772 9 8C9 8.55228 8.55229 9 8 9C7.44772 9 7 8.55228 7 8ZM11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44772 13 8C13 8.55228 12.5523 9 12 9C11.4477 9 11 8.55228 11 8Z"
               />
             </svg>
           </button>
-          <button id="btn-import" title="Import JSON" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
+          <button id="btn-import" title="Import JSON" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[8px] transition-colors">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="17 8 12 3 7 8" />
               <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
           </button>
-          <button id="btn-preview" title="Preview" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[10px] transition-colors">
+          <button id="btn-preview" title="Preview" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-10 h-10 flex items-center justify-center rounded-[8px] transition-colors">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
               <circle cx="12" cy="12" r="3" />
             </svg>
           </button>
-          <button id="btn-run" class="bg-[var(--accent)] hover:bg-[var(--accent-hover)] flex items-center gap-2 px-4 py-2 rounded-[10px] transition-all shadow-[0_4px_12px_var(--accent-glow)]">
+          <button id="btn-run" class="bg-[var(--accent)] hover:bg-[var(--accent-hover)] flex items-center gap-2 px-4 py-2 rounded-[8px] transition-all shadow-[0_4px_12px_var(--accent-glow)]">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M3 3.76846C3 2.8177 4.01933 2.215 4.8524 2.67319L12.5461 6.90474C13.4096 7.37964 13.4096 8.62037 12.5461 9.09527L4.8524 13.3268C4.01933 13.785 3 13.1823 3 12.2316V3.76846Z" />
             </svg>
@@ -394,13 +395,13 @@
           <!-- Live preview bar -->
           <div class="space-y-1">
             <label class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-1">SCALE PREVIEW</label>
-            <div id="scale-preview-bar" class="bg-[var(--bg-card)] border border-[var(--border)] rounded-[10px] p-2 overflow-y-auto"></div>
+            <div id="scale-preview-bar" class="bg-[var(--bg-card)] border border-[var(--border)] rounded-[8px] p-2 overflow-y-auto"></div>
           </div>
         </div>
 
         <!-- Tab: Roles -->
         <div id="tab-roles" class="tab-content hidden space-y-2">
-          <button id="btn-add-role" class="w-full h-[40px] border-2 border-dashed border-[var(--border)] hover:border-[var(--accent)] text-[var(--text-muted)] hover:text-[var(--accent)] rounded-[10px] text-[13px] font-semibold transition-all flex items-center justify-center gap-2">
+          <button id="btn-add-role" class="w-full h-[40px] border-2 border-dashed border-[var(--border)] hover:border-[var(--accent)] text-[var(--text-muted)] hover:text-[var(--accent)] rounded-[8px] text-[13px] font-semibold transition-all flex items-center justify-center gap-2">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
@@ -421,7 +422,7 @@
             <button class="preview-tab-btn active" data-ptab="preview-scale-panel">Scale</button>
             <button class="preview-tab-btn" data-ptab="preview-roles-panel">Roles</button>
           </div>
-          <button id="close-preview" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors">Done</button>
+          <button id="close-preview" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[8px] text-[13px] font-bold transition-colors">Done</button>
         </div>
         <div class="flex-1 overflow-y-auto p-3">
           <div id="preview-scale-panel" class="preview-panel active"><div id="scale-specimens" class="space-y-0"></div></div>
@@ -433,7 +434,7 @@
       <div id="settings-sheet" class="bottom-sheet absolute bottom-0 left-0 right-0 bg-[var(--bg-panel)] rounded-t-[16px] border-t border-[var(--border)] z-30 max-h-[92%] flex flex-col">
         <div class="px-4 py-3 flex items-center justify-between border-b border-[var(--border)]">
           <h2 class="text-[18px] font-semibold">Settings</h2>
-          <button id="close-settings" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors">Done</button>
+          <button id="close-settings" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[8px] text-[13px] font-bold transition-colors">Done</button>
         </div>
         <div class="p-4 overflow-y-auto space-y-6">
           <!-- Basic -->
@@ -519,12 +520,12 @@
       <div id="more-sheet" class="bottom-sheet absolute bottom-0 left-0 right-0 bg-[var(--bg-panel)] rounded-t-[16px] border-t border-[var(--border)] z-30 max-h-[70%] flex flex-col">
         <div class="px-4 py-3 flex items-center justify-between border-b border-[var(--border)]">
           <h2 class="text-[18px] font-semibold">More Options</h2>
-          <button id="close-more" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors">Done</button>
+          <button id="close-more" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[8px] text-[13px] font-bold transition-colors">Done</button>
         </div>
         <div class="p-2 overflow-y-auto space-y-4">
           <div class="space-y-1">
             <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-3 mb-2">EXPORT</h3>
-            <button id="opt-save-config" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors">
+            <button id="opt-save-config" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[8px] transition-colors">
               <div class="w-8 h-8 rounded-lg bg-[var(--success)]/10 flex items-center justify-center text-[var(--success)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
@@ -537,7 +538,7 @@
                 <p class="text-[11px] text-[var(--text-muted)]">Full plugin config — reimportable</p>
               </div>
             </button>
-            <button id="opt-export-css" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors">
+            <button id="opt-export-css" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[8px] transition-colors">
               <div class="w-8 h-8 rounded-lg bg-[var(--creative)]/10 flex items-center justify-center text-[var(--creative)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="16 18 22 12 16 6" />
@@ -549,7 +550,7 @@
                 <p class="text-[11px] text-[var(--text-muted)]">CSS custom properties</p>
               </div>
             </button>
-            <button id="opt-export-scss" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[10px] transition-colors">
+            <button id="opt-export-scss" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--bg-hover)] rounded-[8px] transition-colors">
               <div class="w-8 h-8 rounded-lg bg-[var(--secondary)]/10 flex items-center justify-center text-[var(--secondary)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -564,7 +565,7 @@
             </button>
           </div>
           <div class="pt-2 border-t border-[var(--border)]">
-            <button id="opt-clear" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--danger)]/10 text-[var(--danger)] rounded-[10px] transition-colors">
+            <button id="opt-clear" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--danger)]/10 text-[var(--danger)] rounded-[8px] transition-colors">
               <div class="w-8 h-8 rounded-lg bg-[var(--danger)]/10 flex items-center justify-center">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="3 6 5 6 21 6" />
@@ -620,7 +621,7 @@
       <div id="run-dialog-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)] z-[60] flex flex-col">
         <div class="px-4 py-3 flex items-center justify-between border-b border-[var(--border)]">
           <h2 class="text-[17px] font-bold">Apply to Figma</h2>
-          <button onclick="hideOverlay('run-dialog-overlay')" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold">Cancel</button>
+          <button onclick="hideOverlay('run-dialog-overlay')" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[8px] text-[13px] font-bold">Cancel</button>
         </div>
         <div class="flex-1 overflow-y-auto p-4 space-y-5">
           <div class="space-y-2">
@@ -705,14 +706,9 @@
           { slot: "tertiary", family: "JetBrains Mono", fallback: "monospace" },
         ],
         fontWeights: [
-          { alias: "Thin", value: 100, figmaStyles: {} },
-          { alias: "Light", value: 300, figmaStyles: {} },
           { alias: "Regular", value: 400, figmaStyles: {} },
           { alias: "Medium", value: 500, figmaStyles: {} },
-          { alias: "SemiBold", value: 600, figmaStyles: {} },
           { alias: "Bold", value: 700, figmaStyles: {} },
-          { alias: "ExtraBold", value: 800, figmaStyles: {} },
-          { alias: "Black", value: 900, figmaStyles: {} },
         ],
         scale: {
           method: "Modular",
@@ -787,30 +783,22 @@
       }
 
       function resolveRolePreview(role, steps) {
-        const result = [];
-        for (let v = 0; v < role.variationCount; v++) {
-          const ov = (role.variationOverrides || []).find((o) => o.index === v) || {};
-          const delta = role.scaleDirection === "descending" ? role.variationCount - 1 - v : v;
-          const idx = Math.max(0, Math.min(steps.length - 1, role.baseScaleIndex - delta + (ov.scaleIndexOffset || 0)));
-          const autoName = role.scaleDirection === "descending" ? String(v + 1) : String(role.variationCount - v);
-          const varName = (role.variationNames && role.variationNames[v]) || autoName;
-          const weightAlias = ov.fontWeightAlias || role.fontWeightAlias;
-          const fontSlot = ov.fontSlot || role.fontSlot;
-          const lh = ov.lineHeight || role.lineHeight;
-          const ls = ov.letterSpacing || role.letterSpacing;
-          const fontDef = appState.fonts.find((f) => f.slot === fontSlot);
-          const wDef = appState.fontWeights.find((w) => w.alias === weightAlias);
-          result.push({
-            variationName: varName,
+        const variations = role.variations || [];
+        return variations.map((vr) => {
+          const idx = Math.max(0, Math.min(steps.length - 1, vr.scaleIndex || 0));
+          const fontDef = appState.fonts.find((f) => f.slot === role.fontSlot);
+          const wDef = appState.fontWeights[0] || { alias: "Regular", value: 400 };
+          return {
+            variationName: vr.name || "–",
             scaleStep: steps[idx],
             fontFamily: fontDef ? fontDef.family : "Inter",
-            fontWeight: wDef ? wDef.value : 400,
-            weightAlias,
-            lineHeight: lh,
-            letterSpacing: ls,
-          });
-        }
-        return result;
+            fontWeight: wDef.value,
+            weightAlias: wDef.alias,
+            lineHeight: vr.lineHeight,
+            letterSpacing: vr.letterSpacing,
+            textTransform: role.textTransform || "none",
+          };
+        });
       }
 
       function lhHintUI(px) {
@@ -858,7 +846,7 @@
             return `
         <div class="scale-bar-item">
           <span class="text-[var(--text-dim)] font-mono text-[10px] w-10 flex-shrink-0">${esc(String(s.name))}</span>
-          <span style="font-family:'${esc(ff)}';font-size:${s.px || 32}px;" class="truncate whitespace-nowrap leading-none">The quick brown fox jumps over the lazy dog</span>
+          <span style="font-family:'${esc(ff)}';font-size:${Math.min(s.px, 52)}px;" class="truncate whitespace-nowrap leading-none">The quick brown fox jumps over the lazy dog</span>
           <span class="text-[var(--text-muted)] text-[10px] ml-auto flex-shrink-0mr-1" style="min-width:48px;text-align:right;">${s.rem}rem</span>
           <input type="number" min="1" max="999" placeholder="${s.px}" value="${isOverridden ? overrides[s.index] : s.px}"
             class="w-[52px] h-[22px] text-[10px] text-right bg-[var(--bg-input)] border rounded-[4px] px-1 outline-none focus:border-[var(--accent)] flex-shrink-0 ${isOverridden ? "border-[var(--accent)] text-[var(--accent)]" : "border-[var(--border)]"}"
@@ -887,43 +875,111 @@
         });
       }
 
+      function wireRoleCard(cardEl) {
+        cardEl.querySelectorAll("[data-rf]").forEach((el) => {
+          const ev = el.tagName === "SELECT" ? "change" : "input";
+          el.addEventListener(ev, (e) => handleRoleInput(parseInt(e.target.dataset.ri), e.target.dataset.rf, e.target.value));
+        });
+        cardEl.querySelectorAll("[data-vf]").forEach((el) => {
+          const ev = el.tagName === "SELECT" ? "change" : "input";
+          el.addEventListener(ev, (e) => handleVariationInput(parseInt(e.target.dataset.ri), parseInt(e.target.dataset.vi), e.target.dataset.vf, e.target.value, e.target));
+        });
+      }
+
       function renderRolesList() {
         const list = document.getElementById("roles-list");
         if (!appState.roles.length) {
           list.innerHTML = `<p class="text-[var(--text-muted)] text-[12px] text-center py-4">No roles yet. Click "Add Role" to get started.</p>`;
           return;
         }
+        // Preserve collapsed state across re-renders
+        const collapsed = new Set();
+        list.querySelectorAll(".role-card.collapsed").forEach((c) => collapsed.add(parseInt(c.dataset.idx)));
         list.innerHTML = appState.roles.map((role, idx) => buildRoleCard(role, idx)).join("");
-        // Wire inputs
-        list.querySelectorAll("[data-rf]").forEach((el) => {
-          const ev = el.tagName === "SELECT" ? "change" : "input";
-          el.addEventListener(ev, (e) => {
-            const ri = parseInt(e.target.dataset.ri);
-            const field = e.target.dataset.rf;
-            handleRoleInput(ri, field, e.target.value);
-          });
+        collapsed.forEach((idx) => {
+          const card = list.querySelector(`.role-card[data-idx="${idx}"]`);
+          if (card) card.classList.add("collapsed");
         });
+        list.querySelectorAll(".role-card").forEach((cardEl) => wireRoleCard(cardEl));
+      }
+
+      function rerenderRoleCard(roleIdx) {
+        const list = document.getElementById("roles-list");
+        const card = list && list.querySelector(`.role-card[data-idx="${roleIdx}"]`);
+        if (!card) return renderRolesList();
+        const wasCollapsed = card.classList.contains("collapsed");
+        const tmp = document.createElement("div");
+        tmp.innerHTML = buildRoleCard(appState.roles[roleIdx], roleIdx);
+        const newCard = tmp.firstElementChild;
+        if (wasCollapsed) newCard.classList.add("collapsed");
+        card.replaceWith(newCard);
+        wireRoleCard(newCard);
+      }
+
+      function buildVariationRow(vr, vi, ri, steps, maxIdx) {
+        const lhUnit = (vr.lineHeight || {}).unit || "PERCENT";
+        const lhVal = (vr.lineHeight || {}).value !== undefined ? (vr.lineHeight || {}).value : 150;
+        const lsUnit = (vr.letterSpacing || {}).unit || "PERCENT";
+        const lsVal = (vr.letterSpacing || {}).value !== undefined ? (vr.letterSpacing || {}).value : 0;
+        const stepPx = steps[vr.scaleIndex] ? `${steps[vr.scaleIndex].px}px` : "–";
+        const hint = lhHintUI(steps[vr.scaleIndex] ? steps[vr.scaleIndex].px : 16);
+        const lhLabel = lhUnit === "PERCENT" ? "% of size" : lhUnit === "PIXELS" ? "px" : "—";
+        const lsLabel = lsUnit === "PERCENT" ? "% of size" : "px";
+        const chevron = `<svg class="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 flex-none" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>`;
+        const selCls = `h-[30px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[6px] pl-2 pr-5 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer`;
+        const numCls = `h-[30px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[6px] px-2 text-[11px] outline-none focus:border-[var(--accent)]`;
+        return `<div class="variation-row bg-[var(--bg-app)] rounded-[8px] border border-[var(--border)] overflow-hidden" data-vi="${vi}">
+            <div class="flex items-center gap-2 px-2.5 py-1.5 border-b border-[var(--border)]">
+              <span class="text-[9px] font-bold text-[var(--accent)] bg-[var(--accent)]/10 rounded-[4px] px-1.5 py-0.5 flex-none tabular-nums">v${vi + 1}</span>
+              <input type="text" placeholder="variation name" class="flex-1 h-[30px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[6px] px-2 text-[12px] outline-none focus:border-[var(--accent)]"
+                value="${esc(vr.name || "")}" data-ri="${ri}" data-vi="${vi}" data-vf="name" />
+              <span class="text-[10px] text-[var(--text-dim)] flex-none">Step</span>
+              <input type="number" min="0" max="${maxIdx}" class="w-[40px] h-[30px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[6px] px-1 text-[11px] text-center outline-none focus:border-[var(--accent)] flex-none"
+                value="${vr.scaleIndex || 0}" data-ri="${ri}" data-vi="${vi}" data-vf="scaleIndex" />
+              <span class="step-px-display text-[10px] font-mono text-[var(--accent)] w-[34px] text-right flex-none">${stepPx}</span>
+              <button class="flex-none text-[var(--text-dim)] hover:text-[var(--danger)] transition-colors p-0.5 rounded" onclick="deleteVariation(${ri},${vi})" title="Remove variation">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div class="px-2.5 py-2 space-y-1.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] text-[var(--text-muted)] w-[88px] flex-none">Line Height</span>
+                <div class="relative flex-none"><select class="${selCls} w-[58px]" data-ri="${ri}" data-vi="${vi}" data-vf="lineHeightUnit">
+                  <option value="PERCENT" ${lhUnit === "PERCENT" ? "selected" : ""}>%</option>
+                  <option value="PIXELS"  ${lhUnit === "PIXELS" ? "selected" : ""}>px</option>
+                  <option value="AUTO"    ${lhUnit === "AUTO" ? "selected" : ""}>auto</option>
+                </select>${chevron}</div>
+                <input type="number" step="1" class="${numCls} w-[52px] lh-value-input ${lhUnit === "AUTO" ? "opacity-30 pointer-events-none" : ""}"
+                  value="${lhVal}" data-ri="${ri}" data-vi="${vi}" data-vf="lineHeightValue" ${lhUnit === "AUTO" ? "disabled" : ""} />
+                <span class="lh-unit-label text-[10px] text-[var(--text-dim)] flex-1">${lhLabel}</span>
+                <span class="lh-hint text-[9px] text-[var(--text-dim)] italic flex-none">${hint}</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] text-[var(--text-muted)] w-[88px] flex-none">Letter Spacing</span>
+                <div class="relative flex-none"><select class="${selCls} w-[58px]" data-ri="${ri}" data-vi="${vi}" data-vf="letterSpacingUnit">
+                  <option value="PERCENT" ${lsUnit === "PERCENT" ? "selected" : ""}>%</option>
+                  <option value="PIXELS"  ${lsUnit === "PIXELS" ? "selected" : ""}>px</option>
+                </select>${chevron}</div>
+                <input type="number" step="0.1" class="${numCls} w-[52px]"
+                  value="${lsVal}" data-ri="${ri}" data-vi="${vi}" data-vf="letterSpacingValue" />
+                <span class="ls-unit-label text-[10px] text-[var(--text-dim)]">${lsLabel}</span>
+              </div>
+            </div>
+          </div>`;
       }
 
       function buildRoleCard(role, idx) {
         const steps = computeScale(appState.scale, appState.baseFontSize);
-        const step = steps[role.baseScaleIndex];
-        const basePreview = step ? `${step.name}: ${step.px}px` : "–";
         const maxIdx = Math.max(0, steps.length - 1);
-        const lhUnit = (role.lineHeight || {}).unit || "PERCENT";
-        const lhVal = (role.lineHeight || {}).value !== undefined ? (role.lineHeight || {}).value : 150;
-        const lsUnit = (role.letterSpacing || {}).unit || "PERCENT";
-        const lsVal = (role.letterSpacing || {}).value !== undefined ? (role.letterSpacing || {}).value : 0;
-        const hint = lhHintUI(steps[role.baseScaleIndex] ? steps[role.baseScaleIndex].px : 16);
-
         const fOpts = appState.fonts.map((f) => `<option value="${esc(f.slot)}" ${role.fontSlot === f.slot ? "selected" : ""}>${cap(f.slot)} — ${esc(f.family)}</option>`).join("");
+        const variations = role.variations || [];
+        const varRows = variations.map((vr, vi) => buildVariationRow(vr, vi, idx, steps, maxIdx)).join("");
 
-        return `
-      <div class="role-card bg-[var(--bg-card)] border border-[var(--border)] rounded-[12px] overflow-hidden" data-idx="${idx}">
+        return `<div class="role-card bg-[var(--bg-card)] border border-[var(--border)] rounded-[12px] overflow-hidden" data-idx="${idx}">
         <div class="flex items-center gap-2 p-3 cursor-pointer" onclick="toggleRoleCard(${idx})">
           <svg class="chevron w-4 h-4 text-[var(--text-muted)] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-          <span class="font-semibold text-[14px] flex-1">${esc(role.name || "Unnamed")}</span>
-          <span class="text-[var(--text-muted)] text-[11px] mr-1">x${role.variationCount}</span>
+          <span class="role-name-display font-semibold text-[14px] flex-1">${esc(role.name || "Unnamed")}</span>
+          <span class="text-[var(--text-muted)] text-[11px] mr-1">x${variations.length}</span>
           <button class="p-1 text-[var(--danger)] hover:bg-[var(--danger)]/10 rounded" onclick="event.stopPropagation();deleteRole(${idx})">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           </button>
@@ -934,21 +990,6 @@
               <input type="text" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" value="${esc(role.name)}" data-ri="${idx}" data-rf="name" /></div>
             <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Short Name</label>
               <input type="text" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" value="${esc(role.shortName || "")}" data-ri="${idx}" data-rf="shortName" /></div>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Variations</label>
-              <input type="number" min="1" max="12" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" value="${role.variationCount}" data-ri="${idx}" data-rf="variationCount" /></div>
-            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Names (CSV)</label>
-              <input type="text" placeholder="h1,h2,h3..." class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[12px] outline-none focus:border-[var(--accent)]" value="${(role.variationNames || []).join(",")}" data-ri="${idx}" data-rf="variationNames" /></div>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Base Step <span class="text-[var(--accent)] base-step-preview">(${basePreview})</span></label>
-              <input type="number" min="1" max="${steps.length}" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)]" value="${role.baseScaleIndex + 1}" data-ri="${idx}" data-rf="baseScaleIndex" /></div>
-            <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Direction</label>
-              <select class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1.5 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer" data-ri="${idx}" data-rf="scaleDirection">
-                <option value="descending" ${role.scaleDirection === "descending" ? "selected" : ""}>↓ Desc (v0=largest)</option>
-                <option value="ascending"  ${role.scaleDirection === "ascending" ? "selected" : ""}>↑ Asc (v0=smallest)</option>
-              </select></div>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Font Slot</label>
@@ -967,29 +1008,13 @@
                 <svg class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
               </div></div>
           </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div class="space-y-1">
-              <label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Line Height <span class="text-[var(--text-dim)]">(${lhUnit === "PERCENT" ? "% of font size" : lhUnit === "PIXELS" ? "px fixed" : "auto"})</span></label>
-              <div class="grid grid-cols-[44px_1fr] gap-1 items-center">
-                <select class="h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer flex-shrink-0" data-ri="${idx}" data-rf="lineHeightUnit">
-                  <option value="PERCENT" ${lhUnit === "PERCENT" ? "selected" : ""}>%</option>
-                  <option value="PIXELS"  ${lhUnit === "PIXELS" ? "selected" : ""}>px</option>
-                  <option value="AUTO"    ${lhUnit === "AUTO" ? "selected" : ""}>auto</option>
-                </select>
-                <input type="number" step="10" class="w-full flex-1 h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)] ${lhUnit === "AUTO" ? "opacity-30 pointer-events-none" : ""}" value="${lhVal}" data-ri="${idx}" data-rf="lineHeightValue" ${lhUnit === "AUTO" ? "disabled" : ""} />
-              </div>
-              <p class="text-[10px] text-[var(--text-dim)] ml-1 lh-hint">Hint: ${hint}</p>
-            </div>
-            <div class="space-y-1">
-              <label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Letter Spacing <span class="text-[var(--text-dim)]">(${lsUnit === "PERCENT" ? "% of size" : "px fixed"})</span></label>
-              <div class="grid grid-cols-[44px_1fr] gap-1 items-center">
-                <select class="h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1 text-[11px] outline-none focus:border-[var(--accent)] appearance-none cursor-pointer flex-shrink-0" data-ri="${idx}" data-rf="letterSpacingUnit">
-                  <option value="PERCENT" ${lsUnit === "PERCENT" ? "selected" : ""}>%</option>
-                  <option value="PIXELS"  ${lsUnit === "PIXELS" ? "selected" : ""}>px</option>
-                </select>
-                <input type="number" step="0.1" class="w-full flex-1 h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--accent)] ${lsUnit === "AUTO" ? "opacity-30 pointer-events-none" : ""}" value="${lsVal}" data-ri="${idx}" data-rf="letterSpacingValue" />
-              </div>
-            </div>
+          <div class="space-y-1.5">
+            <label class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px]">VARIATIONS</label>
+            <div class="space-y-1.5" id="var-list-${idx}">${varRows}</div>
+            <button onclick="addVariation(${idx})" class="w-full h-[30px] border border-dashed border-[var(--border)] hover:border-[var(--accent)] text-[var(--text-dim)] hover:text-[var(--accent)] rounded-[8px] text-[11px] font-semibold transition-all flex items-center justify-center gap-1.5">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Variation
+            </button>
           </div>
         </div>
       </div>`;
@@ -998,59 +1023,118 @@
       function handleRoleInput(ri, field, val) {
         const role = appState.roles[ri];
         if (!role) return;
-        if (field === "variationCount") {
-          role.variationCount = Math.max(1, parseInt(val) || 1);
-          // Auto-refresh names if they look auto-generated (match shortName+digit pattern)
-          const autoPattern = new RegExp(`^${escRegex(role.shortName || "")}\\d+$`);
-          if (!role.variationNames.length || role.variationNames.every((n) => autoPattern.test(n))) {
-            role.variationNames = autoVariationNames(role.shortName, role.variationCount);
-          }
-          renderRolesList();
-        } else if (field === "shortName") {
-          role.shortName = val;
-          // Auto-refresh names if they look auto-generated
-          const autoPattern = new RegExp(`^[a-z0-9]*\\d+$`);
-          if (!role.variationNames.length || role.variationNames.every((n) => autoPattern.test(n))) {
-            role.variationNames = autoVariationNames(val, role.variationCount);
-            renderRolesList();
-          }
-        } else if (field === "variationNames") {
-          role.variationNames = val
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-        } else if (field === "baseScaleIndex") {
-          role.baseScaleIndex = Math.max(0, (parseInt(val) || 1) - 1);
-          // Surgical update
+        if (field === "name") {
+          role.name = val;
+          // Update header label without full re-render (preserves cursor)
           const card = document.querySelector(`.role-card[data-idx="${ri}"]`);
           if (card) {
-            const steps = computeScale(appState.scale, appState.baseFontSize);
-            const step = steps[role.baseScaleIndex];
-            const basePreview = step ? `${step.name}: ${step.px}px` : "–";
-            const span = card.querySelector(".base-step-preview");
-            if (span) span.textContent = `(${basePreview})`;
-
-            // Update hint
-            const hint = lhHintUI(step ? step.px : 16);
-            const hintEl = card.querySelector(".lh-hint");
-            if (hintEl) hintEl.textContent = `Hint: ${hint}`;
+            const lbl = card.querySelector(".role-name-display");
+            if (lbl) lbl.textContent = val || "Unnamed";
           }
-        } else if (field === "lineHeightValue") {
-          if (!role.lineHeight) role.lineHeight = { unit: "PERCENT", value: 150 };
-          role.lineHeight.value = parseFloat(val) || 0;
-        } else if (field === "lineHeightUnit") {
-          if (!role.lineHeight) role.lineHeight = { unit: "PERCENT", value: 150 };
-          role.lineHeight.unit = val;
-        } else if (field === "letterSpacingValue") {
-          if (!role.letterSpacing) role.letterSpacing = { unit: "PERCENT", value: 0 };
-          role.letterSpacing.value = parseFloat(val) || 0;
-        } else if (field === "letterSpacingUnit") {
-          if (!role.letterSpacing) role.letterSpacing = { unit: "PERCENT", value: 0 };
-          role.letterSpacing.unit = val;
+        } else if (field === "shortName") {
+          role.shortName = val;
+          // No re-render — preserve cursor
         } else {
           role[field] = val;
+          renderPreviewRoles();
         }
+        renderStyleNamePreview();
+      }
+
+      function handleVariationInput(ri, vi, field, val, el) {
+        const role = appState.roles[ri];
+        if (!role || !role.variations || !role.variations[vi]) return;
+        const vr = role.variations[vi];
+
+        if (field === "name") {
+          vr.name = val;
+          renderStyleNamePreview();
+        } else if (field === "scaleIndex") {
+          vr.scaleIndex = Math.max(0, parseInt(val) || 0);
+          // Surgically update px label and hint in this row
+          const row = el && el.closest(".variation-row");
+          if (row) {
+            const steps = computeScale(appState.scale, appState.baseFontSize);
+            const s = steps[vr.scaleIndex];
+            const pxEl = row.querySelector(".step-px-display");
+            if (pxEl) pxEl.textContent = s ? `${s.px}px` : "–";
+            const hintEl = row.querySelector(".lh-hint");
+            if (hintEl) hintEl.textContent = lhHintUI(s ? s.px : 16);
+          }
+          renderPreviewRoles();
+        } else if (field === "lineHeightUnit") {
+          if (!vr.lineHeight) vr.lineHeight = { unit: "PERCENT", value: 150 };
+          vr.lineHeight.unit = val;
+          // Update disabled state and label in this row
+          const row = el && el.closest(".variation-row");
+          if (row) {
+            const valInput = row.querySelector(".lh-value-input");
+            if (valInput) {
+              valInput.disabled = val === "AUTO";
+              valInput.classList.toggle("opacity-30", val === "AUTO");
+              valInput.classList.toggle("pointer-events-none", val === "AUTO");
+            }
+            const lbl = row.querySelector(".lh-unit-label");
+            if (lbl) lbl.textContent = val === "PERCENT" ? "% of size" : val === "PIXELS" ? "px" : "auto";
+          }
+          renderPreviewRoles();
+        } else if (field === "lineHeightValue") {
+          if (!vr.lineHeight) vr.lineHeight = { unit: "PERCENT", value: 150 };
+          vr.lineHeight.value = parseFloat(val) || 0;
+          renderPreviewRoles();
+        } else if (field === "letterSpacingUnit") {
+          if (!vr.letterSpacing) vr.letterSpacing = { unit: "PERCENT", value: 0 };
+          vr.letterSpacing.unit = val;
+          const row = el && el.closest(".variation-row");
+          if (row) {
+            const lbl = row.querySelector(".ls-unit-label");
+            if (lbl) lbl.textContent = val === "PERCENT" ? "%" : "px";
+          }
+          renderPreviewRoles();
+        } else if (field === "letterSpacingValue") {
+          if (!vr.letterSpacing) vr.letterSpacing = { unit: "PERCENT", value: 0 };
+          vr.letterSpacing.value = parseFloat(val) || 0;
+          renderPreviewRoles();
+        }
+      }
+
+      function addVariation(roleIdx) {
+        const role = appState.roles[roleIdx];
+        if (!role) return;
+        const steps = computeScale(appState.scale, appState.baseFontSize);
+        const existing = role.variations || [];
+        const lastIdx = existing.length ? Math.max(0, existing[existing.length - 1].scaleIndex - 1) : Math.max(0, steps.length - 1);
+        const sn = role.shortName || "v";
+        existing.push({ name: `${sn}${existing.length + 1}`, scaleIndex: lastIdx, lineHeight: { unit: "PERCENT", value: 150 }, letterSpacing: { unit: "PERCENT", value: 0 } });
+        role.variations = existing;
+        rerenderRoleCard(roleIdx);
         renderPreviewRoles();
+        renderStyleNamePreview();
+      }
+
+      function deleteVariation(roleIdx, varIdx) {
+        const role = appState.roles[roleIdx];
+        if (!role || !role.variations) return;
+        role.variations.splice(varIdx, 1);
+        rerenderRoleCard(roleIdx);
+        renderPreviewRoles();
+        renderStyleNamePreview();
+      }
+
+      function migrateRoles(roles) {
+        return (roles || []).map((role) => {
+          if (role.variations) return role;
+          const count = role.variationCount || 1;
+          const variations = [];
+          for (let v = 0; v < count; v++) {
+            const delta = role.scaleDirection === "descending" ? count - 1 - v : v;
+            const scaleIndex = Math.max(0, (role.baseScaleIndex || 0) - delta);
+            const ov = (role.variationOverrides || []).find((o) => o.index === v) || {};
+            const varName = (role.variationNames && role.variationNames[v]) || `${role.shortName || "r"}${v + 1}`;
+            variations.push({ name: varName, scaleIndex, lineHeight: ov.lineHeight || role.lineHeight || { unit: "PERCENT", value: 150 }, letterSpacing: ov.letterSpacing || role.letterSpacing || { unit: "PERCENT", value: 0 } });
+          }
+          return { name: role.name || "Role", shortName: role.shortName || role.name.substring(0, 2).toLowerCase(), fontSlot: role.fontSlot || "primary", textTransform: role.textTransform || "none", variations };
+        });
       }
 
       function escRegex(s) {
@@ -1190,29 +1274,28 @@
         const steps = computeScale(appState.scale, appState.baseFontSize);
         const idx = appState.roles.length + 1;
         const shortName = `r${idx}`;
-        const variationCount = 3;
+        const maxIdx = Math.max(0, steps.length - 1);
         appState.roles.push({
           name: `Role ${idx}`,
           shortName,
-          variationCount,
-          variationNames: autoVariationNames(shortName, variationCount),
-          baseScaleIndex: Math.max(0, steps.length - 1),
-          scaleDirection: "descending",
           fontSlot: appState.fonts[0] ? appState.fonts[0].slot : "primary",
-          fontWeightAlias: (appState.fontWeights[0] || {}).alias || "Regular",
-          lineHeight: { unit: "PERCENT", value: 150 },
-          letterSpacing: { unit: "PERCENT", value: 0 },
           textTransform: "none",
-          variationOverrides: [],
+          variations: [
+            { name: `${shortName}1`, scaleIndex: maxIdx, lineHeight: { unit: "PERCENT", value: 150 }, letterSpacing: { unit: "PERCENT", value: 0 } },
+            { name: `${shortName}2`, scaleIndex: Math.max(0, maxIdx - 1), lineHeight: { unit: "PERCENT", value: 150 }, letterSpacing: { unit: "PERCENT", value: 0 } },
+            { name: `${shortName}3`, scaleIndex: Math.max(0, maxIdx - 2), lineHeight: { unit: "PERCENT", value: 150 }, letterSpacing: { unit: "PERCENT", value: 0 } },
+          ],
         });
         renderRolesList();
         renderPreviewRoles();
+        renderStyleNamePreview();
       }
 
       function deleteRole(idx) {
         appState.roles.splice(idx, 1);
         renderRolesList();
         renderPreviewRoles();
+        renderStyleNamePreview();
       }
 
       function deleteFontWeight(idx) {
@@ -1288,7 +1371,7 @@
           return;
         }
         const roleName = appState.useShortRoleNames ? role.shortName || role.name : role.name;
-        const varName = (role.variationNames && role.variationNames[0]) || "1";
+        const varName = (role.variations && role.variations[0] && role.variations[0].name) || "1";
         const weightAlias = (appState.fontWeights[0] || {}).alias || "Regular";
         el.textContent = `${roleName}${sep}${varName}${sep}${weightAlias}`;
       }
@@ -1336,7 +1419,7 @@
       function openRunDialog() {
         const steps = computeScale(appState.scale, appState.baseFontSize);
         const weightCount = appState.fontWeights.length || 1;
-        const totalVariations = appState.roles.reduce((s, r) => s + r.variationCount, 0);
+        const totalVariations = appState.roles.reduce((s, r) => s + ((r.variations && r.variations.length) || 0), 0);
         const totalStyles = totalVariations * weightCount;
         document.getElementById("rd-summary").innerHTML = [row("Scale steps", steps.length), row("Roles", appState.roles.length), row("Text styles", `${totalStyles} (${totalVariations} var × ${weightCount} weights)`)].join("");
 
@@ -1374,6 +1457,7 @@
 
         if (msg.type === "load-config") {
           Object.assign(appState, msg.state);
+          appState.roles = migrateRoles(appState.roles);
           renderAll();
           syncScaleUI();
         }
@@ -1525,7 +1609,7 @@
         renderStyleNamePreview();
       });
       document.getElementById("btn-add-weight").addEventListener("click", () => {
-        appState.fontWeights.push({ alias: "New", value: 400, figmaStyle: "Regular" });
+        appState.fontWeights.push({ alias: "New", value: 400, figmaStyles: {} });
         renderSettingsForm();
       });
 
@@ -1543,7 +1627,12 @@
       });
       document.getElementById("opt-clear").addEventListener("click", () => {
         appState.roles = [];
-        appState.scale = { method: "Modular", seedSize: 16, ratio: 1.25, ratioName: "Major Third", steps: 10, minSize: 10, maxSize: 96, customValues: [], namingScheme: "numeric", customStepNames: [] };
+        appState.fontWeights = [
+          { alias: "Regular", value: 400, figmaStyles: {} },
+          { alias: "Medium", value: 500, figmaStyles: {} },
+          { alias: "Bold", value: 700, figmaStyles: {} },
+        ];
+        appState.scale = { method: "Modular", seedSize: 16, ratio: 1.25, ratioName: "Major Third", steps: 10, minSize: 10, maxSize: 96, customValues: [], namingScheme: "numeric", customStepNames: [], scaleOverrides: {} };
         hideSheet("more-sheet");
         renderAll();
         syncScaleUI();
@@ -1568,6 +1657,7 @@
       document.getElementById("btn-import-confirm").addEventListener("click", () => {
         if (pendingImportData) {
           Object.assign(appState, pendingImportData.config || pendingImportData);
+          appState.roles = migrateRoles(appState.roles);
           pendingImportData = null;
           hideOverlay("confirm-import-overlay");
           renderAll();

@@ -58,6 +58,7 @@ function loadFromStorage() {
       const parsed = JSON.parse(raw);
       appState = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed);
       if (!appState.scale.scaleOverrides) appState.scale.scaleOverrides = {};
+      appState.roles = migrateRoles(appState.roles);
     }
   } catch (_) {}
 }
@@ -121,31 +122,39 @@ function computeScale(scale, base) {
   return px.map((v, i) => ({ index: i, name: names[i], px: v, rem: Math.round((v / base) * 1000) / 1000 }));
 }
 
+function migrateRoles(roles) {
+  return (roles || []).map((role) => {
+    if (role.variations) return role;
+    const count = role.variationCount || 1;
+    const variations = [];
+    for (let v = 0; v < count; v++) {
+      const delta = role.scaleDirection === "descending" ? count - 1 - v : v;
+      const scaleIndex = Math.max(0, (role.baseScaleIndex || 0) - delta);
+      const ov = (role.variationOverrides || []).find((o) => o.index === v) || {};
+      const varName = (role.variationNames && role.variationNames[v]) || `${role.shortName || "r"}${v + 1}`;
+      variations.push({ name: varName, scaleIndex, lineHeight: ov.lineHeight || role.lineHeight || { unit: "PERCENT", value: 150 }, letterSpacing: ov.letterSpacing || role.letterSpacing || { unit: "PERCENT", value: 0 } });
+    }
+    return { name: role.name || "Role", shortName: role.shortName || role.name.substring(0, 2).toLowerCase(), fontSlot: role.fontSlot || "primary", textTransform: role.textTransform || "none", variations };
+  });
+}
+
 function resolveRolePreview(role, steps) {
-  const result = [];
-  for (let v = 0; v < role.variationCount; v++) {
-    const ov = (role.variationOverrides || []).find((o) => o.index === v) || {};
-    const delta = role.scaleDirection === "descending" ? role.variationCount - 1 - v : v;
-    const idx = Math.max(0, Math.min(steps.length - 1, role.baseScaleIndex - delta + (ov.scaleIndexOffset || 0)));
-    const autoName = role.scaleDirection === "descending" ? String(v + 1) : String(role.variationCount - v);
-    const varName = (role.variationNames && role.variationNames[v]) || autoName;
-    const fontSlot = ov.fontSlot || role.fontSlot;
-    const lh = ov.lineHeight || role.lineHeight;
-    const ls = ov.letterSpacing || role.letterSpacing;
-    const fontDef = appState.fonts.find((f) => f.slot === fontSlot);
+  const variations = role.variations || [];
+  return variations.map((vr) => {
+    const idx = Math.max(0, Math.min(steps.length - 1, vr.scaleIndex || 0));
+    const fontDef = appState.fonts.find((f) => f.slot === role.fontSlot);
     const wDef = appState.fontWeights[0] || { alias: "Regular", value: 400 };
-    result.push({
-      variationName: varName,
+    return {
+      variationName: vr.name || "–",
       scaleStep: steps[idx],
       fontFamily: fontDef ? fontDef.family : "Inter",
       fontWeight: wDef.value,
       weightAlias: wDef.alias,
-      lineHeight: lh,
-      letterSpacing: ls,
-      textTransform: ov.textTransform || role.textTransform || "none",
-    });
-  }
-  return result;
+      lineHeight: vr.lineHeight,
+      letterSpacing: vr.letterSpacing,
+      textTransform: role.textTransform || "none",
+    };
+  });
 }
 
 function lhHintUI(px) {
@@ -192,31 +201,26 @@ function letterSpacingToCss(ls) {
 function buildAllRoleStyles(scaleSteps) {
   const styles = [];
   for (const role of appState.roles) {
-    for (let v = 0; v < role.variationCount; v++) {
-      const ov = (role.variationOverrides || []).find((o) => o.index === v) || {};
-      const delta = role.scaleDirection === "descending" ? role.variationCount - 1 - v : v;
-      const rawIdx = role.baseScaleIndex - delta + (ov.scaleIndexOffset || 0);
-      const scaleIdx = Math.max(0, Math.min(scaleSteps.length - 1, rawIdx));
-      const fontSlot = ov.fontSlot || role.fontSlot;
-      const lineHeight = ov.lineHeight || role.lineHeight;
-      const letterSpacing = ov.letterSpacing || role.letterSpacing;
-      const textTransform = ov.textTransform || role.textTransform || "none";
-      const fontDef = appState.fonts.find((f) => f.slot === fontSlot);
-      const autoName = role.scaleDirection === "descending" ? String(v + 1) : String(role.variationCount - v);
-      const variationName = (role.variationNames && role.variationNames[v]) || autoName;
+    const variations = role.variations || [];
+    for (let v = 0; v < variations.length; v++) {
+      const vr = variations[v];
+      const scaleIdx = Math.max(0, Math.min(scaleSteps.length - 1, vr.scaleIndex || 0));
+      const lineHeight = vr.lineHeight || { unit: "PERCENT", value: 150 };
+      const letterSpacing = vr.letterSpacing || { unit: "PERCENT", value: 0 };
+      const fontDef = appState.fonts.find((f) => f.slot === role.fontSlot);
       for (const weightDef of appState.fontWeights) {
         styles.push({
           roleName: role.name,
           roleShortName: role.shortName || role.name.substring(0, 2).toLowerCase(),
-          variationName,
+          variationName: vr.name || String(v + 1),
           fontFamily: fontDef ? fontDef.family : "Inter",
-          fontSlot,
+          fontSlot: role.fontSlot,
           fontWeightAlias: weightDef.alias,
           fontWeight: weightDef.value,
           scaleStep: scaleSteps[scaleIdx],
           lineHeight,
           letterSpacing,
-          textTransform,
+          textTransform: role.textTransform || "none",
         });
       }
     }
@@ -378,37 +382,70 @@ function renderScalePreviewBar() {
   });
 }
 
-function renderRolesList() {
-  const list = document.getElementById("roles-list");
-  if (!list) return;
-  if (!appState.roles.length) {
-    list.innerHTML = `<p class="text-[var(--text-muted)] text-[12px] text-center py-4">No roles yet. Click "Add Role" to get started.</p>`;
-    return;
-  }
-  list.innerHTML = appState.roles.map((role, idx) => buildRoleCard(role, idx)).join("");
-  list.querySelectorAll("[data-rf]").forEach((el) => {
-    const ev = el.tagName === "SELECT" ? "change" : "input";
-    el.addEventListener(ev, (e) => handleRoleInput(parseInt(e.target.dataset.ri), e.target.dataset.rf, e.target.value));
-  });
+function buildVariationRow(vr, vi, ri, steps, maxIdx) {
+  const lhUnit = (vr.lineHeight || {}).unit || "PERCENT";
+  const lhVal = (vr.lineHeight || {}).value !== undefined ? (vr.lineHeight || {}).value : 150;
+  const lsUnit = (vr.letterSpacing || {}).unit || "PERCENT";
+  const lsVal = (vr.letterSpacing || {}).value !== undefined ? (vr.letterSpacing || {}).value : 0;
+  const stepPx = steps[vr.scaleIndex] ? `${steps[vr.scaleIndex].px}px` : "–";
+  const hint = lhHintUI(steps[vr.scaleIndex] ? steps[vr.scaleIndex].px : 16);
+  const lhLabel = lhUnit === "PERCENT" ? "% of size" : lhUnit === "PIXELS" ? "px" : "—";
+  const lsLabel = lsUnit === "PERCENT" ? "% of size" : "px";
+  const chevron = `<svg class="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 flex-none" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>`;
+  const selCls = `h-[30px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[6px] pl-2 pr-5 text-[11px] outline-none focus:border-[var(--border-focus)] appearance-none cursor-pointer`;
+  const numCls = `h-[30px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[6px] px-2 text-[11px] outline-none focus:border-[var(--border-focus)]`;
+  return `<div class="variation-row bg-[var(--bg-app)] rounded-[8px] border border-[var(--border)] overflow-hidden" data-vi="${vi}">
+    <div class="flex items-center gap-2 px-2.5 py-1.5 border-b border-[var(--border)]">
+      <span class="text-[9px] font-bold text-[var(--accent)] bg-[var(--accent)]/10 rounded-[4px] px-1.5 py-0.5 flex-none tabular-nums">v${vi + 1}</span>
+      <input type="text" placeholder="variation name" class="flex-1 h-[30px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[6px] px-2 text-[12px] outline-none focus:border-[var(--border-focus)]"
+        value="${esc(vr.name || "")}" data-ri="${ri}" data-vi="${vi}" data-vf="name" />
+      <span class="text-[10px] text-[var(--text-dim)] flex-none">Step</span>
+      <input type="number" min="0" max="${maxIdx}" class="w-[40px] h-[30px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[6px] px-1 text-[11px] text-center outline-none focus:border-[var(--border-focus)] flex-none"
+        value="${vr.scaleIndex || 0}" data-ri="${ri}" data-vi="${vi}" data-vf="scaleIndex" />
+      <span class="step-px-display text-[10px] font-mono text-[var(--accent)] w-[34px] text-right flex-none">${stepPx}</span>
+      <button class="flex-none text-[var(--text-dim)] hover:text-[var(--danger)] transition-colors p-0.5 rounded" onclick="deleteVariation(${ri},${vi})" title="Remove variation">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="px-2.5 py-2 space-y-1.5">
+      <div class="flex items-center gap-1.5">
+        <span class="text-[10px] text-[var(--text-muted)] w-[88px] flex-none">Line Height</span>
+        <div class="relative flex-none"><select class="${selCls} w-[58px]" data-ri="${ri}" data-vi="${vi}" data-vf="lineHeightUnit">
+          <option value="PERCENT" ${lhUnit === "PERCENT" ? "selected" : ""}>%</option>
+          <option value="PIXELS"  ${lhUnit === "PIXELS" ? "selected" : ""}>px</option>
+          <option value="AUTO"    ${lhUnit === "AUTO" ? "selected" : ""}>auto</option>
+        </select>${chevron}</div>
+        <input type="number" step="1" class="${numCls} w-[52px] lh-value-input ${lhUnit === "AUTO" ? "opacity-30 pointer-events-none" : ""}"
+          value="${lhVal}" data-ri="${ri}" data-vi="${vi}" data-vf="lineHeightValue" ${lhUnit === "AUTO" ? "disabled" : ""} />
+        <span class="lh-unit-label text-[10px] text-[var(--text-dim)] flex-1">${lhLabel}</span>
+        <span class="lh-hint text-[9px] text-[var(--text-dim)] italic flex-none">${hint}</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[10px] text-[var(--text-muted)] w-[88px] flex-none">Letter Spacing</span>
+        <div class="relative flex-none"><select class="${selCls} w-[58px]" data-ri="${ri}" data-vi="${vi}" data-vf="letterSpacingUnit">
+          <option value="PERCENT" ${lsUnit === "PERCENT" ? "selected" : ""}>%</option>
+          <option value="PIXELS"  ${lsUnit === "PIXELS" ? "selected" : ""}>px</option>
+        </select>${chevron}</div>
+        <input type="number" step="0.1" class="${numCls} w-[52px]"
+          value="${lsVal}" data-ri="${ri}" data-vi="${vi}" data-vf="letterSpacingValue" />
+        <span class="ls-unit-label text-[10px] text-[var(--text-dim)]">${lsLabel}</span>
+      </div>
+    </div>
+  </div>`;
 }
 
 function buildRoleCard(role, idx) {
   const steps = computeScale(appState.scale, appState.baseFontSize);
-  const basePx = steps[role.baseScaleIndex] ? `${steps[role.baseScaleIndex].px}px` : "–";
   const maxIdx = Math.max(0, steps.length - 1);
-  const lhUnit = (role.lineHeight || {}).unit || "PERCENT";
-  const lhVal = (role.lineHeight || {}).value !== undefined ? (role.lineHeight || {}).value : 150;
-  const lsUnit = (role.letterSpacing || {}).unit || "PERCENT";
-  const lsVal = (role.letterSpacing || {}).value !== undefined ? (role.letterSpacing || {}).value : 0;
-  const hint = lhHintUI(steps[role.baseScaleIndex] ? steps[role.baseScaleIndex].px : 16);
   const fOpts = appState.fonts.map((f) => `<option value="${esc(f.slot)}" ${role.fontSlot === f.slot ? "selected" : ""}>${cap(f.slot)} — ${esc(f.family)}</option>`).join("");
+  const variations = role.variations || [];
+  const varRows = variations.map((vr, vi) => buildVariationRow(vr, vi, idx, steps, maxIdx)).join("");
 
-  return `
-  <div class="role-card bg-[var(--bg-card)] border border-[var(--border)] rounded-[12px] overflow-hidden" data-idx="${idx}">
+  return `<div class="role-card bg-[var(--bg-card)] border border-[var(--border)] rounded-[12px] overflow-hidden" data-idx="${idx}">
     <div class="flex items-center gap-2 p-3 cursor-pointer" onclick="toggleRoleCard(${idx})">
       <svg class="chevron w-4 h-4 text-[var(--text-muted)] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-      <span class="font-semibold text-[14px] flex-1">${esc(role.name || "Unnamed")}</span>
-      <span class="text-[var(--text-muted)] text-[11px] mr-1">x${role.variationCount}</span>
+      <span class="role-name-display font-semibold text-[14px] flex-1">${esc(role.name || "Unnamed")}</span>
+      <span class="text-[var(--text-muted)] text-[11px] mr-1">x${variations.length}</span>
       <button class="p-1 text-[var(--danger)] hover:bg-[var(--danger)]/10 rounded" onclick="event.stopPropagation();deleteRole(${idx})">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
       </button>
@@ -419,21 +456,6 @@ function buildRoleCard(role, idx) {
           <input type="text" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)]" value="${esc(role.name)}" data-ri="${idx}" data-rf="name" /></div>
         <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Short Name</label>
           <input type="text" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)]" value="${esc(role.shortName || "")}" data-ri="${idx}" data-rf="shortName" /></div>
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Variations</label>
-          <input type="number" min="1" max="12" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)]" value="${role.variationCount}" data-ri="${idx}" data-rf="variationCount" /></div>
-        <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Names (CSV)</label>
-          <input type="text" placeholder="h1,h2,h3..." class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[12px] outline-none focus:border-[var(--border-focus)]" value="${(role.variationNames || []).join(",")}" data-ri="${idx}" data-rf="variationNames" /></div>
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Base MF Step <span type="button" onclick=(this.innerHTML=${basePx} console.log("hi")) class="text-[var(--accent)]">(${basePx} dsfsdf)</span></label>
-          <input type="number" min="0" max="${maxIdx}" class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)]" value="${role.baseScaleIndex}" data-ri="${idx}" data-rf="baseScaleIndex" /></div>
-        <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Direction</label>
-          <select class="w-full h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1.5 text-[11px] outline-none focus:border-[var(--border-focus)] appearance-none cursor-pointer" data-ri="${idx}" data-rf="scaleDirection">
-            <option value="descending" ${role.scaleDirection === "descending" ? "selected" : ""}>↓ Desc (v0=largest)</option>
-            <option value="ascending"  ${role.scaleDirection === "ascending" ? "selected" : ""}>↑ Asc (v0=smallest)</option>
-          </select></div>
       </div>
       <div class="grid grid-cols-2 gap-2">
         <div class="space-y-1"><label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Font Slot</label>
@@ -452,76 +474,145 @@ function buildRoleCard(role, idx) {
             <svg class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </div></div>
       </div>
-      <div class="grid grid-cols-2 gap-2">
-        <div class="space-y-1">
-          <label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Line Height <span class="text-[var(--text-dim)]">(${lhUnit === "PERCENT" ? "% of size" : lhUnit === "PIXELS" ? "px" : "auto"})</span></label>
-          <div class="flex gap-1 items-center">
-            <select class="w-[60px] h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1 text-[11px] outline-none focus:border-[var(--border-focus)] appearance-none cursor-pointer flex-shrink-0" data-ri="${idx}" data-rf="lineHeightUnit">
-              <option value="PERCENT" ${lhUnit === "PERCENT" ? "selected" : ""}>%</option>
-              <option value="PIXELS"  ${lhUnit === "PIXELS" ? "selected" : ""}>px</option>
-              <option value="AUTO"    ${lhUnit === "AUTO" ? "selected" : ""}>auto</option>
-            </select>
-            <input type="number" step="0.1" class="flex-1 h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] ${lhUnit === "AUTO" ? "opacity-30 pointer-events-none" : ""}" value="${lhVal}" data-ri="${idx}" data-rf="lineHeightValue" ${lhUnit === "AUTO" ? "disabled" : ""} />
-          </div>
-          <p class="text-[10px] text-[var(--text-dim)] ml-1">Hint: ${hint}</p>
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Variations <span class="text-[var(--text-dim)]">(step · line height · letter spacing)</span></span>
         </div>
-        <div class="space-y-1">
-          <label class="text-[var(--text-muted)] text-[11px] font-medium ml-1">Letter Spacing <span class="text-[var(--text-dim)]">(${lsUnit === "PERCENT" ? "% of size" : "px"})</span></label>
-          <div class="flex gap-1 items-center">
-            <select class="w-[60px] h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-1 text-[11px] outline-none focus:border-[var(--border-focus)] appearance-none cursor-pointer flex-shrink-0" data-ri="${idx}" data-rf="letterSpacingUnit">
-              <option value="PERCENT" ${lsUnit === "PERCENT" ? "selected" : ""}>%</option>
-              <option value="PIXELS"  ${lsUnit === "PIXELS" ? "selected" : ""}>px</option>
-            </select>
-            <input type="number" step="0.1" class="flex-1 h-[34px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[7px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)]" value="${lsVal}" data-ri="${idx}" data-rf="letterSpacingValue" />
-          </div>
-        </div>
+        <div class="space-y-1.5">${varRows}</div>
+        <button class="w-full h-[30px] border border-dashed border-[var(--border)] rounded-[7px] text-[11px] text-[var(--text-dim)] hover:text-[var(--text-muted)] hover:border-[var(--border-focus)] transition-colors mt-1" onclick="addVariation(${idx})">+ Add Variation</button>
       </div>
     </div>
   </div>`;
 }
 
+function wireRoleCard(cardEl) {
+  cardEl.querySelectorAll("[data-rf]").forEach((el) => {
+    const ev = el.tagName === "SELECT" ? "change" : "input";
+    el.addEventListener(ev, (e) => handleRoleInput(parseInt(e.target.dataset.ri), e.target.dataset.rf, e.target.value));
+  });
+  cardEl.querySelectorAll("[data-vf]").forEach((el) => {
+    const ev = el.tagName === "SELECT" ? "change" : "input";
+    el.addEventListener(ev, (e) => handleVariationInput(parseInt(e.target.dataset.ri), parseInt(e.target.dataset.vi), e.target.dataset.vf, e.target.value, e.target));
+  });
+}
+
+function rerenderRoleCard(roleIdx) {
+  const list = document.getElementById("roles-list");
+  const card = list && list.querySelector(`.role-card[data-idx="${roleIdx}"]`);
+  if (!card) return renderRolesList();
+  const wasCollapsed = card.classList.contains("collapsed");
+  const tmp = document.createElement("div");
+  tmp.innerHTML = buildRoleCard(appState.roles[roleIdx], roleIdx);
+  const newCard = tmp.firstElementChild;
+  if (wasCollapsed) newCard.classList.add("collapsed");
+  card.replaceWith(newCard);
+  wireRoleCard(newCard);
+}
+
+function renderRolesList() {
+  const list = document.getElementById("roles-list");
+  if (!list) return;
+  if (!appState.roles.length) {
+    list.innerHTML = `<p class="text-[var(--text-muted)] text-[12px] text-center py-4">No roles yet. Click "Add Role" to get started.</p>`;
+    return;
+  }
+  const collapsed = new Set();
+  list.querySelectorAll(".role-card.collapsed").forEach((c) => collapsed.add(parseInt(c.dataset.idx)));
+  list.innerHTML = appState.roles.map((role, idx) => buildRoleCard(role, idx)).join("");
+  collapsed.forEach((idx) => {
+    const card = list.querySelector(`.role-card[data-idx="${idx}"]`);
+    if (card) card.classList.add("collapsed");
+  });
+  list.querySelectorAll(".role-card").forEach((cardEl) => wireRoleCard(cardEl));
+}
+
 function handleRoleInput(ri, field, val) {
   const role = appState.roles[ri];
   if (!role) return;
-  if (field === "variationCount") {
-    role.variationCount = Math.max(1, parseInt(val) || 1);
-    const autoPattern = new RegExp(`^${escRegex(role.shortName || "")}\\d+$`);
-    if (!role.variationNames.length || role.variationNames.every((n) => autoPattern.test(n))) {
-      role.variationNames = autoVariationNames(role.shortName, role.variationCount);
-    }
-    renderRolesList();
+  if (field === "name") {
+    role.name = val;
+    const card = document.querySelector(`.role-card[data-idx="${ri}"]`);
+    if (card) { const lbl = card.querySelector(".role-name-display"); if (lbl) lbl.textContent = val || "Unnamed"; }
   } else if (field === "shortName") {
     role.shortName = val;
-    const autoPattern = new RegExp(`^[a-z0-9]*\\d+$`);
-    if (!role.variationNames.length || role.variationNames.every((n) => autoPattern.test(n))) {
-      role.variationNames = autoVariationNames(val, role.variationCount);
-      renderRolesList();
-    }
-  } else if (field === "variationNames") {
-    role.variationNames = val
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-  } else if (field === "baseScaleIndex") {
-    role.baseScaleIndex = parseInt(val) || 0;
-  } else if (field === "lineHeightValue") {
-    if (!role.lineHeight) role.lineHeight = { unit: "PERCENT", value: 150 };
-    role.lineHeight.value = parseFloat(val) || 0;
-  } else if (field === "lineHeightUnit") {
-    if (!role.lineHeight) role.lineHeight = { unit: "PERCENT", value: 150 };
-    role.lineHeight.unit = val;
-    renderRolesList();
-  } else if (field === "letterSpacingValue") {
-    if (!role.letterSpacing) role.letterSpacing = { unit: "PERCENT", value: 0 };
-    role.letterSpacing.value = parseFloat(val) || 0;
-  } else if (field === "letterSpacingUnit") {
-    if (!role.letterSpacing) role.letterSpacing = { unit: "PERCENT", value: 0 };
-    role.letterSpacing.unit = val;
   } else {
     role[field] = val;
+    renderPreviewRoles();
   }
-  renderPreviewRoles();
   renderStyleNamePreview();
+  scheduleExportRefresh();
+  scheduleSave();
+}
+
+function handleVariationInput(ri, vi, field, val, el) {
+  const role = appState.roles[ri];
+  if (!role || !role.variations) return;
+  const vr = role.variations[vi];
+  if (!vr) return;
+  if (field === "name") {
+    vr.name = val;
+  } else if (field === "scaleIndex") {
+    vr.scaleIndex = parseInt(val) || 0;
+    const steps = computeScale(appState.scale, appState.baseFontSize);
+    const row = el && el.closest(".variation-row");
+    if (row) {
+      const px = steps[vr.scaleIndex] ? `${steps[vr.scaleIndex].px}px` : "–";
+      const pxEl = row.querySelector(".step-px-display");
+      if (pxEl) pxEl.textContent = px;
+      const hintEl = row.querySelector(".lh-hint");
+      if (hintEl) hintEl.textContent = lhHintUI(steps[vr.scaleIndex] ? steps[vr.scaleIndex].px : 16);
+    }
+    renderPreviewRoles();
+  } else if (field === "lineHeightUnit") {
+    if (!vr.lineHeight) vr.lineHeight = { unit: "PERCENT", value: 150 };
+    vr.lineHeight.unit = val;
+    const row = el && el.closest(".variation-row");
+    if (row) {
+      const valInput = row.querySelector(".lh-value-input");
+      if (valInput) { valInput.disabled = val === "AUTO"; valInput.classList.toggle("opacity-30", val === "AUTO"); valInput.classList.toggle("pointer-events-none", val === "AUTO"); }
+      const lbl = row.querySelector(".lh-unit-label");
+      if (lbl) lbl.textContent = val === "PERCENT" ? "% of size" : val === "PIXELS" ? "px" : "auto";
+    }
+    renderPreviewRoles();
+  } else if (field === "lineHeightValue") {
+    if (!vr.lineHeight) vr.lineHeight = { unit: "PERCENT", value: 150 };
+    vr.lineHeight.value = parseFloat(val) || 0;
+    renderPreviewRoles();
+  } else if (field === "letterSpacingUnit") {
+    if (!vr.letterSpacing) vr.letterSpacing = { unit: "PERCENT", value: 0 };
+    vr.letterSpacing.unit = val;
+    const row = el && el.closest(".variation-row");
+    if (row) { const lbl = row.querySelector(".ls-unit-label"); if (lbl) lbl.textContent = val === "PERCENT" ? "%" : "px"; }
+    renderPreviewRoles();
+  } else if (field === "letterSpacingValue") {
+    if (!vr.letterSpacing) vr.letterSpacing = { unit: "PERCENT", value: 0 };
+    vr.letterSpacing.value = parseFloat(val) || 0;
+    renderPreviewRoles();
+  }
+  scheduleExportRefresh();
+  scheduleSave();
+}
+
+function addVariation(ri) {
+  const role = appState.roles[ri];
+  if (!role) return;
+  if (!role.variations) role.variations = [];
+  const steps = computeScale(appState.scale, appState.baseFontSize);
+  const maxIdx = Math.max(0, steps.length - 1);
+  const n = role.variations.length + 1;
+  role.variations.push({ name: `${role.shortName || "v"}${n}`, scaleIndex: maxIdx, lineHeight: { unit: "PERCENT", value: 150 }, letterSpacing: { unit: "PERCENT", value: 0 } });
+  rerenderRoleCard(ri);
+  renderPreviewRoles();
+  scheduleExportRefresh();
+  scheduleSave();
+}
+
+function deleteVariation(ri, vi) {
+  const role = appState.roles[ri];
+  if (!role || !role.variations) return;
+  role.variations.splice(vi, 1);
+  rerenderRoleCard(ri);
+  renderPreviewRoles();
   scheduleExportRefresh();
   scheduleSave();
 }
@@ -689,7 +780,7 @@ function renderStyleNamePreview() {
     return;
   }
   const roleName = appState.useShortRoleNames ? role.shortName || role.name : role.name;
-  const varName = (role.variationNames && role.variationNames[0]) || "1";
+  const varName = (role.variations && role.variations[0] && role.variations[0].name) || "1";
   const weightAlias = (appState.fontWeights[0] || {}).alias || "Regular";
   el.textContent = `${roleName}${sep}${varName}${sep}${weightAlias}`;
 }
@@ -705,20 +796,17 @@ function addRole() {
   const steps = computeScale(appState.scale, appState.baseFontSize);
   const idx = appState.roles.length + 1;
   const shortName = `r${idx}`;
-  const variationCount = 3;
+  const maxIdx = Math.max(0, steps.length - 1);
   appState.roles.push({
     name: `Role ${idx}`,
     shortName,
-    variationCount,
-    variationNames: autoVariationNames(shortName, variationCount),
-    baseScaleIndex: Math.max(0, steps.length - 1),
-    scaleDirection: "descending",
     fontSlot: appState.fonts[0] ? appState.fonts[0].slot : "primary",
-    fontWeightAlias: (appState.fontWeights[0] || {}).alias || "Regular",
-    lineHeight: { unit: "PERCENT", value: 150 },
-    letterSpacing: { unit: "PERCENT", value: 0 },
     textTransform: "none",
-    variationOverrides: [],
+    variations: [
+      { name: `${shortName}1`, scaleIndex: maxIdx, lineHeight: { unit: "PERCENT", value: 150 }, letterSpacing: { unit: "PERCENT", value: 0 } },
+      { name: `${shortName}2`, scaleIndex: Math.max(0, maxIdx - 1), lineHeight: { unit: "PERCENT", value: 150 }, letterSpacing: { unit: "PERCENT", value: 0 } },
+      { name: `${shortName}3`, scaleIndex: Math.max(0, maxIdx - 2), lineHeight: { unit: "PERCENT", value: 150 }, letterSpacing: { unit: "PERCENT", value: 0 } },
+    ],
   });
   renderRolesList();
   renderPreviewRoles();
@@ -1035,6 +1123,7 @@ function wireInput(id, field, parser) {
       const data = _pendingImport.config || _pendingImport;
       Object.assign(appState, data);
       if (!appState.scale.scaleOverrides) appState.scale.scaleOverrides = {};
+      appState.roles = migrateRoles(appState.roles);
       _pendingImport = null;
       hideOverlay("confirm-import-overlay");
       syncScaleUI();

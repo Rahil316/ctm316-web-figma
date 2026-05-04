@@ -46,7 +46,12 @@
         --text-muted: #6c757d;
         --text-dim: #adb5bd;
       }
-      * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: var(--font);
+      }
       body {
         color: var(--text-primary);
         background: var(--bg-app);
@@ -54,10 +59,19 @@
         height: 100vh;
         overflow: hidden;
       }
-      ::-webkit-scrollbar { width: 4px; }
-      ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: var(--bg-active); border-radius: 4px; }
-      ::-webkit-scrollbar-thumb:hover { background: var(--bg-hover); }
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--bg-active);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--bg-hover);
+      }
 
       .sidebar-tab-btn {
         position: relative;
@@ -72,12 +86,18 @@
         border: none;
         cursor: pointer;
       }
-      .sidebar-tab-btn:hover { color: var(--text-primary); }
-      .sidebar-tab-btn.active { color: var(--accent); }
+      .sidebar-tab-btn:hover {
+        color: var(--text-primary);
+      }
+      .sidebar-tab-btn.active {
+        color: var(--accent);
+      }
       .sidebar-tab-btn.active::after {
         content: "";
         position: absolute;
-        bottom: -1px; left: 0; right: 0;
+        bottom: -1px;
+        left: 0;
+        right: 0;
         height: 2px;
         background: var(--accent);
         border-radius: 2px 2px 0 0;
@@ -95,12 +115,18 @@
         border: none;
         cursor: pointer;
       }
-      .right-tab-btn:hover { color: var(--text-primary); }
-      .right-tab-btn.active { color: var(--accent); }
+      .right-tab-btn:hover {
+        color: var(--text-primary);
+      }
+      .right-tab-btn.active {
+        color: var(--accent);
+      }
       .right-tab-btn.active::after {
         content: "";
         position: absolute;
-        bottom: -1px; left: 0; right: 0;
+        bottom: -1px;
+        left: 0;
+        right: 0;
         height: 2px;
         background: var(--accent);
         border-radius: 2px 2px 0 0;
@@ -111,15 +137,26 @@
         font-weight: 600;
         color: var(--text-muted);
         border-bottom: 2px solid transparent;
-        transition: color 0.15s, border-color 0.15s;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
         white-space: nowrap;
         cursor: pointer;
         background: none;
-        border-top: none; border-left: none; border-right: none;
+        border-top: none;
+        border-left: none;
+        border-right: none;
       }
-      .preview-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-      .preview-panel { display: none; }
-      .preview-panel.active { display: block; }
+      .preview-tab-btn.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+      .preview-panel {
+        display: none;
+      }
+      .preview-panel.active {
+        display: block;
+      }
       .seg-btn {
         flex: 1;
         height: 34px;
@@ -132,12 +169,18 @@
         cursor: pointer;
         transition: all 0.15s;
       }
-      .seg-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .seg-btn.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
       .toggle-pill {
-        width: 40px; height: 22px;
+        width: 40px;
+        height: 22px;
         border-radius: 11px;
         background: var(--border);
-        border: none; cursor: pointer;
+        border: none;
+        cursor: pointer;
         position: relative;
         transition: background 0.2s;
         flex-shrink: 0;
@@ -145,37 +188,75 @@
       .toggle-pill::after {
         content: "";
         position: absolute;
-        top: 3px; left: 3px;
-        width: 16px; height: 16px;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
         background: var(--text-muted);
-        transition: transform 0.2s, background 0.2s;
+        transition:
+          transform 0.2s,
+          background 0.2s;
       }
-      .toggle-pill.on { background: var(--accent); }
-      .toggle-pill.on::after { transform: translateX(18px); background: #fff; }
-      .chevron { transition: transform 0.2s ease; }
-      .role-card.collapsed .chevron { transform: rotate(-180deg); }
+      .toggle-pill.on {
+        background: var(--accent);
+      }
+      .toggle-pill.on::after {
+        transform: translateX(18px);
+        background: #fff;
+      }
+      .chevron {
+        transition: transform 0.2s ease;
+      }
+      .role-card.collapsed .chevron {
+        transform: rotate(-180deg);
+      }
       .role-card-body {
         overflow: hidden;
-        transition: max-height 0.3s ease, opacity 0.2s ease;
-        max-height: 2000px; opacity: 1;
+        transition:
+          max-height 0.3s ease,
+          opacity 0.2s ease;
+        max-height: 2000px;
+        opacity: 1;
       }
-      .role-card.collapsed .role-card-body { max-height: 0; opacity: 0; pointer-events: none; }
+      .role-card.collapsed .role-card-body {
+        max-height: 0;
+        opacity: 0;
+        pointer-events: none;
+      }
       .scale-bar-item {
-        display: flex; align-items: center; gap: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
         padding: 5px 0;
         border-bottom: 1px solid var(--border);
       }
-      .scale-bar-item:last-child { border-bottom: none; }
-      .role-specimen { padding: 8px 0; border-bottom: 1px solid var(--border); }
-      .role-specimen:last-child { border-bottom: none; }
+      .scale-bar-item:last-child {
+        border-bottom: none;
+      }
+      .role-specimen {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .role-specimen:last-child {
+        border-bottom: none;
+      }
       .bottom-sheet {
         transform: translateY(100%);
         transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       }
-      .bottom-sheet.open { transform: translateY(0); }
-      .overlay { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-      .overlay.active { opacity: 1; pointer-events: auto; }
+      .bottom-sheet.open {
+        transform: translateY(0);
+      }
+      .overlay {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
       #drop-overlay {
         background: var(--bg-app);
         opacity: 0.95;
@@ -189,9 +270,19 @@
         align-items: center;
         justify-content: center;
       }
-      #drop-overlay.active { display: flex; pointer-events: auto; }
-      .errors-body { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
-      .errors-body.open { max-height: 200px; overflow-y: auto; }
+      #drop-overlay.active {
+        display: flex;
+        pointer-events: auto;
+      }
+      .errors-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.25s ease;
+      }
+      .errors-body.open {
+        max-height: 200px;
+        overflow-y: auto;
+      }
       .code-viewer {
         font-family: var(--font-mono);
         font-size: 12px;
@@ -207,37 +298,68 @@
         overflow-y: auto;
         tab-size: 2;
       }
-      .code-viewer .kw  { color: #c586c0; }
-      .code-viewer .prop{ color: #9cdcfe; }
-      .code-viewer .val { color: #ce9178; }
-      .code-viewer .num { color: #b5cea8; }
-      .code-viewer .cm  { color: #6a9955; }
-      @media print { aside { display: none; } }
+      .code-viewer .kw {
+        color: #c586c0;
+      }
+      .code-viewer .prop {
+        color: #9cdcfe;
+      }
+      .code-viewer .val {
+        color: #ce9178;
+      }
+      .code-viewer .num {
+        color: #b5cea8;
+      }
+      .code-viewer .cm {
+        color: #6a9955;
+      }
+      @media print {
+        aside {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body class="bg-[var(--bg-app)] text-[var(--text-primary)] selection:bg-[var(--accent)] selection:text-white">
     <div id="app" class="h-screen flex flex-col overflow-hidden">
-
       <!-- Header -->
       <header class="bg-[var(--bg-panel)] border-b border-[var(--border)] px-4 py-2 flex items-center justify-between z-10 flex-shrink-0">
         <h1 class="text-[22px] font-bold tracking-tight">ttm316</h1>
         <div class="flex gap-2 items-center">
           <button id="btn-light-toggle" title="Toggle light/dark mode" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-9 h-9 flex items-center justify-center rounded-[9px] transition-colors">
-            <svg id="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-            <svg id="icon-moon" class="hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg id="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+            <svg id="icon-moon" class="hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
           </button>
           <button id="btn-import" title="Import JSON config" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-9 h-9 flex items-center justify-center rounded-[9px] transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
           </button>
           <button id="btn-settings" title="Settings" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] w-9 h-9 flex items-center justify-center rounded-[9px] transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+              />
+            </svg>
           </button>
         </div>
       </header>
 
       <!-- Body: sidebar + main -->
       <div class="flex flex-1 overflow-hidden">
-
         <!-- Left Sidebar -->
         <aside class="w-[420px] flex-shrink-0 bg-[var(--bg-panel)] border-r border-[var(--border)] flex flex-col overflow-hidden">
           <!-- Sidebar tabs -->
@@ -247,7 +369,6 @@
           </div>
           <!-- Scrollable content -->
           <div class="flex-1 overflow-y-auto p-3 space-y-3">
-
             <!-- Scale tab -->
             <div id="tab-scale" class="tab-content space-y-3">
               <div class="space-y-1.5">
@@ -286,15 +407,24 @@
                       <option value="1.875">Major Seventh — 1.875</option>
                       <option value="2.000">Octave — 2.000</option>
                     </select>
-                    <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                    <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2.5"><polyline points="6 9 12 15 18 9" /></svg>
                   </div>
                 </div>
               </div>
               <div id="linear-controls" class="hidden space-y-3">
                 <div class="grid grid-cols-3 gap-2">
-                  <div class="space-y-1"><label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Min (px)</label><input type="number" id="scale-min" min="1" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)]" /></div>
-                  <div class="space-y-1"><label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Max (px)</label><input type="number" id="scale-max" min="1" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)]" /></div>
-                  <div class="space-y-1"><label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Steps</label><input type="number" id="scale-steps-linear" min="1" max="24" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)]" /></div>
+                  <div class="space-y-1">
+                    <label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Min (px)</label
+                    ><input type="number" id="scale-min" min="1" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)]" />
+                  </div>
+                  <div class="space-y-1">
+                    <label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Max (px)</label
+                    ><input type="number" id="scale-max" min="1" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)]" />
+                  </div>
+                  <div class="space-y-1">
+                    <label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Steps</label
+                    ><input type="number" id="scale-steps-linear" min="1" max="24" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)]" />
+                  </div>
                 </div>
               </div>
               <div id="custom-controls" class="hidden space-y-2">
@@ -319,19 +449,21 @@
               </div>
               <div class="space-y-1">
                 <label class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-1">SCALE PREVIEW</label>
-                <div id="scale-preview-bar" class="bg-[var(--bg-card)] border border-[var(--border)] rounded-[10px] p-2"></div>
+                <div id="scale-preview-bar" class="bg-[var(--bg-card)] border border-[var(--border)] rounded-[8px] p-2"></div>
               </div>
             </div>
 
             <!-- Roles tab -->
             <div id="tab-roles" class="tab-content hidden space-y-2">
-              <button id="btn-add-role" class="w-full h-[40px] border-2 border-dashed border-[var(--border)] hover:border-[var(--accent)] text-[var(--text-muted)] hover:text-[var(--accent)] rounded-[10px] text-[13px] font-semibold transition-all flex items-center justify-center gap-2">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <button id="btn-add-role" class="w-full h-[40px] border-2 border-dashed border-[var(--border)] hover:border-[var(--accent)] text-[var(--text-muted)] hover:text-[var(--accent)] rounded-[8px] text-[13px] font-semibold transition-all flex items-center justify-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
                 Add Role
               </button>
               <div id="roles-list" class="space-y-2"></div>
             </div>
-
           </div>
         </aside>
 
@@ -368,11 +500,18 @@
                 <button class="seg-btn export-fmt-btn flex-none px-4 h-[30px] text-[11px]" data-fmt="json">JSON</button>
               </div>
               <button id="btn-copy-export" title="Copy to clipboard" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] border border-[var(--border)] h-[30px] px-3 rounded-[7px] text-[12px] font-semibold transition-colors flex items-center gap-1.5">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
                 Copy
               </button>
               <button id="btn-download-export" title="Download file" class="bg-[var(--accent)] hover:bg-[var(--accent-hover)] h-[30px] px-3 rounded-[7px] text-[12px] font-semibold transition-colors text-white flex items-center gap-1.5">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
                 Download
               </button>
             </div>
@@ -380,7 +519,6 @@
               <pre id="export-code" class="code-viewer flex-1"></pre>
             </div>
           </div>
-
         </section>
       </div>
 
@@ -391,7 +529,7 @@
       <div id="settings-sheet" class="bottom-sheet absolute bottom-0 left-0 right-0 bg-[var(--bg-panel)] rounded-t-[16px] border-t border-[var(--border)] z-30 max-h-[88%] flex flex-col">
         <div class="px-4 py-3 flex items-center justify-between border-b border-[var(--border)] flex-shrink-0">
           <h2 class="text-[18px] font-semibold">Settings</h2>
-          <button id="close-settings" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[10px] text-[13px] font-bold transition-colors">Done</button>
+          <button id="close-settings" class="bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] py-1.5 px-4 rounded-[8px] text-[13px] font-bold transition-colors">Done</button>
         </div>
         <div class="p-4 overflow-y-auto space-y-6">
           <!-- Basic -->
@@ -444,7 +582,15 @@
                   <p class="text-[13px] font-medium">Short Names</p>
                   <p class="text-[11px] text-[var(--text-muted)]">e.g. Heading → hd</p>
                 </div>
-                <button id="toggle-useShortRoleNames" class="toggle-pill" onclick="toggleBoolSetting('useShortRoleNames'); renderStyleNamePreview(); scheduleExportRefresh()"></button>
+                <button
+                  id="toggle-useShortRoleNames"
+                  class="toggle-pill"
+                  onclick="
+                    toggleBoolSetting('useShortRoleNames');
+                    renderStyleNamePreview();
+                    scheduleExportRefresh();
+                  "
+                ></button>
               </div>
             </div>
             <div class="space-y-1">
@@ -455,9 +601,12 @@
           </div>
           <!-- Danger -->
           <div class="pt-2 border-t border-[var(--border)]">
-            <button id="btn-clear" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--danger)]/10 text-[var(--danger)] rounded-[10px] transition-colors">
+            <button id="btn-clear" class="w-full flex items-center gap-3 p-3 hover:bg-[var(--danger)]/10 text-[var(--danger)] rounded-[8px] transition-colors">
               <div class="w-8 h-8 rounded-lg bg-[var(--danger)]/10 flex items-center justify-center">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
               </div>
               <span class="text-[14px] font-bold">Reset to Defaults</span>
             </button>
@@ -468,7 +617,11 @@
       <!-- Confirm Import -->
       <div id="confirm-import-overlay" class="hidden absolute inset-0 bg-[var(--bg-app)]/95 backdrop-blur-sm z-[60] flex items-center justify-center p-6 text-center flex-col gap-6">
         <div class="w-20 h-20 bg-[var(--warning)]/10 rounded-full flex items-center justify-center text-[var(--warning)]">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
         </div>
         <div>
           <h2 class="text-2xl font-bold mb-2">Import Config?</h2>
@@ -484,7 +637,11 @@
       <div id="drop-overlay" class="absolute inset-0">
         <div class="flex flex-col items-center gap-4 text-center pointer-events-none">
           <div class="w-16 h-16 bg-[var(--accent)]/10 rounded-2xl flex items-center justify-center text-[var(--accent)]">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
           </div>
           <div>
             <h2 class="text-2xl font-bold mb-1">Import JSON</h2>
@@ -492,7 +649,6 @@
           </div>
         </div>
       </div>
-
     </div>
 
     <input type="file" id="file-input" accept=".json" class="hidden" />
