@@ -21,9 +21,9 @@ figma.showUI(__html__, { width: 424, height: 720, themeColors: true });
     const cfgVar = vars.find((v) => v.name === "__ttm316_config__");
     if (cfgVar) {
       const modeId = Object.keys(cfgVar.valuesByMode)[0];
-      const raw = cfgVar.valuesByMode[modeId];
-      if (typeof raw === "string") {
-        figma.ui.postMessage({ type: "load-config", state: JSON.parse(raw) });
+      const colorRamp = cfgVar.valuesByMode[modeId];
+      if (typeof colorRamp === "string") {
+        figma.ui.postMessage({ type: "load-config", state: JSON.parse(colorRamp) });
       }
     }
   } catch (_) {}
@@ -87,14 +87,14 @@ function translateConfig(appState) {
   ];
 
   const fontWeights = appState.fontWeights || [
-    { alias: "Thin",      value: 100, figmaStyles: {} },
-    { alias: "Light",     value: 300, figmaStyles: {} },
-    { alias: "Regular",   value: 400, figmaStyles: {} },
-    { alias: "Medium",    value: 500, figmaStyles: {} },
-    { alias: "SemiBold",  value: 600, figmaStyles: {} },
-    { alias: "Bold",      value: 700, figmaStyles: {} },
+    { alias: "Thin", value: 100, figmaStyles: {} },
+    { alias: "Light", value: 300, figmaStyles: {} },
+    { alias: "Regular", value: 400, figmaStyles: {} },
+    { alias: "Medium", value: 500, figmaStyles: {} },
+    { alias: "SemiBold", value: 600, figmaStyles: {} },
+    { alias: "Bold", value: 700, figmaStyles: {} },
     { alias: "ExtraBold", value: 800, figmaStyles: {} },
-    { alias: "Black",     value: 900, figmaStyles: {} },
+    { alias: "Black", value: 900, figmaStyles: {} },
   ];
 
   return {
@@ -115,7 +115,7 @@ function translateConfig(appState) {
       customStepNames: scale.customStepNames || [],
       scaleOverrides: scale.scaleOverrides || {},
     },
-    roles: (appState.roles || []).map(function(role) {
+    roles: (appState.roles || []).map(function (role) {
       // Migrate old format (variationCount/baseScaleIndex) to new variations array
       if (role.variations) {
         return {
@@ -123,7 +123,7 @@ function translateConfig(appState) {
           shortName: role.shortName || role.name.substring(0, 2).toLowerCase(),
           fontSlot: role.fontSlot || "primary",
           textTransform: role.textTransform || "none",
-          variations: role.variations.map(function(vr) {
+          variations: role.variations.map(function (vr) {
             return {
               name: vr.name || "v",
               scaleIndex: parseInt(vr.scaleIndex) || 0,
@@ -139,8 +139,11 @@ function translateConfig(appState) {
       for (var v = 0; v < count; v++) {
         var delta = role.scaleDirection === "descending" ? count - 1 - v : v;
         var scaleIndex = Math.max(0, (parseInt(role.baseScaleIndex) || 0) - delta);
-        var ov = (role.variationOverrides || []).filter(function(o) { return o.index === v; })[0] || {};
-        var varName = (role.variationNames && role.variationNames[v]) || ((role.shortName || "r") + (v + 1));
+        var ov =
+          (role.variationOverrides || []).filter(function (o) {
+            return o.index === v;
+          })[0] || {};
+        var varName = (role.variationNames && role.variationNames[v]) || (role.shortName || "r") + (v + 1);
         variations.push({
           name: varName,
           scaleIndex: scaleIndex,
@@ -662,9 +665,11 @@ function resolveRoleStyles(role, scaleSteps, config) {
     var vr = variations[v];
     var rawIdx = parseInt(vr.scaleIndex) || 0;
     var scaleIdx = Math.max(0, Math.min(scaleSteps.length - 1, rawIdx));
-    if (rawIdx !== scaleIdx) errors.push("Role \"" + role.name + "\" variation " + v + ": scale index " + rawIdx + " clamped to " + scaleIdx + ".");
+    if (rawIdx !== scaleIdx) errors.push('Role "' + role.name + '" variation ' + v + ": scale index " + rawIdx + " clamped to " + scaleIdx + ".");
 
-    var fontDef = config.fonts.filter(function(f) { return f.slot === role.fontSlot; })[0];
+    var fontDef = config.fonts.filter(function (f) {
+      return f.slot === role.fontSlot;
+    })[0];
     var lineHeight = vr.lineHeight || { unit: "PERCENT", value: 150 };
     var letterSpacing = vr.letterSpacing || { unit: "PERCENT", value: 0 };
     var variationName = vr.name || String(v + 1);

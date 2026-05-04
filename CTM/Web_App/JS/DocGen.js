@@ -2,7 +2,7 @@
 // Depends on variableMaker (ClrGen.js) and slugify (Utils.js) being loaded first.
 function flattenToCss(collection) {
   const cssVars = {
-    raw: {},
+    colorRamps: {},
     light: {},
     dark: {},
   };
@@ -17,7 +17,7 @@ function flattenToCss(collection) {
       if (!data?.value) return;
       const varName = `--${slugify(group)}-${slugify(weight)}`;
       const value = data.value || "#000000";
-      cssVars.raw[varName] = value;
+      cssVars.colorRamps[varName] = value;
     });
   });
 
@@ -49,9 +49,9 @@ function flattenToCss(collection) {
 function generateCss(cssVars) {
   let css = `/* Color Tokens - Auto-generated */\n`;
   css += `/* Generated on: ${new Date().toISOString()} */\n\n`;
-  css += `/* ============================================\n   RAW COLOR RAMPS\n   ============================================ */\n\n`;
+  css += `/* ============================================\n   COLOR RAMPS\n   ============================================ */\n\n`;
   css += `:root {\n`;
-  Object.entries(cssVars.raw).forEach(([variable, value]) => {
+  Object.entries(cssVars.colorRamps).forEach(([variable, value]) => {
     css += `  ${variable}: ${value};\n`;
   });
   css += `}\n\n`;
@@ -78,7 +78,7 @@ function generateCss(cssVars) {
 
 function generateSeparateCssFiles(cssVars) {
   const files = {
-    raw: `/* Raw Color Ramps - Base Colors */\n:root {\n${Object.entries(cssVars.raw)
+    colorRamps: `/* Color Ramps - Base Colors */\n:root {\n${Object.entries(cssVars.colorRamps)
       .map(([varName, value]) => `  ${varName}: ${value};`)
       .join("\n")}\n}`,
     light: `/* Light Theme Tokens */\n.light,\n[data-theme="light"] {\n${Object.entries(cssVars.light)
@@ -117,7 +117,7 @@ function generateScss(collection) {
   if (!collection || !collection.colorRamps) return "";
   let scss = `// Color Tokens - Auto-generated SCSS\n`;
   scss += `// Generated on: ${new Date().toISOString()}\n\n`;
-  scss += `// ============================================\n// RAW COLOR RAMPS\n// ============================================\n\n`;
+  scss += `// ============================================\n// COLOR RAMPS\n// ============================================\n\n`;
   Object.entries(collection.colorRamps).forEach(([group, weights]) => {
     scss += `// ${group.toUpperCase()} Ramps\n`;
     Object.entries(weights).forEach(([weight, data]) => {
@@ -168,9 +168,9 @@ function generateScss(collection) {
 
 function generateSimpleCss(cssVars) {
   let css = `/* Color Tokens - Simplified */\n\n`;
-  css += `/* Raw Color Ramps */\n`;
+  css += `/* Color Ramps */\n`;
   css += `:root {\n`;
-  Object.entries(cssVars.raw).forEach(([variable, value]) => {
+  Object.entries(cssVars.colorRamps).forEach(([variable, value]) => {
     css += `  ${variable}: ${value};\n`;
   });
   css += `}\n\n`;

@@ -1,5 +1,5 @@
 // ClrGen.js - Color ramp generation and semantic token system.
-// Exports: variableMaker (full token collection), colorRampMaker (raw ramp array).
+// Exports: variableMaker (full token collection), colorRampMaker (Color ramp array).
 // COLOR SYSTEM
 const demoConfig = {
   name: "CTM316",
@@ -77,7 +77,7 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
 
       for (let j = 0; j < 30; j++) {
         let mid = (low + high) / 2;
-        
+
         const searchS = isNatural ? satu * (1 - Math.pow(Math.abs(mid - 50) / 50, 1.5) * 0.4) : satu;
         let searchH = hue;
         if (isDynamic) {

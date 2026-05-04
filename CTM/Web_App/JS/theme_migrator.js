@@ -9,7 +9,7 @@ const theming = `:root {
   --bg-input: #ffffff;
   --bg-hover: #e9ecef;
   --bg-active: rgba(0, 123, 255, 0.1);
-  --bg-raw: #eaf5ff;
+  --bg-ramp: #eaf5ff;
   --bg-dark-ctx: #02101b;
   --bg-error: #fff3cd;
   --bg-error-item: #ffffff;
@@ -36,7 +36,7 @@ body.app-dark-mode {
   --bg-input: #2b3035;
   --bg-hover: #343a40;
   --bg-active: rgba(0, 123, 255, 0.2);
-  --bg-raw: #212529;
+  --bg-ramp: #212529;
   --bg-dark-ctx: #212529;
   --bg-error: #332701;
   --bg-error-item: #212529;
@@ -90,7 +90,7 @@ const replacements = [
     s: /border:\s*1px solid #ced4da;/g,
     r: "border: 1px solid var(--border-input);",
   },
-  { s: /background-color:\s*#eaf5ff;/g, r: "background-color: var(--bg-raw);" },
+  { s: /background-color:\s*#eaf5ff;/g, r: "background-color: var(--bg-ramp);" },
   {
     s: /border:\s*1px solid #989ece;/g,
     r: "border: 1px solid var(--border-panel);",

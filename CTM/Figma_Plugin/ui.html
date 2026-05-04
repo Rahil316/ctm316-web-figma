@@ -238,15 +238,11 @@
         background-color: #0a0a0a;
         color: #eee;
       }
-      #preview-overlay.theme-raw {
+      #preview-overlay.theme-ramps {
         background-color: var(--bg-app);
         color: var(--text-primary);
       }
 
-      .preview-section {
-        margin-bottom: 24px;
-        animation: fadeIn 0.4s ease-out;
-      }
       @keyframes fadeIn {
         from {
           opacity: 0;
@@ -256,34 +252,6 @@
           opacity: 1;
           transform: translateY(0);
         }
-      }
-
-      /* Raw Ramp - Interactive Spectrum */
-      .preview-spectrum {
-        display: flex;
-        width: 100%;
-        height: 80px;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(128, 128, 128, 0.1);
-        cursor: crosshair;
-      }
-      .preview-spectrum-step {
-        flex: 1;
-        height: 100%;
-        transition:
-          transform 0.1s cubic-bezier(0.33, 1, 0.68, 1),
-          flex 0.15s cubic-bezier(0.33, 1, 0.68, 1),
-          border-radius 0.1s ease;
-        position: relative;
-      }
-      .preview-spectrum-step:hover {
-        flex: 2.5;
-        z-index: 10;
-        transform: scaleY(1.15);
-        border-radius: 8px;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
       }
 
       /* Toast Notification */
@@ -452,12 +420,12 @@
             <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-1">Figma Collections</h3>
             <div class="flex gap-3">
               <div class="flex-1 space-y-1">
-                <label for="setting-rawCollectionName" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Raw colors collection</label>
-                <input type="text" id="setting-rawCollectionName" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" placeholder="_raw" />
+                <label for="setting-colorsCollectionName" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">colors Collection Name</label>
+                <input type="text" id="setting-colorsCollectionName" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" placeholder="_Colors" />
               </div>
               <div class="flex-1 space-y-1">
-                <label for="setting-contextualCollectionName" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Contextual tokens collection</label>
-                <input type="text" id="setting-contextualCollectionName" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" placeholder="contextual" />
+                <label for="setting-tokensCollectionName" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Tokens collection Name</label>
+                <input type="text" id="setting-tokensCollectionName" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" placeholder="contextual" />
               </div>
             </div>
           </div>
@@ -513,13 +481,13 @@
           <div class="space-y-3">
             <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-1">Output Options</h3>
 
-            <!-- Skip raw ramps -->
+            <!-- Skip colors ramps -->
             <div class="flex items-center justify-between p-3 bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)]">
               <div>
-                <p class="text-[13px] font-medium text-[var(--text-primary)]">Skip Raw Ramps</p>
-                <p class="text-[11px] text-[var(--text-muted)] mt-0.5">Use hex values directly, no raw collection</p>
+                <p class="text-[13px] font-medium text-[var(--text-primary)]">Skip Color Ramps</p>
+                <p class="text-[11px] text-[var(--text-muted)] mt-0.5">Use hex values directly, no Color collection</p>
               </div>
-              <button id="toggle-skipRawRamps" class="toggle-pill" onclick="toggleBoolSetting('skipRawRamps')"></button>
+              <button id="toggle-skipColorRamps" class="toggle-pill" onclick="toggleBoolSetting('skipColorRamps')"></button>
             </div>
 
             <!-- Token grouping -->
@@ -689,14 +657,14 @@
         </div>
         <!-- Tab Navigation -->
         <div id="preview-tabs" class="flex border-b border-[var(--border)] bg-[var(--bg-panel)] shrink-0 overflow-x-auto">
-          <button class="preview-tab-btn active" data-target="preview-raw">Raw Colors</button>
+          <button class="preview-tab-btn active" data-target="preview-colors">Color Ramps</button>
           <button class="preview-tab-btn" data-target="preview-light">Light Theme</button>
           <button class="preview-tab-btn" data-target="preview-dark">Dark Theme</button>
         </div>
         <!-- Tab Panels -->
         <div id="preview-content" class="flex-1 overflow-y-auto">
           <div class="p-2">
-            <div id="preview-raw" class="preview-panel active"></div>
+            <div id="preview-colors" class="preview-panel active"></div>
             <div id="preview-light" class="preview-panel"></div>
             <div id="preview-dark" class="preview-panel"></div>
           </div>
@@ -743,7 +711,7 @@
             <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px]">SCOPE</h3>
             <div class="flex gap-2">
               <button id="rd-scope-all" class="seg-btn" onclick="setRunScope('all')">All</button>
-              <button id="rd-scope-groups" class="seg-btn" onclick="setRunScope('groups')">Raw Ramps Only</button>
+              <button id="rd-scope-groups" class="seg-btn" onclick="setRunScope('groups')">Color Ramps Only</button>
               <button id="rd-scope-roles" class="seg-btn" onclick="setRunScope('roles')">Roles Only</button>
             </div>
           </div>
@@ -753,14 +721,14 @@
             <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px]">OUTPUT OPTIONS</h3>
             <div class="flex items-center justify-between p-3 bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)]">
               <div>
-                <p class="text-[13px] font-medium text-[var(--text-primary)]">Skip Raw Ramps</p>
-                <p class="text-[11px] text-[var(--text-muted)] mt-0.5">Use hex values directly, no raw collection</p>
+                <p class="text-[13px] font-medium text-[var(--text-primary)]">Skip Color Ramps</p>
+                <p class="text-[11px] text-[var(--text-muted)] mt-0.5">Use hex values directly, no Color collection</p>
               </div>
               <button
-                id="rd-toggle-skipRawRamps"
+                id="rd-toggle-skipColorRamps"
                 class="toggle-pill"
                 onclick="
-                  toggleBoolSetting('skipRawRamps');
+                  toggleBoolSetting('skipColorRamps');
                   refreshRunDialog();
                 "
               ></button>
@@ -903,9 +871,9 @@
        */
       const demoConfig = {
         name: "CTM316",
-        rawCollectionName: "_raw",
+        colorsCollectionName: "_Colors",
         contextualCollectionName: "contextual",
-        skipRawRamps: false,
+        skipColorRamps: false,
         tokenGrouping: "color",
         useShortColorNames: false,
         useShortRoleNames: false,
@@ -1662,7 +1630,7 @@
       function syncOutputToggles() {
         const tg = appState.tokenGrouping || "color";
         // Sync all toggle pills (settings sheet + run dialog)
-        ["skipRawRamps", "useShortColorNames", "useShortRoleNames"].forEach((key) => {
+        ["skipColorRamps", "useShortColorNames", "useShortRoleNames"].forEach((key) => {
           ["toggle-" + key, "rd-toggle-" + key].forEach((id) => {
             const btn = document.getElementById(id);
             if (btn) btn.classList.toggle("on", !!appState[key]);
@@ -1700,8 +1668,8 @@
 
       function updateSettingsFromInputs() {
         appState.name = document.getElementById("setting-name").value;
-        appState.rawCollectionName = document.getElementById("setting-rawCollectionName").value.trim() || "_raw";
-        appState.contextualCollectionName = document.getElementById("setting-contextualCollectionName").value.trim() || "contextual";
+        appState.colorsCollectionName = document.getElementById("setting-colorsCollectionName").value.trim() || "_Colors";
+        appState.contextualCollectionName = document.getElementById("setting-tokensCollectionName").value.trim() || "contextual";
         const sanitizeHex = (id) => {
           const el = document.getElementById(id);
           const clean = el.value
@@ -1737,8 +1705,8 @@
 
       function syncInputsFromState() {
         document.getElementById("setting-name").value = appState.name || "";
-        document.getElementById("setting-rawCollectionName").value = appState.rawCollectionName || "_raw";
-        document.getElementById("setting-contextualCollectionName").value = appState.contextualCollectionName || "contextual";
+        document.getElementById("setting-colorsCollectionName").value = appState.colorsCollectionName || "_Colors";
+        document.getElementById("setting-tokensCollectionName").value = appState.contextualCollectionName || "contextual";
         syncOutputToggles();
         const themes = appState.themes || [{ bg: "FFFFFF" }, { bg: "000000" }];
         document.getElementById("setting-light-bg").value = themes[0].bg;
@@ -1786,7 +1754,7 @@
           {
             pluginMessage: {
               type: "check-collections",
-              rawName: appState.rawCollectionName || "_raw",
+              colorName: appState.colorsCollectionName || "_Colors",
               contextualName: appState.contextualCollectionName || "contextual",
             },
           },
@@ -1805,15 +1773,14 @@
         const lightBgHex = normalizeHex(appState.themes[0].bg) || "#FFFFFF";
         const darkBgHex = normalizeHex(appState.themes[1].bg) || "#000000";
 
-        // Raw Colors tab
-        const rawEl = document.getElementById("preview-raw");
-        rawEl.innerHTML = "";
+        // Colors Ramps Tab
+        const colorEl = document.getElementById("preview-colors");
+        colorEl.innerHTML = "";
         for (const [colorName, ramp] of Object.entries(result.colorRamps)) {
           const baseColor = ramp[Object.keys(ramp)[Math.floor(Object.keys(ramp).length / 2)]].value;
           const section = document.createElement("div");
-          section.className = "preview-section";
+          section.className = "grid grid-cols-[28px_auto_1fr] grid-rows-[28px_auto] items-center gap-2 mb-2";
           section.innerHTML = `
-            <div class="grid grid-cols-[28px_auto_1fr] items-center gap-2 mb-2">
               <div class="size-6 rounded-md bg-[${baseColor}]"></div>
               <div class="text-[12px] font-bold">${colorName}</div>
               <div class="flex items-center gap-2 text-[12px] font-mono">
@@ -1821,32 +1788,29 @@
                 <span id="spec-hex-${colorName}" class="font-bold"></span>
                 <span id="spec-info-${colorName}" class="ml-auto"></span>
               </div>
-            </div>
-            <div class="relative">
-              <div class="preview-spectrum"></div>
-            </div>`;
+              <div id="preview-spectrum" class="col-span-3 flex w-full h-20 rounded-[10px] overflow-hidden [box-shadow:0_10px_30px_#0000001f] border border-[#8888881A] cursor-crosshair"></div>
+              `;
 
-          const spectrum = section.querySelector(".preview-spectrum");
+          const spectrum = section.querySelector("#preview-spectrum");
           const hexDisplay = section.querySelector(`#spec-hex-${colorName}`);
           const infoDisplay = section.querySelector(`#spec-info-${colorName}`);
           const numDisplay = section.querySelector(`#spec-num-${colorName}`);
 
           for (const [weight, data] of Object.entries(ramp)) {
             const step = document.createElement("div");
-            step.className = "preview-spectrum-step";
-            step.style.backgroundColor = data.value;
+            step.className = `bg-[${data.value}] flex-1 h-full hover:flex-[4] hover:z-10 hover:[transform:scaleY(1.15)] hover:rounded-[8px] hover:[box-shadow:0_15px_40px_#00000044]`;
             step.setAttribute("data-copy", data.value);
 
             step.onmouseenter = () => {
               hexDisplay.textContent = data.value;
               numDisplay.textContent = weight;
-              infoDisplay.textContent = `☀️ ${data.contrast.light.ratio.toFixed(1)} 🌙 ${data.contrast.dark.ratio.toFixed(1)}`;
+              infoDisplay.textContent = `☀️ ${data.contrast.light.ratio} | ${data.contrast.dark.ratio} 🌙`;
               hexDisplay.style.color = data.value;
             };
 
             spectrum.appendChild(step);
           }
-          rawEl.appendChild(section);
+          colorEl.appendChild(section);
         }
 
         // Theme tabs helper
@@ -1859,7 +1823,6 @@
             const baseColor = ramp ? ramp[Object.keys(ramp)[Math.floor(Object.keys(ramp).length / 2)]].value : "#888";
 
             const section = document.createElement("div");
-            section.className = "preview-section";
             section.innerHTML = `
               <div class="grid grid-col-3[32px_1fr_auto]>
                 <div class="size-6 rounded-md bg-[${baseColor}]"></div>
@@ -1870,29 +1833,29 @@
             const content = section.querySelector(".preview-section-content");
             for (const [roleName, variations] of Object.entries(roles)) {
               const roleGroup = document.createElement("div");
-              roleGroup.className = "mb-12";
+              roleGroup.className = "mb-2";
               const rName = (appState.roles[roleName] && appState.roles[roleName].name) || roleName;
               roleGroup.innerHTML = `
-                <div class="flex items-center gap-3 mb-4">
-                  <div class="text-[11px] font-extrabold opacity-40 uppercase tracking-[0.15em] whitespace-nowrap">${rName}</div>
+                <div class="flex items-center gap-1 mb-2">
+                  <div class="text-[11px] font-extrabold opacity-40 tracking-[0.15em]">${rName}</div>
                   <div class="flex-1 h-px bg-current opacity-10"></div>
                 </div>
-                <div class="grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(140px,1fr))]"></div>`;
+                <div class="grid gap-1 [grid-template-columns:repeat(auto-fill,minmax(96px,1fr))]"></div>`;
 
               const grid = roleGroup.querySelector(".grid");
               for (const [varKey, token] of Object.entries(variations)) {
                 if (!token) continue;
                 const card = document.createElement("div");
-                card.className = "bg-[rgba(128,128,128,0.05)] border border-[rgba(128,128,128,0.1)] rounded-[20px] p-1.5 flex flex-col gap-1.5 transition-all duration-300 ease-in-out cursor-pointer hover:bg-[rgba(128,128,128,0.1)] hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(0,0,0,0.1)]";
+                card.className = "bg-[#8888880d] border border-[#8888881a] rounded-[20px] p-1.5 flex flex-col gap-1.5 transition-all duration-140 ease-in-out cursor-pointer hover:bg-[#8888881a] hover:-translate-y-1 hover:shadow-[0_12px_30px_#0000001f]";
                 card.setAttribute("data-copy", token.value);
                 card.setAttribute("data-copy-name", token.tknName);
 
                 const contrastColor = (contrastRatio(token.value, "#FFFFFF") || 0) > (contrastRatio(token.value, "#000000") || 0) ? "#FFFFFF" : "#000000";
 
                 card.innerHTML = `
-                  <div class="h-20 rounded-2xl relative overflow-hidden flex items-center justify-center" style="background:${token.value};color:${contrastColor}">
-                    <div class="text-2xl font-black tracking-[-0.05em] opacity-90">${token.contrast.ratio.toFixed(1)}</div>
-                    <div class="absolute top-2 right-2 text-[9px] font-black px-1.5 py-0.5 bg-black/20 backdrop-blur-sm rounded-[6px] border border-white/10 text-white">${token.contrast.rating}</div>
+                  <div class="h-20 rounded-2xl relative overflow-hidden flex flex-col items-center justify-center" style="background:${token.value};color:${contrastColor}">
+                    <div class="text-2xl font-black tracking-[-0.05em] opacity-90">${token.contrast.ratio}</div>
+                    <div class="text-[9px] font-black px-1.5 py-0.5 bg-black/20 backdrop-blur-sm rounded-[6px] border border-white/10 text-white">${token.contrast.rating}</div>
                     ${token.isAdjusted ? `<div class="absolute bottom-2 right-2 bg-[var(--warning)] text-black w-3.5 h-3.5 rounded-[4px] flex items-center justify-center text-[10px] font-black">!</div>` : ""}
                   </div>
                   <div class="px-2 pt-1 pb-2">
@@ -2009,12 +1972,12 @@
         const overlay = document.getElementById("preview-overlay");
 
         // Remove old theme classes
-        overlay.classList.remove("theme-light", "theme-dark", "theme-raw");
+        overlay.classList.remove("theme-light", "theme-dark", "theme-ramps");
 
         // Add new theme class
         if (target === "preview-light") overlay.classList.add("theme-light");
         else if (target === "preview-dark") overlay.classList.add("theme-dark");
-        else overlay.classList.add("theme-raw");
+        else overlay.classList.add("theme-ramps");
 
         document.querySelectorAll(".preview-tab-btn").forEach((b) => b.classList.remove("active"));
         document.querySelectorAll(".preview-panel").forEach((p) => p.classList.remove("active"));
@@ -2036,7 +1999,7 @@
 
       document.getElementById("btn-preview").onclick = () => {
         const result = variableMakerUI(translateConfigForPreview(appState));
-        // Reset to Raw Colors tab each time
+        // Reset to Colors Ramps tab each time
         document.querySelectorAll(".preview-tab-btn").forEach((b, i) => b.classList.toggle("active", i === 0));
         document.querySelectorAll(".preview-panel").forEach((p, i) => p.classList.toggle("active", i === 0));
         renderPreviewPanel(result);
@@ -2045,7 +2008,7 @@
 
       document.getElementById("preview-close").onclick = () => {
         hideOverlay("preview-overlay");
-        document.getElementById("preview-overlay").classList.remove("theme-light", "theme-dark", "theme-raw");
+        document.getElementById("preview-overlay").classList.remove("theme-light", "theme-dark", "theme-ramps");
       };
 
       // Sidebar Tab Logic
@@ -2234,9 +2197,9 @@
 
       function refreshRunDialog() {
         const existing = lastCollectionCheckResult;
-        const rawName = appState.rawCollectionName || "_raw";
+        const colorName = appState.colorsCollectionName || "_Colors";
         const ctxName = appState.contextualCollectionName || "contextual";
-        const skipRaw = appState.skipRawRamps;
+        const skipRaw = appState.skipColorRamps;
         const tg = appState.tokenGrouping || "color";
         const shortC = appState.useShortColorNames;
         const shortR = appState.useShortRoleNames;
@@ -2250,8 +2213,8 @@
         if (colsEl) {
           const rows = [];
           if (!skipRaw && scope !== "roles") {
-            const rawExists = existing.includes(rawName);
-            rows.push(collectionRow(rawName, rawExists ? "UPDATE" : "CREATE", rawExists));
+            const rawExists = existing.includes(colorName);
+            rows.push(collectionRow(colorName, rawExists ? "UPDATE" : "CREATE", rawExists));
           }
           if (scope !== "groups") {
             const ctxExists = existing.includes(ctxName);
@@ -2287,7 +2250,7 @@
         // Warnings
         const warnEl = document.getElementById("rd-warnings");
         if (warnEl) {
-          const relevant = existing.filter((n) => (n === rawName && !skipRaw && scope !== "roles") || (n === ctxName && scope !== "groups"));
+          const relevant = existing.filter((n) => (n === colorName && !skipRaw && scope !== "roles") || (n === ctxName && scope !== "groups"));
           if (relevant.length > 0) {
             warnEl.classList.remove("hidden");
             document.getElementById("rd-warning-text").textContent = `${relevant.map((n) => `"${n}"`).join(" and ")} already exist. Variables will be added or updated — nothing deleted.`;

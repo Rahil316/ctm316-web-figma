@@ -53,9 +53,9 @@ let appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
 
 function loadFromStorage() {
   try {
-    const raw = localStorage.getItem("ttm316_state");
-    if (raw) {
-      const parsed = JSON.parse(raw);
+    const colorRamp = localStorage.getItem("ttm316_state");
+    if (colorRamp) {
+      const parsed = JSON.parse(colorRamp);
       appState = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed);
       if (!appState.scale.scaleOverrides) appState.scale.scaleOverrides = {};
       appState.roles = migrateRoles(appState.roles);
@@ -532,7 +532,10 @@ function handleRoleInput(ri, field, val) {
   if (field === "name") {
     role.name = val;
     const card = document.querySelector(`.role-card[data-idx="${ri}"]`);
-    if (card) { const lbl = card.querySelector(".role-name-display"); if (lbl) lbl.textContent = val || "Unnamed"; }
+    if (card) {
+      const lbl = card.querySelector(".role-name-display");
+      if (lbl) lbl.textContent = val || "Unnamed";
+    }
   } else if (field === "shortName") {
     role.shortName = val;
   } else {
@@ -569,7 +572,11 @@ function handleVariationInput(ri, vi, field, val, el) {
     const row = el && el.closest(".variation-row");
     if (row) {
       const valInput = row.querySelector(".lh-value-input");
-      if (valInput) { valInput.disabled = val === "AUTO"; valInput.classList.toggle("opacity-30", val === "AUTO"); valInput.classList.toggle("pointer-events-none", val === "AUTO"); }
+      if (valInput) {
+        valInput.disabled = val === "AUTO";
+        valInput.classList.toggle("opacity-30", val === "AUTO");
+        valInput.classList.toggle("pointer-events-none", val === "AUTO");
+      }
       const lbl = row.querySelector(".lh-unit-label");
       if (lbl) lbl.textContent = val === "PERCENT" ? "% of size" : val === "PIXELS" ? "px" : "auto";
     }
@@ -582,7 +589,10 @@ function handleVariationInput(ri, vi, field, val, el) {
     if (!vr.letterSpacing) vr.letterSpacing = { unit: "PERCENT", value: 0 };
     vr.letterSpacing.unit = val;
     const row = el && el.closest(".variation-row");
-    if (row) { const lbl = row.querySelector(".ls-unit-label"); if (lbl) lbl.textContent = val === "PERCENT" ? "%" : "px"; }
+    if (row) {
+      const lbl = row.querySelector(".ls-unit-label");
+      if (lbl) lbl.textContent = val === "PERCENT" ? "%" : "px";
+    }
     renderPreviewRoles();
   } else if (field === "letterSpacingValue") {
     if (!vr.letterSpacing) vr.letterSpacing = { unit: "PERCENT", value: 0 };

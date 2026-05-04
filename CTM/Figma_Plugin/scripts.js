@@ -5,7 +5,7 @@
  * 2. Message Router
  * 3. Config Translator  (appState → reference engine format)
  * 4. Export Formatters  (CSV / CSS / JSON / SCSS)
- * 5. Figma Variable API (CRUD – _raw + contextual collections)
+ * 5. Figma Variable API (CRUD – _color_Ramps + tokens collections)
  * 6. Color Ramp Maker   (Linear / Balanced / Symmetric)
  * 7. Color System Generator (variableMaker – ramps + semantic tokens)
  * 8. Color Math Utilities  (WCAG-correct conversions from Utils.js)
@@ -21,9 +21,9 @@ figma.showUI(__html__, { width: 424, height: 720, themeColors: true });
     const cfgVar = vars.find((v) => v.name === "__ctm316_config__");
     if (cfgVar) {
       const modeId = Object.keys(cfgVar.valuesByMode)[0];
-      const raw = cfgVar.valuesByMode[modeId];
-      if (typeof raw === "string") {
-        figma.ui.postMessage({ type: "load-config", state: JSON.parse(raw) });
+      const colorRamps = cfgVar.valuesByMode[modeId];
+      if (typeof colorRamps === "string") {
+        figma.ui.postMessage({ type: "load-config", state: JSON.parse(colorRamps) });
       }
     }
   } catch (_) {}
@@ -42,7 +42,7 @@ figma.ui.onmessage = async (msg) => {
 
       case "check-collections": {
         const cols = await figma.variables.getLocalVariableCollectionsAsync();
-        const names = [msg.rawName, msg.contextualName].filter(Boolean);
+        const names = [msg.colorName, msg.contextualName].filter(Boolean);
         const existing = names.filter((n) => cols.some((c) => c.name === n));
         figma.ui.postMessage({ type: "collection-check-result", existing });
         break;
@@ -57,7 +57,7 @@ figma.ui.onmessage = async (msg) => {
         const result = variableMaker(config);
         let content = "";
         if (msg.exportType === "json") content = JSON.stringify({ config, colorRamps: result.colorRamps, colorTokens: result.colorTokens, errors: result.errors }, null, 2);
-        else if (msg.exportType === "csv")  content = ExportFormatter.toCSV(result, config);
+        else if (msg.exportType === "csv") content = ExportFormatter.toCSV(result, config);
         else if (msg.exportType === "css") content = ExportFormatter.toCSS(result, config);
         else if (msg.exportType === "scss") content = generateScss(result, config);
         figma.ui.postMessage({ type: "processed-data-response", content, exportType: msg.exportType });
@@ -122,7 +122,7 @@ function translateConfig(appState) {
       { name: "light", bg: themes[0].bg || "FFFFFF" },
       { name: "dark", bg: themes[1].bg || "000000" },
     ],
-    skipRawRamps: appState.skipRawRamps || false,
+    skipColorRamps: appState.skipColorRamps || false,
     tokenGrouping: appState.tokenGrouping || "color",
     useShortColorNames: appState.useShortColorNames || false,
     useShortRoleNames: appState.useShortRoleNames || false,
@@ -135,7 +135,11 @@ const REF_VARIATION_KEYS = ["weakest", "weak", "base", "strong", "stronger"];
 // Converts any string to a safe CSS identifier segment: lowercase, spaces/underscores → dashes.
 function cssSlug(str) {
   if (!str) return "";
-  return String(str).toLowerCase().trim().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "");
+  return String(str)
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
 }
 
 // Escapes a CSV field that contains commas, quotes, or newlines.
@@ -146,25 +150,17 @@ function csvField(val) {
 
 const ExportFormatter = {
   // ── CSV ─────────────────────────────────────────────────────────────────────
-  // Two sections: raw ramps + role tokens.
+  // Two sections: color ramps + role tokens.
   toCSV(result, config) {
     const roleStepNames = config.roleStepNames || REF_VARIATION_KEYS;
     const lines = [];
 
-    // Section 1: Raw color ramps
-    lines.push("RAW COLOR RAMPS");
+    // Section 1: color ramps
+    lines.push("COLOR RAMPS");
     lines.push("Group,Weight,Hex,Light Contrast,Light Rating,Dark Contrast,Dark Rating");
     for (const [colorName, ramp] of Object.entries(result.colorRamps)) {
       for (const [weightName, entry] of Object.entries(ramp)) {
-        lines.push([
-          csvField(colorName),
-          csvField(weightName),
-          csvField(entry.value),
-          csvField(entry.contrast.light.ratio),
-          csvField(entry.contrast.light.rating),
-          csvField(entry.contrast.dark.ratio),
-          csvField(entry.contrast.dark.rating),
-        ].join(","));
+        lines.push([csvField(colorName), csvField(weightName), csvField(entry.value), csvField(entry.contrast.light.ratio), csvField(entry.contrast.light.rating), csvField(entry.contrast.dark.ratio), csvField(entry.contrast.dark.rating)].join(","));
       }
     }
 
@@ -181,16 +177,7 @@ const ExportFormatter = {
             const token = variations[REF_VARIATION_KEYS[i]];
             if (!token) continue;
             const dispName = roleStepNames[i] || REF_VARIATION_KEYS[i];
-            lines.push([
-              csvField(colorName),
-              csvField(roleName),
-              csvField(dispName),
-              csvField(theme),
-              csvField(token.value),
-              csvField(token.contrast ? token.contrast.ratio : ""),
-              csvField(token.contrast ? token.contrast.rating : ""),
-              csvField(token.isAdjusted ? "yes" : ""),
-            ].join(","));
+            lines.push([csvField(colorName), csvField(roleName), csvField(dispName), csvField(theme), csvField(token.value), csvField(token.contrast ? token.contrast.ratio : ""), csvField(token.contrast ? token.contrast.rating : ""), csvField(token.isAdjusted ? "yes" : "")].join(","));
           }
         }
       }
@@ -206,8 +193,8 @@ const ExportFormatter = {
     const date = new Date().toISOString();
     let css = `/* ${config.name} — generated by ctm316 | ${date} */\n\n`;
 
-    // Raw ramps in :root
-    css += `:root {\n  /* ── Raw Color Ramps ── */\n`;
+    // Color ramps in :root
+    css += `:root {\n  /* ── Color Ramps ── */\n`;
     for (const [colorName, ramp] of Object.entries(result.colorRamps)) {
       css += `\n  /* ${colorName} */\n`;
       for (const [weightName, entry] of Object.entries(ramp)) {
@@ -276,7 +263,7 @@ function generateScss(result, config) {
   scss += `@use 'sass:map';\n\n`;
 
   // ── 1. Flat ramp variables ($primary-1, $primary-2 …)
-  scss += hr("RAW COLOR RAMP VARIABLES");
+  scss += hr("COLOR RAMP VARIABLES");
   for (const [group, weights] of Object.entries(result.colorRamps)) {
     scss += `// ${group}\n`;
     for (const [weight, data] of Object.entries(weights)) {
@@ -359,9 +346,9 @@ const VariableManager = {
     this.rawVarNameMap = {};
     await this.refreshCache();
 
-    const rawName = (appState && appState.rawCollectionName) || "_raw";
+    const colorName = (appState && appState.colorsCollectionName) || "_Colors";
     const contextualName = (appState && appState.contextualCollectionName) || "contextual";
-    const skipRaw = config.skipRawRamps || false;
+    const skipRaw = config.skipColorRamps || false;
     const tokenGrouping = config.tokenGrouping || "color";
     const useShortColor = config.useShortColorNames || false;
     const useShortRole = config.useShortRoleNames || false;
@@ -387,9 +374,9 @@ const VariableManager = {
 
     const roleStepNames = config.roleStepNames || REF_VARIATION_KEYS;
 
-    // STAGE 1: Raw Color Ramps → raw collection (skipped when skipRawRamps is true)
+    // STAGE 1: Color Ramps → color collection (skipped when skipColorRamps is true)
     if (!skipRaw && (scope === "all" || scope === "groups")) {
-      const rawCol = await this.getOrCreateCollection(rawName);
+      const rawCol = await this.getOrCreateCollection(colorName);
       const modeId = rawCol.modes[0].modeId;
       for (const [colorName, ramp] of Object.entries(result.colorRamps)) {
         const cLabel = colorLabel(colorName);
@@ -401,7 +388,7 @@ const VariableManager = {
     // STAGE 2: Semantic Role Tokens → contextual collection
     if (scope === "all" || scope === "roles") {
       const contextualCol = await this.getOrCreateCollection(contextualName);
-      const rawCol = skipRaw ? null : await this.getOrCreateCollection(rawName);
+      const rawCol = skipRaw ? null : await this.getOrCreateCollection(colorName);
 
       for (const theme of ["light", "dark"]) {
         const modeId = this.ensureMode(contextualCol, theme);
@@ -414,9 +401,7 @@ const VariableManager = {
               const token = variations[refKey];
               if (!token) return null;
               const dispName = roleStepNames[i] || refKey;
-              const figmaName = tokenGrouping === "role"
-                ? `${rLabel}/${cLabel}/${dispName}`
-                : `${cLabel}/${rLabel}/${dispName}`;
+              const figmaName = tokenGrouping === "role" ? `${rLabel}/${cLabel}/${dispName}` : `${cLabel}/${rLabel}/${dispName}`;
               let value;
               if (skipRaw) {
                 value = token.value;
@@ -436,17 +421,15 @@ const VariableManager = {
 
     // Persist config so the plugin can restore state on next launch
     if (appState) {
-      await this.saveConfig(appState, rawName);
+      await this.saveConfig(appState, colorName);
     }
 
     figma.ui.postMessage({ type: "finish", tally: this.tally, errors: result ? result.errors : null });
   },
 
-  async saveConfig(appState, rawName) {
+  async saveConfig(appState, colorName) {
     try {
-      const targetName = appState.skipRawRamps
-        ? (appState.contextualCollectionName || "contextual")
-        : rawName;
+      const targetName = appState.skipColorRamps ? appState.contextualCollectionName || "contextual" : colorName;
       const rawCol = await this.getOrCreateCollection(targetName);
       const modeId = rawCol.modes[0].modeId;
       let cfgVar = this.cache.variables.find((v) => v.name === "__ctm316_config__" && v.variableCollectionId === rawCol.id);
@@ -542,7 +525,7 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
     const maxV = Math.log(1.05);
     const step = (maxV - minV) / (rampLength + 1);
     const output = [];
-    
+
     const isNatural = rampType.includes("Natural") || rampType.includes("Dynamic");
     const isDynamic = rampType.includes("Dynamic");
 
@@ -551,7 +534,7 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
       let low = 0,
         high = 100,
         closestL = 50;
-      
+
       // Binary search for HSL lightness to match target Relative Luminance
       for (let j = 0; j < 30; j++) {
         const mid = (low + high) / 2;
@@ -561,10 +544,11 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
         let searchH = hue;
         if (isDynamic) {
           const dist = (mid - 50) / 50;
-          if (dist > 0) searchH += (60 - hue) * dist * 0.15; // Shift towards yellow in lights
+          if (dist > 0)
+            searchH += (60 - hue) * dist * 0.15; // Shift towards yellow in lights
           else searchH += (240 - hue) * Math.abs(dist) * 0.15; // Shift towards blue in darks
         }
-        
+
         const midLum = relLum(hslToHex(searchH, searchS, mid));
         closestL = mid;
         if (Math.abs(midLum - targetLum) < 0.0001) break;
@@ -991,5 +975,3 @@ function seriesMaker(x) {
   for (let i = 1; i <= x; i++) out.push(i);
   return out;
 }
-
-
