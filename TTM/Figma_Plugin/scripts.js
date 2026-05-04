@@ -663,9 +663,9 @@ function resolveRoleStyles(role, scaleSteps, config) {
 
   for (var v = 0; v < variations.length; v++) {
     var vr = variations[v];
-    var rawIdx = parseInt(vr.scaleIndex) || 0;
-    var scaleIdx = Math.max(0, Math.min(scaleSteps.length - 1, rawIdx));
-    if (rawIdx !== scaleIdx) errors.push('Role "' + role.name + '" variation ' + v + ": scale index " + rawIdx + " clamped to " + scaleIdx + ".");
+    var rampIdx = parseInt(vr.scaleIndex) || 0;
+    var scaleIdx = Math.max(0, Math.min(scaleSteps.length - 1, rampIdx));
+    if (rampIdx !== scaleIdx) errors.push('Role "' + role.name + '" variation ' + v + ": scale index " + rampIdx + " clamped to " + scaleIdx + ".");
 
     var fontDef = config.fonts.filter(function (f) {
       return f.slot === role.fontSlot;

@@ -255,13 +255,13 @@ Returns only the error entries matching `theme` ("light" or "dark"). Returns `nu
 
 #### `displayColorTokens(collection)`
 
-Main render function. Rebuilds the three tab panels (`#panel-colorRamps`, `#panel-tokens-light`, `#panel-tokens-dark`) inside `#rawColorsContainer` using a DocumentFragment for batched DOM insertion. Preserves the currently active tab. Registers the tab-switch click listener once (guarded by `window.tabListenersSet`).
+Main render function. Rebuilds the three tab panels (`#panel-colorRamps`, `#panel-tokens-light`, `#panel-tokens-dark`) inside `#colorRampsContainer` using a DocumentFragment for batched DOM insertion. Preserves the currently active tab. Registers the tab-switch click listener once (guarded by `window.tabListenersSet`).
 
 #### `createErrorSection(errors) → HTMLElement`
 
 Renders a collapsible warning/error panel with three sub-sections (Critical / Warnings / Notices). Each item displays color group, role, and variation context badges alongside the message. Wires the collapse toggle.
 
-#### `createRawSection(colorRamps) → string` (returns HTML string)
+#### `createColorsSection(colorRamps) → string` (returns HTML string)
 
 Generates the HTML for the Color Ramps tab — one card per ramp step showing hex value, step name, and dual contrast pills (light ☀️ / dark 🌙).
 
@@ -357,18 +357,18 @@ App entry point. Deep-clones `demoConfig` into `window.currentEditableScheme`, b
 
 **Export formatters. Pure functions (except `downloadCss` and `downloadCSV` which trigger browser downloads).**
 
-#### `flattenToCss(collection) → { raw, light, dark }`
+#### `flattenToCss(collection) → { colorRamps, light, dark }`
 
 Converts `variableMaker` output into three dictionaries of CSS variable declarations:
 
-- `raw` — `--{color}-{step}: #RRGGBB` (ramp primitives)
+- `colorRamps` — `--{color}-{step}: #RRGGBB` (color ramp primitives)
 - `light` / `dark` — `--{color}-{role}-{variation}: var(--{color}-{step})` (semantic tokens referencing ramp vars)
 
 #### `generateCss(cssVars) → string`
 
 Assembles a single CSS file string:
 
-1. `:root` block with raw ramp variables
+1. `:root` block with color ramp variables
 2. `:root, .light, [data-theme="light"]` block with light tokens
 3. `@media (prefers-color-scheme: dark) { :root { … } }` + `.dark, [data-theme="dark"]` block with dark tokens
 
@@ -376,7 +376,7 @@ Assembles a single CSS file string:
 
 Simplified variant using `.light-theme` / `.dark-theme` class selectors (no media query).
 
-#### `generateSeparateCssFiles(cssVars) → { raw, light, dark }`
+#### `generateSeparateCssFiles(cssVars) → { colorRamps, light, dark }`
 
 Returns three separate CSS file strings.
 
@@ -443,7 +443,7 @@ Converts the UI's `appState` object (which uses 1-indexed step numbers and strin
 
 Manages Figma Variable CRUD operations:
 
-- **`sync(result, config, scope, appState)`** — creates/updates the raw ramp collection and the contextual token collection. `scope` controls whether to write `"raw"`, `"contextual"`, or `"all"`.
+- **`sync(result, config, scope, appState)`** — creates/updates the color ramps collection and the contextual token collection. `scope` controls whether to write `"groups"`, `"roles"`, or `"all"`.
 - Internal helpers for creating/finding collections, modes, and variables.
 
 #### `ExportFormatter`
@@ -544,7 +544,7 @@ window.activeSidebarTab      ← "color-groups" | "roles-config" | "basic-settin
 
 | Format | Function                              | Output                                                      |
 | ------ | ------------------------------------- | ----------------------------------------------------------- |
-| CSS    | `downloadCss(scheme)`                 | Single file: `:root` raw vars + themed token vars           |
+| CSS    | `downloadCss(scheme)`                 | Single file: `:root` color ramp vars + themed token vars    |
 | SCSS   | `generateScss(collection)`            | Variable declarations + `$light-theme` / `$dark-theme` maps |
 | JSON   | `exportColorScheme(scheme)`           | Full scheme config (re-importable)                          |
 | CSV    | `downloadCSV` + `flattenTokensForCsv` | One row per token variation, both themes                    |

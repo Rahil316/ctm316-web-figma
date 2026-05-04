@@ -24,14 +24,14 @@ function filterErrorsByTheme(errors, theme) {
 }
 
 function displayColorTokens(collection) {
-  const container = document.getElementById("rawColorsContainer");
+  const container = document.getElementById("colorRampsContainer");
   container.classList.add("color-system-updating");
   const fragment = document.createDocumentFragment();
 
-  const rawPanel = document.createElement("div");
-  rawPanel.id = "panel-colorRamps";
-  rawPanel.classList.add("tab-panel");
-  rawPanel.innerHTML = createRawSection(collection.colorRamps);
+  const rampsPanel = document.createElement("div");
+  rampsPanel.id = "panel-colorRamps";
+  rampsPanel.classList.add("tab-panel");
+  rampsPanel.innerHTML = createColorsSection(collection.colorRamps);
 
   const lightPanel = document.createElement("div");
   lightPanel.id = "panel-tokens-light";
@@ -49,11 +49,11 @@ function displayColorTokens(collection) {
 
   const activeTabBtn = document.querySelector(".tab-btn.active");
   const activeTargetId = activeTabBtn ? activeTabBtn.dataset.target : "panel-colorRamps";
-  if (activeTargetId === "panel-colorRamps") rawPanel.classList.add("active");
+  if (activeTargetId === "panel-colorRamps") rampsPanel.classList.add("active");
   if (activeTargetId === "panel-tokens-light") lightPanel.classList.add("active");
   if (activeTargetId === "panel-tokens-dark") darkPanel.classList.add("active");
 
-  fragment.appendChild(rawPanel);
+  fragment.appendChild(rampsPanel);
   fragment.appendChild(lightPanel);
   fragment.appendChild(darkPanel);
   container.innerHTML = "";
@@ -133,11 +133,11 @@ function createErrorSection(errors) {
   return section;
 }
 
-function createRawSection(colorRamps) {
+function createColorsSection(colorRamps) {
   // const section = document.createElement("div");
   // section.className = "bg-[var(--bg-card)] border border-[var(--border)] mb-4 p-4 rounded-[8px]";
 
-  const rawHTML = Object.entries(colorRamps)
+  const rampsHTML = Object.entries(colorRamps)
     .map(([colorGroup, weights]) => {
       const swatchesHTML = Object.entries(weights)
         .map(([, data]) => {
@@ -178,8 +178,8 @@ function createRawSection(colorRamps) {
     })
     .join("");
 
-  // section.innerHTML = rawHTML;
-  return rawHTML;
+  // section.innerHTML = rampsHTML;
+  return rampsHTML;
 }
 
 function createThemeSection(colorTokens, theme) {
@@ -195,12 +195,13 @@ function createThemeSection(colorTokens, theme) {
 
   for (const [colorGroup, roles] of Object.entries(colorTokens)) {
     if (!roles || Object.keys(roles).length === 0) {
-      container.innerHTML = `
-      <div class="p-4 rounded-[8px] border border-[var(--border)] mb-4 ${isDark ? "bg-black" : "bg-[var(--bg-card)]"}">
+      const emptyDiv = document.createElement("div");
+      emptyDiv.className = `p-4 rounded-[8px] border border-[var(--border)] mb-4 ${isDark ? "bg-black" : "bg-[var(--bg-card)]"}`;
+      emptyDiv.innerHTML = `
         <h4 class="text-[11px] font-bold tracking-[0.8px] mb-3 ${isDark ? "text-[var(--text-dim)]" : "text-[var(--text-muted)]"}">${colorGroup}</h4>
-        <p>No roles generated</p>
-      </div>`;
-      return;
+        <p>No roles generated</p>`;
+      container.appendChild(emptyDiv);
+      continue;
     }
 
     // Main group container
@@ -353,23 +354,23 @@ function createColorInputs(colorScheme, onUpdate) {
         const path = target.dataset.path;
         if (!path) return;
         const pathParts = path.split(".");
-        const rawVal = target.value;
+        const inputVal = target.value;
         const type = target.type;
         if (updateTimeout) clearTimeout(updateTimeout);
         updateTimeout = setTimeout(() => {
           const activeScheme = window.currentEditableScheme;
           if (!activeScheme) return;
           if (type === "text" && target.classList.contains("color-text")) {
-            const normalized = normalizeHex(rawVal);
+            const normalized = normalizeHex(inputVal);
             if (!normalized) return;
             updateColorScheme(activeScheme, pathParts, normalized.replace("#", ""));
           } else if (type === "number") {
-            const n = rawVal === "" ? 0 : Number(rawVal);
+            const n = inputVal === "" ? 0 : Number(inputVal);
             updateColorScheme(activeScheme, pathParts, Number.isFinite(n) ? n : 0);
           } else if (type === "color") {
-            updateColorScheme(activeScheme, pathParts, rawVal.replace("#", ""));
+            updateColorScheme(activeScheme, pathParts, inputVal.replace("#", ""));
           } else {
-            updateColorScheme(activeScheme, pathParts, rawVal);
+            updateColorScheme(activeScheme, pathParts, inputVal);
           }
           if (typeof onUpdate === "function") onUpdate(activeScheme);
         }, 350);

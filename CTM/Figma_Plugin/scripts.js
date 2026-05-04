@@ -21,9 +21,9 @@ figma.showUI(__html__, { width: 424, height: 720, themeColors: true });
     const cfgVar = vars.find((v) => v.name === "__ctm316_config__");
     if (cfgVar) {
       const modeId = Object.keys(cfgVar.valuesByMode)[0];
-      const colorRamps = cfgVar.valuesByMode[modeId];
-      if (typeof colorRamps === "string") {
-        figma.ui.postMessage({ type: "load-config", state: JSON.parse(colorRamps) });
+      const savedConfigStr = cfgVar.valuesByMode[modeId];
+      if (typeof savedConfigStr === "string") {
+        figma.ui.postMessage({ type: "load-config", state: JSON.parse(savedConfigStr) });
       }
     }
   } catch (_) {}
@@ -339,16 +339,16 @@ function generateScss(result, config) {
 const VariableManager = {
   tally: { created: 0, updated: 0, failed: 0 },
   cache: { variables: [], collections: [] },
-  rawVarNameMap: {}, // stepName ("primary-1") → figma variable name ("primary/1")
+  rampVarNameMap: {}, // stepName ("primary-1") → figma variable name ("primary/1")
 
   async sync(result, config, scope = "all", appState = null) {
     this.tally = { created: 0, updated: 0, failed: 0 };
-    this.rawVarNameMap = {};
+    this.rampVarNameMap = {};
     await this.refreshCache();
 
     const colorName = (appState && appState.colorsCollectionName) || "_Colors";
     const contextualName = (appState && appState.contextualCollectionName) || "contextual";
-    const skipRaw = config.skipColorRamps || false;
+    const skipRamps = config.skipColorRamps || false;
     const tokenGrouping = config.tokenGrouping || "color";
     const useShortColor = config.useShortColorNames || false;
     const useShortRole = config.useShortRoleNames || false;
@@ -368,27 +368,32 @@ const VariableManager = {
     // Build tknRef → Figma variable name map using the same naming as stage 1
     for (const [colorName, ramp] of Object.entries(result.colorRamps)) {
       for (const [weightName, entry] of Object.entries(ramp)) {
-        this.rawVarNameMap[entry.stepName] = `${colorLabel(colorName)}/${weightName}`;
+        this.rampVarNameMap[entry.stepName] = `${colorLabel(colorName)}/${weightName}`;
       }
     }
 
     const roleStepNames = config.roleStepNames || REF_VARIATION_KEYS;
 
+    // Fetch ramps collection once — used by both stages when applicable
+    const needsRampsCol = !skipRamps && (scope === "all" || scope === "groups" || scope === "roles");
+    const rampsCol = needsRampsCol ? await this.getOrCreateCollection(colorName) : null;
+
     // STAGE 1: Color Ramps → color collection (skipped when skipColorRamps is true)
-    if (!skipRaw && (scope === "all" || scope === "groups")) {
-      const rawCol = await this.getOrCreateCollection(colorName);
-      const modeId = rawCol.modes[0].modeId;
+    if (rampsCol && (scope === "all" || scope === "groups")) {
+      const modeId = rampsCol.modes[0].modeId;
+      const allRampVars = [];
       for (const [colorName, ramp] of Object.entries(result.colorRamps)) {
         const cLabel = colorLabel(colorName);
-        const vars = Object.entries(ramp).map(([weightName, entry]) => [`${cLabel}/${weightName}`, "COLOR", entry.value, `L:${entry.contrast.light.ratio}(${entry.contrast.light.rating}) D:${entry.contrast.dark.ratio}(${entry.contrast.dark.rating})`]);
-        await this.upsertVariables(rawCol, modeId, vars);
+        for (const [weightName, entry] of Object.entries(ramp)) {
+          allRampVars.push([`${cLabel}/${weightName}`, "COLOR", entry.value, `L:${entry.contrast.light.ratio}(${entry.contrast.light.rating}) D:${entry.contrast.dark.ratio}(${entry.contrast.dark.rating})`]);
+        }
       }
+      await this.upsertVariables(rampsCol, modeId, allRampVars);
     }
 
     // STAGE 2: Semantic Role Tokens → contextual collection
     if (scope === "all" || scope === "roles") {
       const contextualCol = await this.getOrCreateCollection(contextualName);
-      const rawCol = skipRaw ? null : await this.getOrCreateCollection(colorName);
 
       for (const theme of ["light", "dark"]) {
         const modeId = this.ensureMode(contextualCol, theme);
@@ -403,11 +408,11 @@ const VariableManager = {
               const dispName = roleStepNames[i] || refKey;
               const figmaName = tokenGrouping === "role" ? `${rLabel}/${cLabel}/${dispName}` : `${cLabel}/${rLabel}/${dispName}`;
               let value;
-              if (skipRaw) {
+              if (skipRamps) {
                 value = token.value;
               } else {
-                const rawFigmaName = this.rawVarNameMap[token.tknRef];
-                const targetVar = rawFigmaName ? this.cache.variables.find((cv) => cv.name === rawFigmaName && cv.variableCollectionId === rawCol.id) : null;
+                const rampFigmaName = this.rampVarNameMap[token.tknRef];
+                const targetVar = rampFigmaName ? this.cache.variables.find((cv) => cv.name === rampFigmaName && cv.variableCollectionId === rampsCol.id) : null;
                 value = targetVar ? { type: "VARIABLE_ALIAS", id: targetVar.id } : token.value;
               }
               const note = token.isAdjusted ? " | ⚠ Adjusted" : "";
@@ -430,11 +435,11 @@ const VariableManager = {
   async saveConfig(appState, colorName) {
     try {
       const targetName = appState.skipColorRamps ? appState.contextualCollectionName || "contextual" : colorName;
-      const rawCol = await this.getOrCreateCollection(targetName);
-      const modeId = rawCol.modes[0].modeId;
-      let cfgVar = this.cache.variables.find((v) => v.name === "__ctm316_config__" && v.variableCollectionId === rawCol.id);
+      const rampsCol = await this.getOrCreateCollection(targetName);
+      const modeId = rampsCol.modes[0].modeId;
+      let cfgVar = this.cache.variables.find((v) => v.name === "__ctm316_config__" && v.variableCollectionId === rampsCol.id);
       if (!cfgVar) {
-        cfgVar = figma.variables.createVariable("__ctm316_config__", rawCol, "STRING");
+        cfgVar = figma.variables.createVariable("__ctm316_config__", rampsCol, "STRING");
         this.cache.variables.push(cfgVar);
       }
       cfgVar.setValueForMode(modeId, JSON.stringify(appState));
@@ -778,8 +783,8 @@ function variableMaker(config) {
           const contrastGrowthDir = cEnd > cStart ? 1 : -1;
 
           const isDark = modeName === "dark";
-          const rawBase = isDark && role.darkBaseIndex !== undefined ? role.darkBaseIndex : role.baseIndex;
-          let baseIdx = rawBase !== undefined ? parseInt(rawBase) : rampLength >> 1;
+          const baseIndexSource = isDark && role.darkBaseIndex !== undefined ? role.darkBaseIndex : role.baseIndex;
+          let baseIdx = baseIndexSource !== undefined ? parseInt(baseIndexSource) : rampLength >> 1;
           const maxOffset = 2 * spread;
           const minAllowed = maxOffset;
           const maxAllowed = rampLength - 1 - maxOffset;

@@ -36,8 +36,8 @@ function flattenToCss(collection) {
             if (lastDash === -1) return;
             const refGroup = slugify(ref.substring(0, lastDash));
             const refWeight = slugify(ref.substring(lastDash + 1));
-            const rawVarRef = `var(--${refGroup}-${refWeight})`;
-            cssVars[theme][tokenName] = rawVarRef;
+            const varRef = `var(--${refGroup}-${refWeight})`;
+            cssVars[theme][tokenName] = varRef;
           });
         });
       });

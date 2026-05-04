@@ -368,8 +368,8 @@ function variableMaker(config) {
           const contrastGrowthDir = cEnd > cStart ? 1 : -1;
 
           const isDark = modeName === "dark";
-          const rawBase = isDark && role.darkBaseIndex !== undefined ? role.darkBaseIndex : role.baseIndex;
-          let baseIdx = rawBase !== undefined ? parseInt(rawBase) : rampLength >> 1;
+          const baseIndexSource = isDark && role.darkBaseIndex !== undefined ? role.darkBaseIndex : role.baseIndex;
+          let baseIdx = baseIndexSource !== undefined ? parseInt(baseIndexSource) : rampLength >> 1;
 
           const maxOffset = 2 * spread;
           const minAllowed = maxOffset;

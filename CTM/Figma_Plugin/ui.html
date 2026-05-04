@@ -26,6 +26,9 @@
         --danger-bg: rgba(231, 76, 60, 0.1);
         --success: #2ecc71;
         --warning: #f59e0b;
+        --creative: #e91e63;
+        --discovery: #00bcd4;
+        --secondary: #9b59b6;
         --font: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
         --font-mono: "SF Mono", "Cascadia Code", "Fira Code", monospace;
       }
@@ -901,6 +904,7 @@
       };
 
       let appState = JSON.parse(JSON.stringify(demoConfig));
+      const _demoConfigStr = JSON.stringify(demoConfig);
       let activeSidebarTab = "color-groups";
 
       /**
@@ -1285,8 +1289,8 @@
               let baseIdx;
               if (config.roleMapping === "Manual Base Index") {
                 const isDarkMode = modeName === "dark";
-                const rawBase = isDarkMode && role.darkBaseIndex !== undefined ? role.darkBaseIndex : role.baseIndex;
-                baseIdx = rawBase !== undefined ? parseInt(rawBase) : rampLength >> 1;
+                const baseIndexSource = isDarkMode && role.darkBaseIndex !== undefined ? role.darkBaseIndex : role.baseIndex;
+                baseIdx = baseIndexSource !== undefined ? parseInt(baseIndexSource) : rampLength >> 1;
               } else {
                 baseIdx = -1;
                 const isDark = modeName === "dark";
@@ -1773,7 +1777,7 @@
         const lightBgHex = normalizeHex(appState.themes[0].bg) || "#FFFFFF";
         const darkBgHex = normalizeHex(appState.themes[1].bg) || "#000000";
 
-        // Colors Ramps Tab
+        // Color Ramps Tab
         const colorEl = document.getElementById("preview-colors");
         colorEl.innerHTML = "";
         for (const [colorName, ramp] of Object.entries(result.colorRamps)) {
@@ -1798,7 +1802,7 @@
 
           for (const [weight, data] of Object.entries(ramp)) {
             const step = document.createElement("div");
-            step.className = `bg-[${data.value}] flex-1 h-full hover:flex-[4] hover:z-10 hover:[transform:scaleY(1.15)] hover:rounded-[8px] hover:[box-shadow:0_15px_40px_#00000044]`;
+            step.className = `preview-swatch bg-[${data.value}] flex-1 h-full hover:flex-[4] hover:z-10 hover:[transform:scaleY(1.15)] hover:rounded-[8px] hover:[box-shadow:0_15px_40px_#00000044]`;
             step.setAttribute("data-copy", data.value);
 
             step.onmouseenter = () => {
@@ -1824,7 +1828,7 @@
 
             const section = document.createElement("div");
             section.innerHTML = `
-              <div class="grid grid-col-3[32px_1fr_auto]>
+              <div class="grid grid-cols-[32px_1fr_auto]">
                 <div class="size-6 rounded-md bg-[${baseColor}]"></div>
                 <div class="text-[12px] font-bold">${colorName}</div>
               </div>
@@ -1846,7 +1850,7 @@
               for (const [varKey, token] of Object.entries(variations)) {
                 if (!token) continue;
                 const card = document.createElement("div");
-                card.className = "bg-[#8888880d] border border-[#8888881a] rounded-[20px] p-1.5 flex flex-col gap-1.5 transition-all duration-140 ease-in-out cursor-pointer hover:bg-[#8888881a] hover:-translate-y-1 hover:shadow-[0_12px_30px_#0000001f]";
+                card.className = "preview-swatch bg-[#8888880d] border border-[#8888881a] rounded-[20px] p-1.5 flex flex-col gap-1.5 transition-all duration-140 ease-in-out cursor-pointer hover:bg-[#8888881a] hover:-translate-y-1 hover:shadow-[0_12px_30px_#0000001f]";
                 card.setAttribute("data-copy", token.value);
                 card.setAttribute("data-copy-name", token.tknName);
 
@@ -1892,7 +1896,7 @@
           for (const e of allErrors.warnings) {
             const item = document.createElement("div");
             item.className = "py-1 px-3 text-[10px] text-[var(--warning)] border-t border-[var(--border)]";
-            item.textContent = `⚠️ ${e.color} · ${e.role} [${e.theme}]: ${e.error}`;
+            item.textContent = `⚠️ ${e.color} · ${e.role} [${e.theme}]: ${e.warning}`;
             body.appendChild(item);
           }
         } else {
@@ -1999,7 +2003,7 @@
 
       document.getElementById("btn-preview").onclick = () => {
         const result = variableMakerUI(translateConfigForPreview(appState));
-        // Reset to Colors Ramps tab each time
+        // Reset to Color Ramps tab each time
         document.querySelectorAll(".preview-tab-btn").forEach((b, i) => b.classList.toggle("active", i === 0));
         document.querySelectorAll(".preview-panel").forEach((p, i) => p.classList.toggle("active", i === 0));
         renderPreviewPanel(result);
@@ -2067,7 +2071,7 @@
 
       // --- IMPORT & SAFETY LOGIC ---
       function isStateDirty() {
-        return JSON.stringify(appState) !== JSON.stringify(demoConfig);
+        return JSON.stringify(appState) !== _demoConfigStr;
       }
 
       function validateImportData(json) {
@@ -2199,7 +2203,7 @@
         const existing = lastCollectionCheckResult;
         const colorName = appState.colorsCollectionName || "_Colors";
         const ctxName = appState.contextualCollectionName || "contextual";
-        const skipRaw = appState.skipColorRamps;
+        const skipRamps = appState.skipColorRamps;
         const tg = appState.tokenGrouping || "color";
         const shortC = appState.useShortColorNames;
         const shortR = appState.useShortRoleNames;
@@ -2212,9 +2216,9 @@
         const colsEl = document.getElementById("rd-collections");
         if (colsEl) {
           const rows = [];
-          if (!skipRaw && scope !== "roles") {
-            const rawExists = existing.includes(colorName);
-            rows.push(collectionRow(colorName, rawExists ? "UPDATE" : "CREATE", rawExists));
+          if (!skipRamps && scope !== "roles") {
+            const rampsExists = existing.includes(colorName);
+            rows.push(collectionRow(colorName, rampsExists ? "UPDATE" : "CREATE", rampsExists));
           }
           if (scope !== "groups") {
             const ctxExists = existing.includes(ctxName);
@@ -2250,7 +2254,7 @@
         // Warnings
         const warnEl = document.getElementById("rd-warnings");
         if (warnEl) {
-          const relevant = existing.filter((n) => (n === colorName && !skipRaw && scope !== "roles") || (n === ctxName && scope !== "groups"));
+          const relevant = existing.filter((n) => (n === colorName && !skipRamps && scope !== "roles") || (n === ctxName && scope !== "groups"));
           if (relevant.length > 0) {
             warnEl.classList.remove("hidden");
             document.getElementById("rd-warning-text").textContent = `${relevant.map((n) => `"${n}"`).join(" and ")} already exist. Variables will be added or updated — nothing deleted.`;
