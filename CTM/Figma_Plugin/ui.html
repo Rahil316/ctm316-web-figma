@@ -898,8 +898,8 @@
           { name: "Border", shortName: "br", spread: 1, minContrast: 2.0, baseIndex: 11 },
         ],
         themes: [
-          { name: "Light", bg: "FFFFFF" },
-          { name: "Dark", bg: "000000" },
+          { name: "light", bg: "FFFFFF" },
+          { name: "dark", bg: "000000" },
         ],
       };
 
@@ -1685,8 +1685,8 @@
         };
         if (!appState.themes)
           appState.themes = [
-            { name: "Light", bg: "FFFFFF" },
-            { name: "Dark", bg: "000000" },
+            { name: "light", bg: "FFFFFF" },
+            { name: "dark", bg: "000000" },
           ];
         appState.themes[0].bg = sanitizeHex("setting-light-bg");
         appState.themes[1].bg = sanitizeHex("setting-dark-bg");
@@ -2126,6 +2126,11 @@
       function applyImport(json) {
         // Merge with defaults to ensure missing settings (if any from older versions) are populated
         appState = Object.assign({}, JSON.parse(JSON.stringify(demoConfig)), json);
+        // Normalize fields that web app exports as arrays but plugin expects as comma-strings
+        if (Array.isArray(appState.colorStepNames)) appState.colorStepNames = appState.colorStepNames.join(", ");
+        if (Array.isArray(appState.roleStepNames)) appState.roleStepNames = appState.roleStepNames.join(", ");
+        // Normalize theme names to lowercase so variableMaker keys always match
+        if (Array.isArray(appState.themes)) appState.themes = appState.themes.map((t) => Object.assign({}, t, { name: t.name.toLowerCase() }));
         renderColorGroups();
         renderRoles();
         syncInputsFromState();

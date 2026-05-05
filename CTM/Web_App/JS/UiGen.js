@@ -864,6 +864,10 @@ function isCurrentSchemeDirty() {
 }
 
 function applyImportedScheme(scheme) {
+  // Normalize theme names to lowercase so variableMaker keys always match
+  if (Array.isArray(scheme.themes)) {
+    scheme = Object.assign({}, scheme, { themes: scheme.themes.map((t) => Object.assign({}, t, { name: t.name.toLowerCase() })) });
+  }
   Object.assign(demoConfig, scheme);
   window.currentEditableScheme = JSON.parse(JSON.stringify(scheme));
   initializeColorControls();

@@ -78,8 +78,11 @@ figma.ui.onmessage = async (msg) => {
 function translateConfig(appState) {
   const count = Math.max(1, parseInt(appState.colorSteps) || 23);
 
-  // Weight (step) names
-  const userWeightNames = appState.colorStepNames && appState.colorStepNames.trim() ? appState.colorStepNames.split(",").map((n) => n.trim()) : null;
+  // Weight (step) names — colorStepNames can be a comma-string (plugin) or array (web app export)
+  const colorStepRaw = Array.isArray(appState.colorStepNames)
+    ? appState.colorStepNames.join(",")
+    : appState.colorStepNames || "";
+  const userWeightNames = colorStepRaw.trim() ? colorStepRaw.split(",").map((n) => n.trim()) : null;
   let stepNames = null;
   if (userWeightNames && userWeightNames.length > 0) {
     const names = userWeightNames.slice();
@@ -87,8 +90,11 @@ function translateConfig(appState) {
     stepNames = names.slice(0, count);
   }
 
-  // Role variation display names (maps to the 5 fixed reference keys)
-  const userVarNames = (appState.roleStepNames || "")
+  // Role variation display names — roleStepNames can be a comma-string (plugin) or array (web app export)
+  const roleStepRaw = Array.isArray(appState.roleStepNames)
+    ? appState.roleStepNames.join(",")
+    : appState.roleStepNames || "";
+  const userVarNames = roleStepRaw
     .split(",")
     .map((v) => v.trim())
     .filter(Boolean);
@@ -525,43 +531,43 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
   }
 
   if (rampType === "Balanced" || rampType === "Balanced (Natural)" || rampType === "Balanced (Dynamic)") {
-    // Space target luminances logarithmically so perceptual steps feel even.
-    const minV = Math.log(0.05);
-    const maxV = Math.log(1.05);
-    const step = (maxV - minV) / (rampLength + 1);
+    // Space target luminances using cube-root (OKLAB-style) perceptual spacing.
+    // Fixed margins tMin/tMax keep endpoints consistent regardless of ramp length —
+    // short ramps (5 steps) get the same near-black/near-white anchors as long ones (21 steps).
+    const tMin = 0.02;
+    const tMax = 0.98;
     const output = [];
 
     const isNatural = rampType.includes("Natural") || rampType.includes("Dynamic");
     const isDynamic = rampType.includes("Dynamic");
 
     for (let i = 1; i <= rampLength; i++) {
-      const targetLum = Math.exp(minV + step * i) - 0.05;
-      let low = 0,
-        high = 100,
-        closestL = 50;
+      const t = rampLength === 1 ? (tMin + tMax) / 2 : tMin + ((tMax - tMin) * (i - 1)) / (rampLength - 1);
+      const targetLum = t ** 3;
 
-      // Binary search for HSL lightness to match target Relative Luminance
+      let low = 0;
+      let high = 100;
+      let closestL = 50;
+
       for (let j = 0; j < 30; j++) {
-        const mid = (low + high) / 2;
-        // Apply temporary saturation/hue for search if needed, but search usually depends on L mostly.
-        // For accuracy in search, we use the potentially shifted values.
+        let mid = (low + high) / 2;
+
         const searchS = isNatural ? satu * (1 - Math.pow(Math.abs(mid - 50) / 50, 1.5) * 0.4) : satu;
         let searchH = hue;
         if (isDynamic) {
           const dist = (mid - 50) / 50;
-          if (dist > 0)
-            searchH += (60 - hue) * dist * 0.15; // Shift towards yellow in lights
-          else searchH += (240 - hue) * Math.abs(dist) * 0.15; // Shift towards blue in darks
+          if (dist > 0) searchH += (60 - hue) * dist * 0.15;
+          else searchH += (240 - hue) * Math.abs(dist) * 0.15;
         }
 
-        const midLum = relLum(hslToHex(searchH, searchS, mid));
+        let midHex = hslToHex(searchH, searchS, mid);
+        let midLum = relLum(midHex);
         closestL = mid;
         if (Math.abs(midLum - targetLum) < 0.0001) break;
         if (midLum < targetLum) low = mid;
         else high = mid;
       }
 
-      // Final values for this step
       let finalS = satu;
       let finalH = hue;
       if (isNatural) {
@@ -579,36 +585,40 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
   }
 
   if (rampType === "Symmetric") {
-    // Same as Balanced, then shifts steps so the midpoint lands near 50% lightness.
-    // (We'll use standard Balanced logic here for simplicity, but it could be updated too)
-    const minV = Math.log(0.05);
-    const maxV = Math.log(1.05);
-    const step = (maxV - minV) / (rampLength + 1);
+    // Anchor the center step to the source color's own luminance, then space the ramp
+    // symmetrically outward in cube-root (perceptual) space to tMin/tMax.
+    // This guarantees the input color is the midpoint, monotonicity is preserved,
+    // and no post-hoc HSL shifting is needed.
+    const tMin = 0.02;
+    const tMax = 0.98;
+    const srcLum = relLum(normalizeHex(hexIn)) || 0.18;
+    const srcT = Math.cbrt(srcLum);
+    const midIdx = Math.floor((rampLength - 1) / 2);
     const output = [];
-    for (let i = 1; i <= rampLength; i++) {
-      const targetLum = Math.exp(minV + step * i) - 0.05;
-      let low = 0,
-        high = 100,
-        closestL = 50;
+
+    for (let i = 0; i < rampLength; i++) {
+      let t;
+      if (rampLength === 1) {
+        t = srcT;
+      } else if (i <= midIdx) {
+        t = tMin + ((srcT - tMin) * i) / midIdx;
+      } else {
+        t = srcT + ((tMax - srcT) * (i - midIdx)) / (rampLength - 1 - midIdx);
+      }
+      const targetLum = t ** 3;
+
+      let low = 0;
+      let high = 100;
+      let closestL = 50;
       for (let j = 0; j < 30; j++) {
-        const mid = (low + high) / 2;
-        const midLum = relLum(hslToHex(hue, satu, mid));
+        let mid = (low + high) / 2;
+        let midLum = relLum(hslToHex(hue, satu, mid));
         closestL = mid;
         if (Math.abs(midLum - targetLum) < 0.0001) break;
         if (midLum < targetLum) low = mid;
         else high = mid;
       }
       output.push(hslToHex(hue, satu, closestL) || "#000000");
-    }
-    const mid = Math.floor(output.length / 2);
-    const midLightness = hexToLum(output[mid]) || 50;
-    if (Math.abs(midLightness - 50) > 10) {
-      const shift = 50 - midLightness;
-      const adjusted = output.map((hex) => {
-        const l = Math.min(100, Math.max(0, (hexToLum(hex) || 50) + shift));
-        return hslToHex(hue, satu, l) || hex;
-      });
-      return adjusted.reverse();
     }
     return output.reverse();
   }
@@ -636,15 +646,19 @@ function variableMaker(config) {
     roleMapping: config.roleMapping,
   });
 
-  if (inputHash === lastInputHash && cachedOutput) return cachedOutput;
+  if (inputHash === lastInputHash && cachedOutput) {
+    return cachedOutput;
+  }
 
   const lightBg = normalizeHex(config.themes[0].bg);
   const darkBg = normalizeHex(config.themes[1].bg);
   const clrRampsCollection = Object.create(null);
-  const tokensCollection = { light: Object.create(null), dark: Object.create(null) };
+  const tokensCollection = {
+    light: Object.create(null),
+    dark: Object.create(null),
+  };
   const errors = { critical: [], warnings: [], notices: [] };
 
-  // Build color ramps with per-step WCAG contrast data
   for (const color of colors) {
     const colorRamp = colorRampMaker(color.value, rampLength, config.rampType);
     const ramp = Object.create(null);
@@ -653,21 +667,23 @@ function variableMaker(config) {
     for (let wIdx = 0; wIdx < rampLength; wIdx++) {
       const weight = stepNames[wIdx];
       const value = normalizeHex(colorRamp[wIdx]);
+      const lightContrast = contrastRatio(value, lightBg);
+      const darkContrast = contrastRatio(value, darkBg);
+
       ramp[weight] = {
         value,
         stepName: `${color.name}-${weight}`,
         shortName: `${color.shortName}-${weight}`,
         contrast: {
-          light: { ratio: contrastRatio(value, lightBg), rating: contrastRating(value, lightBg) },
-          dark: { ratio: contrastRatio(value, darkBg), rating: contrastRating(value, darkBg) },
+          light: { ratio: lightContrast, rating: contrastRating(value, lightBg) },
+          dark: { ratio: darkContrast, rating: contrastRating(value, darkBg) },
         },
       };
     }
   }
 
-  // Generate semantic tokens for each mode × color × role
   for (const mode of config.themes) {
-    const modeName = mode.name;
+    const modeName = mode.name.toLowerCase();
     const conTheme = tokensCollection[modeName];
 
     for (const color of colors) {
@@ -684,45 +700,66 @@ function variableMaker(config) {
           const conRole = Object.create(null);
           conGroup[roleName] = conRole;
 
-          // Determine which direction higher ramp index = more contrast
-          const cEnd = clrRampsCollection[clrName][stepNames[rampLength - 1]].contrast[modeName].ratio;
-          const cStart = clrRampsCollection[clrName][stepNames[0]].contrast[modeName].ratio;
-          const contrastGrowthDir = cEnd > cStart ? 1 : -1;
-
-          // Find base index: first step meeting minContrast
           let baseIdx = -1;
-          if (modeName === "dark") {
+          const highestWeight = stepNames[rampLength - 1];
+          const lowestWeight = stepNames[0];
+          const cEnd = clrRampsCollection[clrName][highestWeight].contrast[modeName].ratio;
+          const cStart = clrRampsCollection[clrName][lowestWeight].contrast[modeName].ratio;
+          // +1: higher ramp index = more contrast (light bg). -1: lower index = more contrast (dark bg).
+          // Applied as a multiplier on spread offsets so "stronger" always means more contrast.
+          const contrastGrowthDir = cEnd > cStart ? 1 : -1;
+          const isDarkTheme = modeName === "dark";
+
+          if (isDarkTheme) {
             for (let i = rampLength - 1; i >= 0; i--) {
-              if (clrRampsCollection[clrName][stepNames[i]].contrast[modeName].ratio >= minC) {
+              const weight = stepNames[i];
+              const c = clrRampsCollection[clrName][weight].contrast[modeName].ratio;
+              if (c >= minC) {
                 baseIdx = i;
                 break;
               }
             }
           } else {
             for (let i = 0; i < rampLength; i++) {
-              if (clrRampsCollection[clrName][stepNames[i]].contrast[modeName].ratio >= minC) {
+              const weight = stepNames[i];
+              const c = clrRampsCollection[clrName][weight].contrast[modeName].ratio;
+              if (c >= minC) {
                 baseIdx = i;
                 break;
               }
             }
           }
 
-          // Fallback: use best available contrast
           if (baseIdx === -1) {
-            let bestIdx = -1,
-              maxContrast = -1;
+            let bestIdx = -1;
+            let maxContrast = -1;
             for (let i = 0; i < rampLength; i++) {
-              const c = clrRampsCollection[clrName][stepNames[i]].contrast[modeName].ratio;
+              const weight = stepNames[i];
+              const c = clrRampsCollection[clrName][weight].contrast[modeName].ratio;
               if (c > maxContrast) {
                 bestIdx = i;
                 maxContrast = c;
               }
             }
-            baseIdx = bestIdx !== -1 ? bestIdx : rampLength >> 1;
-            errors.critical.push({ color: clrName, role: roleName, theme: modeName, error: `Cannot meet minimum contrast ${minC}. Using closest available.` });
+            if (bestIdx !== -1) {
+              baseIdx = bestIdx;
+              errors.critical.push({
+                color: clrName,
+                role: roleName,
+                theme: modeName,
+                error: `Cannot meet minimum contrast ${minC}. using closest available (${maxContrast.toFixed(2)}).`,
+              });
+            } else {
+              baseIdx = rampLength >> 1;
+              errors.critical.push({
+                color: clrName,
+                role: roleName,
+                theme: modeName,
+                error: "Cannot evaluate contrast for any weight.",
+              });
+            }
           }
 
-          // Clamp so all 5 variations fit within ramp bounds; warn if base moved from contrast-found position
           const maxOffset = 2 * spread;
           const minAllowed = maxOffset;
           const maxAllowed = rampLength - 1 - maxOffset;
@@ -745,7 +782,8 @@ function variableMaker(config) {
             { key: "stronger", offset: 2 * spread },
           ];
 
-          for (const { key: variation, offset: pureOffset } of offsetValues) {
+          for (let vIdx = 0; vIdx < offsetValues.length; vIdx++) {
+            const { key: variation, offset: pureOffset } = offsetValues[vIdx];
             let idx = baseIdx + pureOffset * contrastGrowthDir;
             let adjusted = false;
             if (idx < 0) {
@@ -756,19 +794,32 @@ function variableMaker(config) {
               adjusted = true;
             }
 
-            const data = clrRampsCollection[clrName][stepNames[idx]];
+            const weight = stepNames[idx];
+            const data = clrRampsCollection[clrName][weight];
+
             conRole[variation] = {
               tknName: `${clrName}-${role.name}-${variation}`,
               color: clrName,
               role: role.name,
-              variation,
+              variation: variation,
               tknRef: data.stepName,
               value: data.value,
-              contrast: { ratio: data.contrast[modeName].ratio, rating: data.contrast[modeName].rating },
+              contrast: {
+                ratio: data.contrast[modeName].ratio,
+                rating: data.contrast[modeName].rating,
+              },
               variationOffset: pureOffset,
               isAdjusted: adjusted,
             };
-            if (adjusted) errors.warnings.push({ color: clrName, role: roleName, variation, theme: modeName, warning: `Variation '${variation}' clamped due to overflow.` });
+            if (adjusted) {
+              errors.warnings.push({
+                color: clrName,
+                role: roleName,
+                variation,
+                theme: modeName,
+                warning: `Variation '${variation}' clamped due to overflow`,
+              });
+            }
           }
         }
       } else if (config.roleMapping === "Manual Base Index") {
@@ -778,13 +829,16 @@ function variableMaker(config) {
           const conRole = Object.create(null);
           conGroup[roleName] = conRole;
 
-          const cEnd = clrRampsCollection[clrName][stepNames[rampLength - 1]].contrast[modeName].ratio;
-          const cStart = clrRampsCollection[clrName][stepNames[0]].contrast[modeName].ratio;
+          const highestWeight = stepNames[rampLength - 1];
+          const lowestWeight = stepNames[0];
+          const cEnd = clrRampsCollection[clrName][highestWeight].contrast[modeName].ratio;
+          const cStart = clrRampsCollection[clrName][lowestWeight].contrast[modeName].ratio;
           const contrastGrowthDir = cEnd > cStart ? 1 : -1;
 
           const isDark = modeName === "dark";
           const baseIndexSource = isDark && role.darkBaseIndex !== undefined ? role.darkBaseIndex : role.baseIndex;
           let baseIdx = baseIndexSource !== undefined ? parseInt(baseIndexSource) : rampLength >> 1;
+
           const maxOffset = 2 * spread;
           const minAllowed = maxOffset;
           const maxAllowed = rampLength - 1 - maxOffset;
@@ -797,7 +851,14 @@ function variableMaker(config) {
             baseIdx = maxAllowed;
             adjustedBase = true;
           }
-          if (adjustedBase) errors.warnings.push({ color: clrName, role: roleName, theme: modeName, warning: `Base index clamped to ${baseIdx} due to spread constraints.` });
+          if (adjustedBase) {
+            errors.warnings.push({
+              color: clrName,
+              role: roleName,
+              theme: modeName,
+              warning: `Base index clamped to ${baseIdx} due to spread constraints.`,
+            });
+          }
 
           const offsetValues = [
             { key: "weakest", offset: -2 * spread },
@@ -807,7 +868,8 @@ function variableMaker(config) {
             { key: "stronger", offset: 2 * spread },
           ];
 
-          for (const { key: variation, offset: pureOffset } of offsetValues) {
+          for (let vIdx = 0; vIdx < offsetValues.length; vIdx++) {
+            const { key: variation, offset: pureOffset } = offsetValues[vIdx];
             let idx = baseIdx + pureOffset * contrastGrowthDir;
             let adjusted = false;
             if (idx < 0) {
@@ -818,20 +880,33 @@ function variableMaker(config) {
               adjusted = true;
             }
 
-            const data = clrRampsCollection[clrName][stepNames[idx]];
+            const weight = stepNames[idx];
+            const data = clrRampsCollection[clrName][weight];
+
             conRole[variation] = {
               tknName: `${clrName}-${role.name}-${variation}`,
               color: clrName,
               role: role.name,
-              variation,
+              variation: variation,
               tknRef: data.stepName,
               value: data.value,
-              contrast: { ratio: data.contrast[modeName].ratio, rating: data.contrast[modeName].rating },
+              contrast: {
+                ratio: data.contrast[modeName].ratio,
+                rating: data.contrast[modeName].rating,
+              },
               variationOffset: pureOffset,
               isAdjusted: adjusted,
               manualBaseIndex: baseIdx,
             };
-            if (adjusted) errors.warnings.push({ color: clrName, role: roleName, variation, theme: modeName, warning: `Variation '${variation}' clamped due to overflow.` });
+            if (adjusted) {
+              errors.warnings.push({
+                color: clrName,
+                role: roleName,
+                variation,
+                theme: modeName,
+                warning: `Variation '${variation}' clamped due to overflow`,
+              });
+            }
           }
         }
       }

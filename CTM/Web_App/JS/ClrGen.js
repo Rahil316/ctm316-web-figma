@@ -55,21 +55,19 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
   }
 
   if (rampType === "Balanced" || rampType === "Balanced (Natural)" || rampType === "Balanced (Dynamic)") {
-    // Space target luminances logarithmically so perceptual steps feel even.
-    // Binary search finds the HSL lightness that hits each target luminance.
-    const minL = 0;
-    const maxL = 1;
-    const minV = Math.log(minL + 0.05);
-    const maxV = Math.log(maxL + 0.05);
-    const step = (maxV - minV) / (rampLength + 1);
+    // Space target luminances using cube-root (OKLAB-style) perceptual spacing.
+    // Fixed margins tMin/tMax keep endpoints consistent regardless of ramp length —
+    // short ramps (5 steps) get the same near-black/near-white anchors as long ones (21 steps).
+    const tMin = 0.02;
+    const tMax = 0.98;
     const output = [];
 
     const isNatural = rampType.includes("Natural") || rampType.includes("Dynamic");
     const isDynamic = rampType.includes("Dynamic");
 
     for (let i = 1; i <= rampLength; i++) {
-      const targetV = minV + step * i;
-      const targetLum = Math.exp(targetV) - 0.05;
+      const t = rampLength === 1 ? (tMin + tMax) / 2 : tMin + ((tMax - tMin) * (i - 1)) / (rampLength - 1);
+      const targetLum = t ** 3;
 
       let low = 0;
       let high = 100;
@@ -111,26 +109,34 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
   }
 
   if (rampType === "Symmetric") {
-    // Same as Balanced, then shifts all steps so the midpoint lands at ~50% lightness.
-    const minL = 0;
-    const maxL = 1;
-    const minV = Math.log(minL + 0.05);
-    const maxV = Math.log(maxL + 0.05);
-    const step = (maxV - minV) / (rampLength + 1);
+    // Anchor the center step to the source color's own luminance, then space the ramp
+    // symmetrically outward in cube-root (perceptual) space to tMin/tMax.
+    // This guarantees the input color is the midpoint, monotonicity is preserved,
+    // and no post-hoc HSL shifting is needed.
+    const tMin = 0.02;
+    const tMax = 0.98;
+    const srcLum = relLum(normalizeHex(hexIn)) || 0.18;
+    const srcT = Math.cbrt(srcLum);
+    const midIdx = Math.floor((rampLength - 1) / 2);
     const output = [];
 
-    for (let i = 1; i <= rampLength; i++) {
-      const targetV = minV + step * i;
-      const targetLum = Math.exp(targetV) - 0.05;
+    for (let i = 0; i < rampLength; i++) {
+      let t;
+      if (rampLength === 1) {
+        t = srcT;
+      } else if (i <= midIdx) {
+        t = tMin + ((srcT - tMin) * i) / midIdx;
+      } else {
+        t = srcT + ((tMax - srcT) * (i - midIdx)) / (rampLength - 1 - midIdx);
+      }
+      const targetLum = t ** 3;
 
       let low = 0;
       let high = 100;
       let closestL = 50;
-
       for (let j = 0; j < 30; j++) {
         let mid = (low + high) / 2;
-        let midHex = hslToHex(hue, satu, mid);
-        let midLum = relLum(midHex);
+        let midLum = relLum(hslToHex(hue, satu, mid));
         closestL = mid;
         if (Math.abs(midLum - targetLum) < 0.0001) break;
         if (midLum < targetLum) low = mid;
@@ -138,18 +144,9 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
       }
       output.push(hslToHex(hue, satu, closestL) || "#000000");
     }
-    const mid = Math.floor(output.length / 2);
-    const midLightness = hexToLum(output[mid]) || 50;
-    if (Math.abs(midLightness - 50) > 10) {
-      const shift = 50 - midLightness;
-      const adjusted = output.map((hex) => {
-        const l = Math.min(100, Math.max(0, (hexToLum(hex) || 50) + shift));
-        return hslToHex(hue, satu, l) || hex;
-      });
-      return adjusted.reverse();
-    }
     return output.reverse();
   }
+
   return [];
 }
 
@@ -215,7 +212,7 @@ function variableMaker(config) {
   }
 
   for (const mode of config.themes) {
-    const modeName = mode.name;
+    const modeName = mode.name.toLowerCase();
     const conTheme = tokensCollection[modeName];
 
     for (const color of colors) {
