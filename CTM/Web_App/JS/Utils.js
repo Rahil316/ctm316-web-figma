@@ -158,6 +158,11 @@ function slugify(str) {
     .replace(/^-+|-+$/g, "");
 }
 
+// Shortest distance between two angles (0-360) on a circle.
+function shortestHueDiff(current, target) {
+  return (((target - current + 180) % 360) + 360) % 360 - 180;
+}
+
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     normalizeHex,
@@ -173,5 +178,6 @@ if (typeof module !== "undefined" && module.exports) {
     hexToLum,
     slugify,
     seriesMaker,
+    shortestHueDiff,
   };
 }

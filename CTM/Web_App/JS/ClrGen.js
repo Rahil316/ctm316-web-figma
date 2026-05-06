@@ -80,8 +80,8 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
         let searchH = hue;
         if (isDynamic) {
           const dist = (mid - 50) / 50;
-          if (dist > 0) searchH += (60 - hue) * dist * 0.15;
-          else searchH += (240 - hue) * Math.abs(dist) * 0.15;
+          const targetH = dist > 0 ? 60 : 240;
+          searchH = (hue + shortestHueDiff(hue, targetH) * Math.abs(dist) * 0.15 + 360) % 360;
         }
 
         let midHex = hslToHex(searchH, searchS, mid);
@@ -99,8 +99,8 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
       }
       if (isDynamic) {
         const dist = (closestL - 50) / 50;
-        if (dist > 0) finalH += (60 - hue) * dist * 0.15;
-        else finalH += (240 - hue) * Math.abs(dist) * 0.15;
+        const targetH = dist > 0 ? 60 : 240;
+        finalH = (hue + shortestHueDiff(hue, targetH) * Math.abs(dist) * 0.15 + 360) % 360;
       }
 
       output.push(hslToHex(finalH, finalS, closestL) || "#000000");
