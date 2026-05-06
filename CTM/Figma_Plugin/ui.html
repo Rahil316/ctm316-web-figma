@@ -463,8 +463,8 @@
             <h3 class="text-[var(--text-muted)] text-[11px] font-bold tracking-[1.2px] px-1">Role Settings</h3>
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-1">
-                <label for="setting-roleSteps" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Roles Variations Count</label>
-                <input type="number" id="setting-roleSteps" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" />
+                <label class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Roles Variations Count</label>
+                <div class="w-full h-[40px] bg-[var(--bg-input)]/40 border border-[var(--border)] rounded-[8px] p-2 text-[13px] text-[var(--text-muted)] flex items-center">5 (fixed)</div>
               </div>
               <div class="space-y-1">
                 <label for="setting-roleMapping" class="text-[var(--text-muted)] text-[12px] font-medium ml-1">Role Mapping Method</label>
@@ -904,6 +904,9 @@
       };
 
       let appState = JSON.parse(JSON.stringify(demoConfig));
+      // Drag-and-drop state (separate per list to prevent cross-contamination)
+      let _colorDragSrcIdx = null;
+      let _roleDragSrcIdx = null;
       const _demoConfigStr = JSON.stringify(demoConfig);
       let activeSidebarTab = "color-groups";
 
@@ -1155,7 +1158,7 @@
         if (rampType === "Linear") {
           const output = [];
           for (let i = 0; i < rampLength; i++) {
-            const lightness = (i / (rampLength - 1)) * 100;
+            const lightness = rampLength === 1 ? 50 : (i / (rampLength - 1)) * 100;
             output.push(hslToHex(hue, satu, lightness) || "#000000");
           }
           return output.reverse();
@@ -1215,8 +1218,8 @@
 
           for (let i = 0; i < rampLength; i++) {
             let t;
-            if (rampLength === 1) {
-              t = srcT;
+            if (rampLength === 1 || midIdx === 0) {
+              t = i === 0 ? srcT : tMax;
             } else if (i <= midIdx) {
               t = tMin + ((srcT - tMin) * i) / midIdx;
             } else {
@@ -1238,11 +1241,12 @@
           return output.reverse();
         }
 
-        return [];
+        // Unknown rampType — fall back to Balanced so callers always get a full ramp.
+        return colorRampMaker(hexIn, rampLength, "Balanced");
       }
 
       function variableMakerUI(config) {
-        const inputHash = JSON.stringify({ colors: config.colors, steps: config.colorSteps, rampType: config.rampType, themes: config.themes, roles: config.roles, roleMapping: config.roleMapping });
+        const inputHash = JSON.stringify({ colors: config.colors, steps: config.colorSteps, rampType: config.rampType, themes: config.themes, roles: config.roles, roleMapping: config.roleMapping, colorStepNames: config.colorStepNames, roleStepNames: config.roleStepNames });
         if (inputHash === _previewLastHash && _previewCache) return _previewCache;
 
         const colors = config.colors;
@@ -1275,7 +1279,7 @@
         }
 
         for (const mode of config.themes) {
-          const modeName = mode.name;
+          const modeName = mode.name.toLowerCase();
           for (const color of colors) {
             const clrName = color.name;
             const conGroup = Object.create(null);
@@ -1334,13 +1338,12 @@
               }
 
               let adjustedBase = false;
-              if (baseIdx < minAllowed) {
-                baseIdx = minAllowed;
+              if (minAllowed > maxAllowed) {
+                baseIdx = Math.floor((rampLength - 1) / 2);
                 adjustedBase = true;
-              }
-              if (baseIdx > maxAllowed) {
-                baseIdx = maxAllowed;
-                adjustedBase = true;
+              } else {
+                if (baseIdx < minAllowed) { baseIdx = minAllowed; adjustedBase = true; }
+                if (baseIdx > maxAllowed) { baseIdx = maxAllowed; adjustedBase = true; }
               }
               if (adjustedBase) errors.warnings.push({ color: clrName, role: roleName, theme: modeName, warning: `Base index clamped to ${baseIdx} due to spread constraints.` });
 
@@ -1412,8 +1415,53 @@
 
             const card = document.createElement("div");
             card.className = "bg-[var(--bg-card)] rounded-[12px] border border-[var(--border)] p-3 space-y-2 mb-2";
+            card.draggable = true;
+
+            // ── Color group drag-and-drop ────────────────────────────────────
+            card.addEventListener("dragstart", (e) => {
+              _colorDragSrcIdx = idx;
+              e.dataTransfer.effectAllowed = "move";
+              card.style.opacity = "0.5";
+            });
+            card.addEventListener("dragend", () => {
+              _colorDragSrcIdx = null;
+              card.style.opacity = "";
+              document.querySelectorAll(".color-group-card-plugin").forEach((c) => {
+                c.classList.remove("border-t-2", "!border-t-[var(--accent)]");
+              });
+            });
+            card.addEventListener("dragover", (e) => {
+              if (_colorDragSrcIdx === null || _colorDragSrcIdx === idx) return;
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+              document.querySelectorAll(".color-group-card-plugin").forEach((c) => {
+                c.classList.remove("border-t-2", "!border-t-[var(--accent)]");
+              });
+              card.classList.add("border-t-2", "!border-t-[var(--accent)]");
+            });
+            card.addEventListener("dragleave", (e) => {
+              if (!card.contains(e.relatedTarget)) {
+                card.classList.remove("border-t-2", "!border-t-[var(--accent)]");
+              }
+            });
+            card.addEventListener("drop", (e) => {
+              e.preventDefault();
+              if (_colorDragSrcIdx === null || _colorDragSrcIdx === idx) return;
+              const from = _colorDragSrcIdx;
+              const to = idx;
+              const [moved] = appState.colors.splice(from, 1);
+              appState.colors.splice(to, 0, moved);
+              renderColorGroups();
+            });
+            card.classList.add("color-group-card-plugin");
+
             card.innerHTML = `
-                <div class="grid grid-cols-[1fr_1fr_40px] gap-2">
+                <div class="grid grid-cols-[20px_1fr_1fr_40px] gap-2">
+                  <div class="flex flex-col gap-0.5 self-center">
+                    <button onclick="moveGroup(${idx}, -1)" ${idx === 0 ? "disabled" : ""} class="w-5 h-5 flex items-center justify-center rounded-[4px] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] disabled:opacity-20 disabled:cursor-not-allowed transition-all" title="Move up">▲</button>
+                    <span class="drag-handle text-[var(--text-muted)] cursor-grab select-none text-[14px] leading-none text-center" title="Drag to reorder">⠿</span>
+                    <button onclick="moveGroup(${idx}, 1)" ${idx === appState.colors.length - 1 ? "disabled" : ""} class="w-5 h-5 flex items-center justify-center rounded-[4px] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] disabled:opacity-20 disabled:cursor-not-allowed transition-all" title="Move down">▼</button>
+                  </div>
                   <div class="flex-[3] space-y-1">
                     <label for="${gId}-name" class="text-[var(--text-muted)] text-[12px] font-medium">Color Name</label>
                     <input type="text" id="${gId}-name" value="${group.name}" oninput="updateGroup(${idx}, 'name', this.value)" class="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[14px] outline-none focus:border-[var(--border-focus)] h-[40px] text-[var(--text-primary)]">
@@ -1450,6 +1498,8 @@
                   </div>
                 </div>
               `;
+            // Prevent accidental drags from interactive children
+            card.querySelectorAll("input, select, button, label").forEach((el) => el.setAttribute("draggable", "false"));
             fragment.appendChild(card);
           });
 
@@ -1477,6 +1527,45 @@
           appState.roles.forEach((role, idx) => {
             const card = document.createElement("div");
             card.className = "bg-[var(--bg-card)] rounded-[12px] border border-[var(--border)] p-3 space-y-2 mb-2";
+            card.draggable = true;
+            card.classList.add("role-card-plugin");
+
+            // ── Role drag-and-drop ───────────────────────────────────────────
+            card.addEventListener("dragstart", (e) => {
+              _roleDragSrcIdx = idx;
+              e.dataTransfer.effectAllowed = "move";
+              card.style.opacity = "0.5";
+            });
+            card.addEventListener("dragend", () => {
+              _roleDragSrcIdx = null;
+              card.style.opacity = "";
+              document.querySelectorAll(".role-card-plugin").forEach((c) => {
+                c.classList.remove("border-t-2", "!border-t-[var(--accent)]");
+              });
+            });
+            card.addEventListener("dragover", (e) => {
+              if (_roleDragSrcIdx === null || _roleDragSrcIdx === idx) return;
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+              document.querySelectorAll(".role-card-plugin").forEach((c) => {
+                c.classList.remove("border-t-2", "!border-t-[var(--accent)]");
+              });
+              card.classList.add("border-t-2", "!border-t-[var(--accent)]");
+            });
+            card.addEventListener("dragleave", (e) => {
+              if (!card.contains(e.relatedTarget)) {
+                card.classList.remove("border-t-2", "!border-t-[var(--accent)]");
+              }
+            });
+            card.addEventListener("drop", (e) => {
+              e.preventDefault();
+              if (_roleDragSrcIdx === null || _roleDragSrcIdx === idx) return;
+              const from = _roleDragSrcIdx;
+              const to = idx;
+              const [moved] = appState.roles.splice(from, 1);
+              appState.roles.splice(to, 0, moved);
+              renderRoles();
+            });
 
             const mappingMethod = appState.roleMapping || "Contrast Based";
             const mid = Math.floor(appState.colorSteps / 2);
@@ -1516,6 +1605,11 @@
 
             card.innerHTML = `
               <div class="flex items-end gap-2">
+                <div class="flex flex-col gap-0.5 self-center flex-shrink-0">
+                  <button onclick="moveRole(${idx}, -1)" ${idx === 0 ? "disabled" : ""} class="w-5 h-5 flex items-center justify-center rounded-[4px] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] disabled:opacity-20 disabled:cursor-not-allowed transition-all" title="Move up">▲</button>
+                  <span class="drag-handle text-[var(--text-muted)] cursor-grab select-none text-[14px] leading-none text-center" title="Drag to reorder">⠿</span>
+                  <button onclick="moveRole(${idx}, 1)" ${idx === appState.roles.length - 1 ? "disabled" : ""} class="w-5 h-5 flex items-center justify-center rounded-[4px] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] disabled:opacity-20 disabled:cursor-not-allowed transition-all" title="Move down">▼</button>
+                </div>
                 <div class="flex-1 space-y-1">
                   <label for="role-${idx}-name" class="text-[var(--text-muted)] text-[11px] font-bold tracking-wider ml-1">Role Name</label>
                   <input type="text" id="role-${idx}-name" value="${role.name || ""}" oninput="updateRole(${idx}, 'name', this.value)" class="w-full h-[40px] bg-[var(--bg-input)] border border-[var(--border)] rounded-[8px] p-2 text-[13px] outline-none focus:border-[var(--border-focus)] text-[var(--text-primary)]">
@@ -1527,6 +1621,8 @@
                 <button onclick="removeRole(${idx})" class="bg-[var(--danger)]/10 text-[var(--danger)] border border-[var(--danger)]/20 size-[40px] shrink-0 flex items-center justify-center rounded-[8px] transition-all hover:bg-[var(--danger)]/20">${trashSvg}</button>
               </div>
               ${secondRowHtml}`;
+            // Prevent accidental drags from interactive children
+            card.querySelectorAll("input, select, button, label").forEach((el) => el.setAttribute("draggable", "false"));
             fragment.appendChild(card);
           });
 
@@ -1592,6 +1688,14 @@
         renderColorGroups();
       }
 
+      function moveGroup(idx, dir) {
+        const target = idx + dir;
+        if (target < 0 || target >= appState.colors.length) return;
+        const [item] = appState.colors.splice(idx, 1);
+        appState.colors.splice(target, 0, item);
+        renderColorGroups();
+      }
+
       function addGroup() {
         const n = appState.colors.length + 1;
         appState.colors.unshift({ name: `color${n}`, shortName: `C${n}`, value: "888888" });
@@ -1619,6 +1723,14 @@
 
       function removeRole(idx) {
         appState.roles.splice(idx, 1);
+        renderRoles();
+      }
+
+      function moveRole(idx, dir) {
+        const target = idx + dir;
+        if (target < 0 || target >= appState.roles.length) return;
+        const [item] = appState.roles.splice(idx, 1);
+        appState.roles.splice(target, 0, item);
         renderRoles();
       }
 
@@ -1706,8 +1818,7 @@
         appState.colorStepNames = document.getElementById("setting-colorStepNames").value;
 
         // Role Settings
-        let vCount = parseInt(document.getElementById("setting-roleSteps").value);
-        appState.roleSteps = isNaN(vCount) ? 5 : Math.max(1, Math.min(21, vCount));
+        appState.roleSteps = 5; // fixed at 5 — variations count is not configurable
         appState.roleMapping = document.getElementById("setting-roleMapping").value;
         appState.roleStepNames = document.getElementById("setting-roleStepNames").value;
 
@@ -1729,8 +1840,7 @@
         document.getElementById("setting-rampType").value = appState.rampType || "Balanced";
         document.getElementById("setting-colorStepNames").value = appState.colorStepNames || "";
 
-        // Role Settings
-        document.getElementById("setting-roleSteps").value = appState.roleSteps || 5;
+        // Role Settings (roleSteps is fixed at 5, no DOM sync needed)
         document.getElementById("setting-roleMapping").value = appState.roleMapping || "Contrast Based";
         document.getElementById("setting-roleStepNames").value = appState.roleStepNames;
       }
@@ -1826,6 +1936,14 @@
         }
 
         // Theme tabs helper
+        const REF_VAR_KEYS = ["weakest", "weak", "base", "strong", "stronger"];
+        const varDisplayNames = (appState.roleStepNames || "")
+          .split(",").map((v) => v.trim()).filter(Boolean);
+        const varLabel = (refKey) => {
+          const i = REF_VAR_KEYS.indexOf(refKey);
+          return (i >= 0 && varDisplayNames[i]) ? varDisplayNames[i] : refKey;
+        };
+
         function renderThemePanel(panelId, themeTokens, bgHex) {
           const el = document.getElementById(panelId);
           el.innerHTML = "";
@@ -1871,7 +1989,7 @@
                     ${token.isAdjusted ? `<div class="absolute bottom-2 right-2 bg-[var(--warning)] text-black w-3.5 h-3.5 rounded-[4px] flex items-center justify-center text-[10px] font-black">!</div>` : ""}
                   </div>
                   <div class="px-2 pt-1 pb-2">
-                    <div class="text-[11px] font-extrabold uppercase tracking-[0.05em] mb-0.5">${varKey}</div>
+                    <div class="text-[11px] font-extrabold uppercase tracking-[0.05em] mb-0.5">${varLabel(varKey)}</div>
                     <div class="text-[10px] font-mono opacity-50 font-semibold">${token.value}</div>
                   </div>`;
                 grid.appendChild(card);
@@ -2142,17 +2260,23 @@
         renderColorGroups();
         renderRoles();
         syncInputsFromState();
+        // Clear any stale run-error messages left from a previous sync before showing import result.
+        const errBar = document.getElementById("run-errors-bar");
+        if (errBar) errBar.innerHTML = "";
         showOverlay("success-overlay");
         document.getElementById("success-results").innerHTML = `<p class="text-sm font-medium">Successfully imported <span class="text-white">${appState.name || "config"}</span></p>`;
       }
 
       // Drag & Drop Listeners
+      // Only activate the file-import overlay for external file drags, not internal card reorders.
       window.addEventListener("dragenter", (e) => {
+        if (!e.dataTransfer || !e.dataTransfer.types.includes("Files")) return;
         e.preventDefault();
         document.getElementById("drop-overlay").classList.add("active");
       });
 
       window.addEventListener("dragover", (e) => {
+        if (!e.dataTransfer || !e.dataTransfer.types.includes("Files")) return;
         e.preventDefault();
       });
 

@@ -48,7 +48,7 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
   if (rampType === "Linear") {
     const output = [];
     for (let i = 0; i < rampLength; i++) {
-      const lightness = (i / (rampLength - 1)) * 100;
+      const lightness = rampLength === 1 ? 50 : (i / (rampLength - 1)) * 100;
       output.push(hslToHex(hue, satu, lightness) || "#000000");
     }
     return output.reverse();
@@ -122,8 +122,8 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
 
     for (let i = 0; i < rampLength; i++) {
       let t;
-      if (rampLength === 1) {
-        t = srcT;
+      if (rampLength === 1 || midIdx === 0) {
+        t = i === 0 ? srcT : tMax;
       } else if (i <= midIdx) {
         t = tMin + ((srcT - tMin) * i) / midIdx;
       } else {
@@ -147,7 +147,8 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
     return output.reverse();
   }
 
-  return [];
+  // Unknown rampType — fall back to Balanced so callers always get a full ramp.
+  return colorRampMaker(hexIn, rampLength, "Balanced");
 }
 
 // ============================================================================
@@ -173,14 +174,16 @@ function variableMaker(config) {
     darkBg: normalizeHex(config.themes[1].bg),
     roles: config.roles,
     roleMapping: config.roleMapping,
+    colorStepNames: config.colorStepNames,
+    roleStepNames: config.roleStepNames,
   });
 
   if (inputHash === lastInputHash && cachedOutput) {
     return cachedOutput;
   }
 
-  const lightBg = normalizeHex(config.themes[0].bg);
-  const darkBg = normalizeHex(config.themes[1].bg);
+  const lightBg = normalizeHex(config.themes[0].bg) || "#FFFFFF";
+  const darkBg = normalizeHex(config.themes[1].bg) || "#000000";
   const clrRampsCollection = Object.create(null);
   const tokensCollection = {
     light: Object.create(null),
@@ -293,13 +296,12 @@ function variableMaker(config) {
           const minAllowed = maxOffset;
           const maxAllowed = rampLength - 1 - maxOffset;
           let adjustedBase = false;
-          if (baseIdx < minAllowed) {
-            baseIdx = minAllowed;
+          if (minAllowed > maxAllowed) {
+            baseIdx = Math.floor((rampLength - 1) / 2);
             adjustedBase = true;
-          }
-          if (baseIdx > maxAllowed) {
-            baseIdx = maxAllowed;
-            adjustedBase = true;
+          } else {
+            if (baseIdx < minAllowed) { baseIdx = minAllowed; adjustedBase = true; }
+            if (baseIdx > maxAllowed) { baseIdx = maxAllowed; adjustedBase = true; }
           }
           if (adjustedBase) errors.warnings.push({ color: clrName, role: roleName, theme: modeName, warning: `Base index clamped to ${baseIdx} due to spread constraints.` });
 
@@ -372,13 +374,12 @@ function variableMaker(config) {
           const minAllowed = maxOffset;
           const maxAllowed = rampLength - 1 - maxOffset;
           let adjustedBase = false;
-          if (baseIdx < minAllowed) {
-            baseIdx = minAllowed;
+          if (minAllowed > maxAllowed) {
+            baseIdx = Math.floor((rampLength - 1) / 2);
             adjustedBase = true;
-          }
-          if (baseIdx > maxAllowed) {
-            baseIdx = maxAllowed;
-            adjustedBase = true;
+          } else {
+            if (baseIdx < minAllowed) { baseIdx = minAllowed; adjustedBase = true; }
+            if (baseIdx > maxAllowed) { baseIdx = maxAllowed; adjustedBase = true; }
           }
           if (adjustedBase) {
             errors.warnings.push({

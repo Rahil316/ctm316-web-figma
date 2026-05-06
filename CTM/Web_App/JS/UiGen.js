@@ -5,6 +5,10 @@ window.currentEditableScheme = null;
 window.sidebarExpandedState = window.sidebarExpandedState || {};
 window.activeSidebarTab = window.activeSidebarTab || "color-groups";
 
+// Drag-and-drop state (separate for colors vs roles to prevent cross-contamination)
+let _colorDragSrcIdx = null;
+let _roleDragSrcIdx = null;
+
 function getOptimalTextColor(bg) {
   const b = normalizeHex(bg) || "#000000";
   return contrastRatio(b, "#000000") > contrastRatio(b, "#FFFFFF") ? "black" : "white";
@@ -423,8 +427,56 @@ function createColorGroupsSection(colorScheme, hideHeader = false) {
 function createColorGroupInput(group, index, colorScheme) {
   const div = document.createElement("div");
   div.className = "bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)] p-3 flex flex-col gap-2 mb-2";
+  div.draggable = true;
+
+  // ── Drag-and-drop handlers ──────────────────────────────────────────────────
+  div.addEventListener("dragstart", (e) => {
+    _colorDragSrcIdx = index;
+    e.dataTransfer.effectAllowed = "move";
+    div.style.opacity = "0.5";
+  });
+  div.addEventListener("dragend", () => {
+    _colorDragSrcIdx = null;
+    div.style.opacity = "";
+    // Clear all drop indicators
+    document.querySelectorAll(".color-group-card").forEach((c) => {
+      c.classList.remove("border-t-2", "border-[var(--accent)]", "border-b-2");
+    });
+  });
+  div.addEventListener("dragover", (e) => {
+    if (_colorDragSrcIdx === null || _colorDragSrcIdx === index) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    document.querySelectorAll(".color-group-card").forEach((c) => {
+      c.classList.remove("border-t-2", "border-[var(--accent)]", "border-b-2");
+    });
+    div.classList.add("border-t-2", "border-[var(--accent)]");
+  });
+  div.addEventListener("dragleave", (e) => {
+    if (!div.contains(e.relatedTarget)) {
+      div.classList.remove("border-t-2", "border-[var(--accent)]", "border-b-2");
+    }
+  });
+  div.addEventListener("drop", (e) => {
+    e.preventDefault();
+    if (_colorDragSrcIdx === null || _colorDragSrcIdx === index) return;
+    const from = _colorDragSrcIdx;
+    const to = index;
+    const [moved] = colorScheme.colors.splice(from, 1);
+    colorScheme.colors.splice(to, 0, moved);
+    window.currentEditableScheme = colorScheme;
+    createColorInputs(colorScheme, (s) => {
+      window.currentEditableScheme = s;
+      displayColorTokens(variableMaker(s));
+    });
+    displayColorTokens(variableMaker(colorScheme));
+  });
+
+  div.classList.add("color-group-card");
+
   div.innerHTML = `
     <div class="flex justify-between items-center">
+      <span class="drag-handle text-[var(--text-muted)] cursor-grab select-none mr-2 text-[18px] leading-none flex-shrink-0" title="Drag to reorder">⠿</span>
       <input type="text"
         class="bg-transparent border border-transparent rounded-[8px] text-[14px] font-semibold text-[var(--text-primary)] px-1.5 py-0.5 w-full mr-2 transition-all duration-150 focus:outline-none hover:bg-[var(--bg-hover)] hover:border-[var(--border)] focus:bg-[var(--bg-input)] focus:border-[var(--border-focus)]"
         value="${group.name}" data-path="colors.${index}.name" placeholder="Group Name">
@@ -449,6 +501,8 @@ function createColorGroupInput(group, index, colorScheme) {
     </div>
   `;
   setupColorInputSync(div);
+  // Prevent accidental drags from interactive children
+  div.querySelectorAll("input, select, button, label").forEach((el) => el.setAttribute("draggable", "false"));
   const deleteBtn = div.querySelector(".delete-group-btn");
   if (deleteBtn) {
     deleteBtn.onclick = (e) => {
@@ -492,7 +546,9 @@ function setupColorInputSync(container) {
     };
     colorText.oninput = (e) => {
       const hex = e.target.value.replace("#", "").toUpperCase();
-      if (/^[0-9A-F]{6}$/.test(hex)) colorPicker.value = "#" + hex;
+      // Expand 3-digit shorthand before syncing picker
+      const expanded = hex.length === 3 ? hex.split("").map((c) => c + c).join("") : hex;
+      if (/^[0-9A-F]{6}$/.test(expanded)) colorPicker.value = "#" + expanded;
     };
   }
 }
@@ -529,9 +585,55 @@ function createRolesSection(colorScheme, onUpdate, hideHeader = false) {
     const roleDiv = document.createElement("div");
     const roleInputs = document.createElement("div");
     roleInputs.className = `grid ${isManualMode ? "grid-cols-4" : "grid-cols-3"} items-end gap-2`;
-    roleDiv.className = "bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)] p-3 mb-2 flex flex-col gap-2";
+    roleDiv.className = "bg-[var(--bg-card)] rounded-[8px] border border-[var(--border)] p-3 mb-2 flex flex-col gap-2 role-card";
+    roleDiv.draggable = true;
+
+    // ── Role drag-and-drop handlers ─────────────────────────────────────────
+    const _roleIdx = roleKey; // capture for closure
+    roleDiv.addEventListener("dragstart", (e) => {
+      _roleDragSrcIdx = _roleIdx;
+      e.dataTransfer.effectAllowed = "move";
+      roleDiv.style.opacity = "0.5";
+    });
+    roleDiv.addEventListener("dragend", () => {
+      _roleDragSrcIdx = null;
+      roleDiv.style.opacity = "";
+      document.querySelectorAll(".role-card").forEach((c) => {
+        c.classList.remove("border-t-2", "border-[var(--accent)]");
+      });
+    });
+    roleDiv.addEventListener("dragover", (e) => {
+      if (_roleDragSrcIdx === null || _roleDragSrcIdx === _roleIdx) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      document.querySelectorAll(".role-card").forEach((c) => {
+        c.classList.remove("border-t-2", "border-[var(--accent)]");
+      });
+      roleDiv.classList.add("border-t-2", "border-[var(--accent)]");
+    });
+    roleDiv.addEventListener("dragleave", (e) => {
+      if (!roleDiv.contains(e.relatedTarget)) {
+        roleDiv.classList.remove("border-t-2", "border-[var(--accent)]");
+      }
+    });
+    roleDiv.addEventListener("drop", (e) => {
+      e.preventDefault();
+      if (_roleDragSrcIdx === null || _roleDragSrcIdx === _roleIdx) return;
+      const from = _roleDragSrcIdx;
+      const to = _roleIdx;
+      const [moved] = colorScheme.roles.splice(from, 1);
+      colorScheme.roles.splice(to, 0, moved);
+      window.currentEditableScheme = colorScheme;
+      createColorInputs(colorScheme, (s) => {
+        window.currentEditableScheme = s;
+        displayColorTokens(variableMaker(s));
+      });
+      displayColorTokens(variableMaker(colorScheme));
+    });
+
     roleDiv.innerHTML = `
       <div class="flex justify-between items-center">
+        <span class="drag-handle text-[var(--text-muted)] cursor-grab select-none mr-2 text-[18px] leading-none flex-shrink-0" title="Drag to reorder">⠿</span>
         <input type="text"
           class="bg-transparent border border-transparent rounded-[8px] text-[14px] font-semibold text-[var(--text-primary)] px-1.5 py-0.5 w-full mr-2 transition-all duration-150 focus:outline-none hover:bg-[var(--bg-hover)] hover:border-[var(--border)] focus:bg-[var(--bg-input)] focus:border-[var(--border-focus)]"
           value="${role.name}" data-path="roles.${roleKey}.name" placeholder="Role Name">
@@ -591,6 +693,8 @@ function createRolesSection(colorScheme, onUpdate, hideHeader = false) {
     }
 
     roleDiv.appendChild(roleInputs);
+    // Prevent accidental drags from interactive children
+    roleDiv.querySelectorAll("input, select, button, label").forEach((el) => el.setAttribute("draggable", "false"));
 
     const deleteBtn = roleDiv.querySelector(".delete-group-btn");
     if (deleteBtn) {
@@ -847,6 +951,15 @@ function parseSchemeFile(file, onValid) {
         alert("Invalid color scheme file format");
         return;
       }
+      // Fill in missing top-level fields with safe defaults so variableMaker never crashes.
+      if (!Array.isArray(imported.themes) || imported.themes.length < 2) {
+        imported.themes = [{ name: "light", bg: "FFFFFF" }, { name: "dark", bg: "000000" }];
+      }
+      if (!imported.colorSteps || isNaN(parseInt(imported.colorSteps))) {
+        imported.colorSteps = demoConfig.colorSteps;
+      }
+      if (!imported.rampType) imported.rampType = "Balanced";
+      if (!imported.roleMapping) imported.roleMapping = "Contrast Based";
       onValid(imported);
     } catch (err) {
       console.error("Error parsing color scheme:", err);

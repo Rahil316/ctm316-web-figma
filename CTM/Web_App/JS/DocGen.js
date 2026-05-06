@@ -81,7 +81,7 @@ function generateSeparateCssFiles(cssVars) {
     colorRamps: `/* Color Ramps - Base Colors */\n:root {\n${Object.entries(cssVars.colorRamps)
       .map(([varName, value]) => `  ${varName}: ${value};`)
       .join("\n")}\n}`,
-    light: `/* Light Theme Tokens */\n.light,\n[data-theme="light"] {\n${Object.entries(cssVars.light)
+    light: `/* Light Theme Tokens */\n:root,\n.light,\n[data-theme="light"] {\n${Object.entries(cssVars.light)
       .map(([varName, value]) => `  ${varName}: ${value};`)
       .join("\n")}\n}`,
     dark: `/* Dark Theme Tokens */\n.dark,\n[data-theme="dark"] {\n${Object.entries(cssVars.dark)
@@ -128,9 +128,10 @@ function generateScss(collection) {
     scss += `\n`;
   });
   scss += `// ============================================\n// LIGHT THEME TOKENS\n// ============================================\n\n`;
-  scss += `$light-theme: (\n`;
-  if (collection.colorTokens?.light) {
-    Object.entries(collection.colorTokens.light).forEach(([group, roles]) => {
+  const scssThemeMap = (themeData) => {
+    if (!themeData) return "";
+    const entries = [];
+    Object.entries(themeData).forEach(([group, roles]) => {
       Object.entries(roles).forEach(([role, variations]) => {
         Object.entries(variations).forEach(([variation, data]) => {
           if (!data?.tknRef) return;
@@ -139,29 +140,19 @@ function generateScss(collection) {
           const lastDash = ref.lastIndexOf("-");
           const refGroup = slugify(ref.substring(0, lastDash));
           const refWeight = slugify(ref.substring(lastDash + 1));
-          scss += `  "${varName}": $${refGroup}-${refWeight},\n`;
+          entries.push(`  "${varName}": $${refGroup}-${refWeight}`);
         });
       });
     });
-  }
+    return entries.join(",\n") + (entries.length ? "\n" : "");
+  };
+
+  scss += `$light-theme: (\n`;
+  scss += scssThemeMap(collection.colorTokens?.light);
   scss += `);\n\n`;
   scss += `// ============================================\n// DARK THEME TOKENS\n// ============================================\n\n`;
   scss += `$dark-theme: (\n`;
-  if (collection.colorTokens?.dark) {
-    Object.entries(collection.colorTokens.dark).forEach(([group, roles]) => {
-      Object.entries(roles).forEach(([role, variations]) => {
-        Object.entries(variations).forEach(([variation, data]) => {
-          if (!data?.tknRef) return;
-          const varName = `${slugify(group)}-${slugify(data.role || role)}-${slugify(variation)}`;
-          const ref = data.tknRef;
-          const lastDash = ref.lastIndexOf("-");
-          const refGroup = slugify(ref.substring(0, lastDash));
-          const refWeight = slugify(ref.substring(lastDash + 1));
-          scss += `  "${varName}": $${refGroup}-${refWeight},\n`;
-        });
-      });
-    });
-  }
+  scss += scssThemeMap(collection.colorTokens?.dark);
   scss += `);\n`;
   return scss;
 }

@@ -116,7 +116,7 @@ function translateConfig(appState) {
       shortName: role.shortName || role.name.substring(0, 2).toLowerCase(),
       minContrast: String(role.minContrast !== undefined ? role.minContrast : "4.5"),
       spread: Math.max(1, parseInt(role.spread) || 1),
-      baseIndex: role.baseIndex !== undefined ? parseInt(role.baseIndex) : 0,
+      baseIndex: role.baseIndex !== undefined ? parseInt(role.baseIndex) : Math.floor(count / 2),
       darkBaseIndex: role.darkBaseIndex !== undefined ? parseInt(role.darkBaseIndex) : undefined,
     })),
     colorSteps: count,
@@ -380,7 +380,9 @@ const VariableManager = {
 
     const roleStepNames = config.roleStepNames || REF_VARIATION_KEYS;
 
-    // Fetch ramps collection once — used by both stages when applicable
+    // Fetch ramps collection once — used by both stages when applicable.
+    // scope="roles" skips Stage 1 but Stage 2 still needs rampsCol to resolve variable aliases
+    // (unless skipColorRamps is true, in which case raw hex values are used directly).
     const needsRampsCol = !skipRamps && (scope === "all" || scope === "groups" || scope === "roles");
     const rampsCol = needsRampsCol ? await this.getOrCreateCollection(colorName) : null;
 
@@ -418,7 +420,9 @@ const VariableManager = {
                 value = token.value;
               } else {
                 const rampFigmaName = this.rampVarNameMap[token.tknRef];
-                const targetVar = rampFigmaName ? this.cache.variables.find((cv) => cv.name === rampFigmaName && cv.variableCollectionId === rampsCol.id) : null;
+                const targetVar = (rampFigmaName && rampsCol)
+                  ? this.cache.variables.find((cv) => cv.name === rampFigmaName && cv.variableCollectionId === rampsCol.id)
+                  : null;
                 value = targetVar ? { type: "VARIABLE_ALIAS", id: targetVar.id } : token.value;
               }
               const note = token.isAdjusted ? " | ⚠ Adjusted" : "";
@@ -441,11 +445,23 @@ const VariableManager = {
   async saveConfig(appState, colorName) {
     try {
       const targetName = appState.skipColorRamps ? appState.contextualCollectionName || "contextual" : colorName;
-      const rampsCol = await this.getOrCreateCollection(targetName);
-      const modeId = rampsCol.modes[0].modeId;
-      let cfgVar = this.cache.variables.find((v) => v.name === "__ctm316_config__" && v.variableCollectionId === rampsCol.id);
+      const targetCol = await this.getOrCreateCollection(targetName);
+      const modeId = targetCol.modes[0].modeId;
+
+      // Remove any stale copies of __ctm316_config__ in other collections to avoid
+      // ambiguous restore on next launch when skipColorRamps has been toggled.
+      for (const v of this.cache.variables) {
+        if (v.name === "__ctm316_config__" && v.variableCollectionId !== targetCol.id) {
+          try { v.remove(); } catch (_) {}
+        }
+      }
+      this.cache.variables = this.cache.variables.filter(
+        (v) => !(v.name === "__ctm316_config__" && v.variableCollectionId !== targetCol.id)
+      );
+
+      let cfgVar = this.cache.variables.find((v) => v.name === "__ctm316_config__" && v.variableCollectionId === targetCol.id);
       if (!cfgVar) {
-        cfgVar = figma.variables.createVariable("__ctm316_config__", rampsCol, "STRING");
+        cfgVar = figma.variables.createVariable("__ctm316_config__", targetCol, "STRING");
         this.cache.variables.push(cfgVar);
       }
       cfgVar.setValueForMode(modeId, JSON.stringify(appState));
@@ -524,7 +540,7 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
   if (rampType === "Linear") {
     const output = [];
     for (let i = 0; i < rampLength; i++) {
-      const lightness = (i / (rampLength - 1)) * 100;
+      const lightness = rampLength === 1 ? 50 : (i / (rampLength - 1)) * 100;
       output.push(hslToHex(hue, satu, lightness) || "#000000");
     }
     return output.reverse();
@@ -598,8 +614,9 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
 
     for (let i = 0; i < rampLength; i++) {
       let t;
-      if (rampLength === 1) {
-        t = srcT;
+      if (rampLength === 1 || midIdx === 0) {
+        // midIdx===0 means rampLength===1 or 2 — avoid 0/0 division
+        t = i === 0 ? srcT : tMax;
       } else if (i <= midIdx) {
         t = tMin + ((srcT - tMin) * i) / midIdx;
       } else {
@@ -623,7 +640,8 @@ function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
     return output.reverse();
   }
 
-  return [];
+  // Unknown rampType — fall back to Balanced so callers always get a full ramp.
+  return colorRampMaker(hexIn, rampLength, "Balanced");
 }
 
 // 7. COLOR SYSTEM GENERATOR
@@ -644,14 +662,16 @@ function variableMaker(config) {
     darkBg: normalizeHex(config.themes[1].bg),
     roles: config.roles,
     roleMapping: config.roleMapping,
+    colorStepNames: config.colorStepNames,
+    roleStepNames: config.roleStepNames,
   });
 
   if (inputHash === lastInputHash && cachedOutput) {
     return cachedOutput;
   }
 
-  const lightBg = normalizeHex(config.themes[0].bg);
-  const darkBg = normalizeHex(config.themes[1].bg);
+  const lightBg = normalizeHex(config.themes[0].bg) || "#FFFFFF";
+  const darkBg = normalizeHex(config.themes[1].bg) || "#000000";
   const clrRampsCollection = Object.create(null);
   const tokensCollection = {
     light: Object.create(null),
@@ -764,13 +784,13 @@ function variableMaker(config) {
           const minAllowed = maxOffset;
           const maxAllowed = rampLength - 1 - maxOffset;
           let adjustedBase = false;
-          if (baseIdx < minAllowed) {
-            baseIdx = minAllowed;
+          if (minAllowed > maxAllowed) {
+            // spread is too large for this ramp length — pin to midpoint so all offsets clamp symmetrically
+            baseIdx = Math.floor((rampLength - 1) / 2);
             adjustedBase = true;
-          }
-          if (baseIdx > maxAllowed) {
-            baseIdx = maxAllowed;
-            adjustedBase = true;
+          } else {
+            if (baseIdx < minAllowed) { baseIdx = minAllowed; adjustedBase = true; }
+            if (baseIdx > maxAllowed) { baseIdx = maxAllowed; adjustedBase = true; }
           }
           if (adjustedBase) errors.warnings.push({ color: clrName, role: roleName, theme: modeName, warning: `Base index clamped to ${baseIdx} due to spread constraints.` });
 
@@ -843,13 +863,12 @@ function variableMaker(config) {
           const minAllowed = maxOffset;
           const maxAllowed = rampLength - 1 - maxOffset;
           let adjustedBase = false;
-          if (baseIdx < minAllowed) {
-            baseIdx = minAllowed;
+          if (minAllowed > maxAllowed) {
+            baseIdx = Math.floor((rampLength - 1) / 2);
             adjustedBase = true;
-          }
-          if (baseIdx > maxAllowed) {
-            baseIdx = maxAllowed;
-            adjustedBase = true;
+          } else {
+            if (baseIdx < minAllowed) { baseIdx = minAllowed; adjustedBase = true; }
+            if (baseIdx > maxAllowed) { baseIdx = maxAllowed; adjustedBase = true; }
           }
           if (adjustedBase) {
             errors.warnings.push({
