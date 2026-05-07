@@ -6,7 +6,7 @@
  * 3. Config Translator  (appState → reference engine format)
  * 4. Export Formatters  (CSV / CSS / JSON / SCSS)
  * 5. Figma Variable API (CRUD – _color_Ramps + tokens collections)
- * 6. Color Ramp Maker   (Linear / Balanced / Symmetric)
+ * 6. Color Ramp Maker   (Linear / Uniform / Natural / Expressive / Symmetric)
  * 7. Color System Generator (variableMaker – ramps + semantic tokens)
  * 8. Color Math Utilities  (WCAG-correct conversions from Utils.js)
  */
@@ -120,7 +120,7 @@ function translateConfig(appState) {
       darkBaseIndex: role.darkBaseIndex !== undefined ? parseInt(role.darkBaseIndex) : undefined,
     })),
     colorSteps: count,
-    rampType: appState.rampType || "Balanced",
+    rampType: appState.rampType || "Natural",
     roleMapping: appState.roleMapping || "Contrast Based",
     colorStepNames: stepNames,
     roleStepNames,
@@ -529,119 +529,158 @@ function hexToFigmaRgb(hex) {
   return { r: rgb[0] / 255, g: rgb[1] / 255, b: rgb[2] / 255 };
 }
 
-// 6. COLOR RAMP MAKER: Simple hash cache: skip regeneration when config hasn't changed.
+// 6. COLOR SPACES — OKLCH + HCT (inlined from ColorSpaces.js, no external deps)
+function _lin(c){return c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4);}
+function _dlin(c){return c<=0.0031308?c*12.92:1.055*Math.pow(c,1/2.4)-0.055;}
+function _h2lr(hex){const n=parseInt(hex.replace("#",""),16);return[_lin(((n>>16)&255)/255),_lin(((n>>8)&255)/255),_lin((n&255)/255)];}
+function _lr2h(r,g,b){const cl=(v)=>Math.max(0,Math.min(255,Math.round(_dlin(Math.max(0,v))*255)));return"#"+[cl(r),cl(g),cl(b)].map(v=>v.toString(16).padStart(2,"0")).join("");}
+function _m3(m,v){return[m[0][0]*v[0]+m[0][1]*v[1]+m[0][2]*v[2],m[1][0]*v[0]+m[1][1]*v[1]+m[1][2]*v[2],m[2][0]*v[0]+m[2][1]*v[1]+m[2][2]*v[2]];}
+// OKLCH matrices (Björn Ottosson — direct linRGB↔LMS, no XYZ intermediate)
+const _M1=[[0.4122214708,0.5363325363,0.0514459929],[0.2119034982,0.6806995451,0.1073969566],[0.0883024619,0.2817188376,0.6299787005]];
+const _M2=[[0.2104542553,0.7936177850,-0.0040720468],[1.9779984951,-2.4285922050,0.4505937099],[0.0259040371,0.7827717662,-0.8086757660]];
+const _M2i=[[1.0,0.3963377774,0.2158037573],[1.0,-0.1055613458,-0.0638541728],[1.0,-0.0894841775,-1.2914855480]];
+const _M1i=[[4.0767416621,-3.3077115913,0.2309699292],[-1.2684380046,2.6097574011,-0.3413193965],[-0.0041960863,-0.7034186147,1.7076147010]];
+function hexToOklch(hex){const[r,g,b]=_h2lr(hex);const lms=_m3(_M1,[r,g,b]).map(v=>Math.cbrt(Math.max(0,v)));const[L,a,b2]=_m3(_M2,lms);const C=Math.sqrt(a*a+b2*b2);const H=((Math.atan2(b2,a)*180/Math.PI)+360)%360;return{L,C,H};}
+function oklchToHex(L,C,H){const a=C*Math.cos(H*Math.PI/180);const b=C*Math.sin(H*Math.PI/180);const lms=_m3(_M2i,[L,a,b]).map(v=>v*v*v);const[r,g,bl]=_m3(_M1i,lms);return _lr2h(r,g,bl);}
+// HCT — CAM16 + CIE L* tone
+const _LX=[[0.4123907993,0.3575843394,0.1804807884],[0.2126390059,0.7151686788,0.0721923154],[0.0193308187,0.1191947798,0.9505321522]];
+const _XL=[[3.2409699419,-1.5373831776,-0.4986107603],[-0.9692436363,1.8759675015,0.0415550574],[0.0556300797,-0.2039769589,1.0569715142]];
+const _VC=(()=>{const W=[95.047,100,108.883];const aL=(200/Math.PI)*Math.pow(66/116,3);const F=1,c=0.69,Nc=1;const k=1/(5*aL+1);const FL=0.2*k**4*(5*aL)+0.1*(1-k**4)**2*(5*aL)**(1/3);const n=Math.pow(66/116,3);const z=1.48+Math.sqrt(50*n),Nbb=0.725/n**0.2,Ncb=Nbb;const hpe=[[0.38971,0.68898,-0.07868],[-0.22981,1.1834,0.04641],[0,0,1]];const cat=[[0.7328,0.4296,-0.1624],[-0.7036,1.6975,0.0061],[0.003,0.0136,0.9834]];const ci=[[1.0961238208,-0.2788690002,0.1827452039],[0.4543690419,0.4735331543,0.0720978039],[-0.0096276087,-0.0056980312,1.0153256399]];const hpi=[[1.9101968341,-1.1121238928,0.2019079568],[0.3709500882,0.6290542574,-0.0000080551],[0,0,1]];const m3=(m,v)=>[m[0][0]*v[0]+m[0][1]*v[1]+m[0][2]*v[2],m[1][0]*v[0]+m[1][1]*v[1]+m[1][2]*v[2],m[2][0]*v[0]+m[2][1]*v[1]+m[2][2]*v[2]];const D=F*(1-(1/3.6)*Math.exp((-aL-42)/92));const rW=m3(cat,W.map(v=>v/100));const Drgb=rW.map(v=>D/v+1-D);const ad=c2=>{const f=(FL*Math.abs(c2))**0.42;return 400*Math.sign(c2)*f/(f+27.13);};const aW=m3(hpe,m3(ci,rW.map((v,i)=>v*Drgb[i]))).map(ad);const Aw=(2*aW[0]+aW[1]+0.05*aW[2]-0.305)*Nbb;return{F,c,Nc,Nbb,Ncb,FL,n,z,Aw,D,Drgb,hpe,cat,ci,hpi,ad};})();
+function _x2hct(X,Y,Z){const v=_VC,m3=(m,v2)=>[m[0][0]*v2[0]+m[0][1]*v2[1]+m[0][2]*v2[2],m[1][0]*v2[0]+m[1][1]*v2[1]+m[1][2]*v2[2],m[2][0]*v2[0]+m[2][1]*v2[1]+m[2][2]*v2[2]];const rgb=m3(v.cat,[X,Y,Z]).map((c2,i)=>c2*v.Drgb[i]);const rA=m3(v.hpe,m3(v.ci,rgb)).map(v.ad);const p2=(2*rA[0]+rA[1]+0.05*rA[2]-0.305)*v.Nbb;const a=rA[0]-12*rA[1]/11+rA[2]/11,b=(rA[0]+rA[1]-2*rA[2])/9;const hd=((Math.atan2(b,a)*180/Math.PI)+360)%360;const t=(50000/13)*v.Nc*v.Ncb*Math.sqrt(a*a+b*b)/(p2+0.305);const J=100*Math.pow(p2/v.Aw,v.c*v.z);return{h:hd,c:Math.pow(t===0?0:Math.pow(t,0.9)*Math.pow(1.64-Math.pow(0.29,v.n),0.73),1)*Math.sqrt(J/100),t:Y<=0?0:Y>=1?100:116*Math.cbrt(Y)-16};}
+function hexToHct(hex){const[r,g,b]=_h2lr(hex);const[X,Y,Z]=_m3(_LX,[r,g,b]);return _x2hct(X,Y,Z);}
+function _jFromTone(tone){const v=_VC,m3=(m,v2)=>[m[0][0]*v2[0]+m[0][1]*v2[1]+m[0][2]*v2[2],m[1][0]*v2[0]+m[1][1]*v2[1]+m[1][2]*v2[2],m[2][0]*v2[0]+m[2][1]*v2[1]+m[2][2]*v2[2]];if(tone<=0)return 0;if(tone>=100)return 100;const Y=tone>8?Math.pow((tone+16)/116,3):tone/903.3;const X=Y*0.95047,Z=Y*1.08883;const cat=m3(v.cat,[X,Y,Z]).map((c2,i)=>c2*v.Drgb[i]);const hR=m3(v.hpe,m3(v.ci,cat)).map(v.ad);const p2=(2*hR[0]+hR[1]+0.05*hR[2]-0.305)*v.Nbb;return 100*Math.pow(Math.max(0,p2/v.Aw),v.c*v.z);}
+function _hctRgbOrNull(hue,ch,J){const v=_VC,m3=(m,v2)=>[m[0][0]*v2[0]+m[0][1]*v2[1]+m[0][2]*v2[2],m[1][0]*v2[0]+m[1][1]*v2[1]+m[1][2]*v2[2],m[2][0]*v2[0]+m[2][1]*v2[1]+m[2][2]*v2[2]];if(J<=0)return null;const ta=ch>0?Math.pow(ch/Math.sqrt(J/100),1/0.9)/Math.pow(1.64-Math.pow(0.29,v.n),0.73):0;const hr=hue*Math.PI/180,p1=(50000/13)*v.Nc*v.Ncb,p2=Math.pow(J/100,1/(v.c*v.z))*v.Aw/v.Nbb+0.305;let a,b;if(ta<=0){a=0;b=0;}else{const g=23*(p2+0.305)*ta/(23*p1+11*ta*Math.cos(hr)+108*ta*Math.sin(hr));a=g*Math.cos(hr);b=g*Math.sin(hr);}const Ra=(460*p2+451*a+288*b)/1403,Ga=(460*p2-891*a-261*b)/1403,Ba=(460*p2-220*a-6300*b)/1403;const iv=c2=>{const s=Math.sign(c2);return s*Math.pow(Math.max(0,Math.abs(c2)*27.13/(400-Math.abs(c2))),1/0.42)/v.FL;};const lr=m3(_XL,m3(v.ci,m3(v.hpi,[Ra,Ga,Ba].map(iv)).map((c2,i)=>c2/v.Drgb[i])));if(Math.max(...lr)>1+1e-4||Math.min(...lr)<-1e-4)return null;return lr.map(x=>Math.max(0,x));}
+function hctToHex(hue,ch,tone){if(ch<0.0001||tone<=0||tone>=100){if(tone<=0)return"#000000";if(tone>=100)return"#ffffff";const Y=tone>8?Math.pow((tone+16)/116,3):tone/903.3;const v=Math.round(_dlin(Y)*255);return"#"+v.toString(16).padStart(2,"0").repeat(3);}const J=_jFromTone(tone);if(J<=0)return"#000000";let lo=0,hi=ch,best=null;for(let it=0;it<50;it++){if(hi-lo<0.01)break;const mid=(lo+hi)/2;const rgb=_hctRgbOrNull(hue,mid,J);if(rgb===null){hi=mid;}else{best=_lr2h(...rgb);lo=mid;}}return best||("#"+Math.round(_dlin(tone>8?Math.pow((tone+16)/116,3):tone/903.3)*255).toString(16).padStart(2,"0").repeat(3));}
+
+// 6b. COLOR RAMP MAKER: Simple hash cache: skip regeneration when config hasn't changed.
 let lastInputHash = null;
 let cachedOutput = null;
 
-function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
+function colorRampMaker(hexIn, rampLength, rampType = "Natural") {
   const hue = hexToHue(hexIn);
   const satu = hexToSat(hexIn);
+  const N = rampLength;
 
   if (rampType === "Linear") {
-    const output = [];
-    for (let i = 0; i < rampLength; i++) {
-      const lightness = rampLength === 1 ? 50 : (i / (rampLength - 1)) * 100;
-      output.push(hslToHex(hue, satu, lightness) || "#000000");
-    }
-    return output.reverse();
+    const inc = 100 / (N + 1);
+    const out = [];
+    for (let i = 1; i <= N; i++) out.push(hslToHex(hue, satu, i * inc) || "#000000");
+    return out.reverse();
   }
 
-  if (rampType === "Balanced" || rampType === "Balanced (Natural)" || rampType === "Balanced (Dynamic)") {
-    // Space target luminances using cube-root (OKLAB-style) perceptual spacing.
-    // Fixed margins tMin/tMax keep endpoints consistent regardless of ramp length —
-    // short ramps (5 steps) get the same near-black/near-white anchors as long ones (21 steps).
-    const tMin = 0.02;
-    const tMax = 0.98;
-    const output = [];
+  // Contrast-symmetric perceptual spacing in log(L+0.05) space.
+  // C_max = 21·N/(N+1) — approaches 21:1 but never reaches pure black or white.
+  // Symmetry: contrast vs black at lightest step = contrast vs white at darkest step.
+  const C_max = (21 * N) / (N + 1);
+  const uMax  = Math.log(0.05 * C_max);
+  const uMin  = Math.log(1.05 / C_max);
 
-    const isNatural = rampType.includes("Natural") || rampType.includes("Dynamic");
-    const isDynamic = rampType.includes("Dynamic");
+  function stepLum(i) {
+    const u = N === 1 ? (uMax + uMin) / 2 : uMax - (i / (N - 1)) * (uMax - uMin);
+    return Math.exp(u) - 0.05;
+  }
 
-    for (let i = 1; i <= rampLength; i++) {
-      const t = rampLength === 1 ? (tMin + tMax) / 2 : tMin + ((tMax - tMin) * (i - 1)) / (rampLength - 1);
-      const targetLum = t ** 3;
-
-      let low = 0;
-      let high = 100;
-      let closestL = 50;
-
-      for (let j = 0; j < 30; j++) {
-        let mid = (low + high) / 2;
-
-        const searchS = isNatural ? satu * (1 - Math.pow(Math.abs(mid - 50) / 50, 1.5) * 0.4) : satu;
-        let searchH = hue;
-        if (isDynamic) {
-          const dist = (mid - 50) / 50;
-          const targetH = dist > 0 ? 60 : 240;
-          searchH = (hue + shortestHueDiff(hue, targetH) * Math.abs(dist) * 0.15 + 360) % 360;
-        }
-
-        let midHex = hslToHex(searchH, searchS, mid);
-        let midLum = relLum(midHex);
-        closestL = mid;
-        if (Math.abs(midLum - targetLum) < 0.0001) break;
-        if (midLum < targetLum) low = mid;
-        else high = mid;
-      }
-
-      let finalS = satu;
-      let finalH = hue;
-      if (isNatural) {
-        finalS = satu * (1 - Math.pow(Math.abs(closestL - 50) / 50, 1.5) * 0.4);
-      }
-      if (isDynamic) {
-        const dist = (closestL - 50) / 50;
-        const targetH = dist > 0 ? 60 : 240;
-        finalH = (hue + shortestHueDiff(hue, targetH) * Math.abs(dist) * 0.15 + 360) % 360;
-      }
-
-      output.push(hslToHex(finalH, finalS, closestL) || "#000000");
+  function findL(targetLum, getS, getH) {
+    let lo = 0, hi = 100, L = 50;
+    for (let j = 0; j < 30; j++) {
+      const mid = (lo + hi) / 2;
+      const lum = relLum(hslToHex(getH(mid), getS(mid), mid));
+      L = mid;
+      if (Math.abs(lum - targetLum) < 0.0001) break;
+      if (lum < targetLum) lo = mid; else hi = mid;
     }
-    return output.reverse();
+    return L;
+  }
+
+  const tapS = (L) => satu * (1 - Math.pow(Math.abs(L - 50) / 50, 1.5) * 0.4);
+
+  if (rampType === "Uniform") {
+    const out = [];
+    for (let i = 0; i < N; i++) {
+      const L = findL(stepLum(i), () => satu, () => hue);
+      out.push(hslToHex(hue, satu, L) || "#000000");
+    }
+    return out;
+  }
+
+  if (rampType === "Natural") {
+    const out = [];
+    for (let i = 0; i < N; i++) {
+      const L = findL(stepLum(i), tapS, () => hue);
+      out.push(hslToHex(hue, tapS(L), L) || "#000000");
+    }
+    return out;
+  }
+
+  if (rampType === "Expressive") {
+    const shiftH = (L) => {
+      const d = (L - 50) / 50;
+      return (hue + shortestHueDiff(hue, d > 0 ? 60 : 240) * Math.abs(d) * 0.15 + 360) % 360;
+    };
+    const out = [];
+    for (let i = 0; i < N; i++) {
+      const L = findL(stepLum(i), tapS, shiftH);
+      out.push(hslToHex(shiftH(L), tapS(L), L) || "#000000");
+    }
+    return out;
   }
 
   if (rampType === "Symmetric") {
-    // Anchor the center step to the source color's own luminance, then space the ramp
-    // symmetrically outward in cube-root (perceptual) space to tMin/tMax.
-    // This guarantees the input color is the midpoint, monotonicity is preserved,
-    // and no post-hoc HSL shifting is needed.
-    const tMin = 0.02;
-    const tMax = 0.98;
     const srcLum = relLum(normalizeHex(hexIn)) || 0.18;
-    const srcT = Math.cbrt(srcLum);
-    const midIdx = Math.floor((rampLength - 1) / 2);
-    const output = [];
-
-    for (let i = 0; i < rampLength; i++) {
-      let t;
-      if (rampLength === 1 || midIdx === 0) {
-        // midIdx===0 means rampLength===1 or 2 — avoid 0/0 division
-        t = i === 0 ? srcT : tMax;
-      } else if (i <= midIdx) {
-        t = tMin + ((srcT - tMin) * i) / midIdx;
-      } else {
-        t = srcT + ((tMax - srcT) * (i - midIdx)) / (rampLength - 1 - midIdx);
-      }
-      const targetLum = t ** 3;
-
-      let low = 0;
-      let high = 100;
-      let closestL = 50;
-      for (let j = 0; j < 30; j++) {
-        let mid = (low + high) / 2;
-        let midLum = relLum(hslToHex(hue, satu, mid));
-        closestL = mid;
-        if (Math.abs(midLum - targetLum) < 0.0001) break;
-        if (midLum < targetLum) low = mid;
-        else high = mid;
-      }
-      output.push(hslToHex(hue, satu, closestL) || "#000000");
+    const uSrc   = Math.log(srcLum + 0.05);
+    const mid    = Math.floor((N - 1) / 2);
+    const out    = [];
+    for (let i = 0; i < N; i++) {
+      let u;
+      if      (N === 1)       u = uSrc;
+      else if (i === 0)       u = uMax;
+      else if (i === N - 1)   u = uMin;
+      else if (i <= mid && mid > 0) u = uMax - (uMax - uSrc) * i / mid;
+      else                    u = uSrc - (uSrc - uMin) * (i - mid) / (N - 1 - mid);
+      const targetLum = Math.max(0.0001, Math.exp(Math.min(uMax, Math.max(uMin, u))) - 0.05);
+      const L = findL(targetLum, () => satu, () => hue);
+      out.push(hslToHex(hue, satu, L) || "#000000");
     }
-    return output.reverse();
+    return out;
   }
 
-  // Unknown rampType — fall back to Balanced so callers always get a full ramp.
-  return colorRampMaker(hexIn, rampLength, "Balanced");
+  if (rampType === "OKLCH") {
+    const { C: srcC, H: srcH } = hexToOklch(normalizeHex(hexIn));
+    const out = [];
+    for (let i = 0; i < N; i++) {
+      const targetLum = stepLum(i);
+      let lo = 0, hi = 1, oL = 0.5;
+      for (let j = 0; j < 40; j++) {
+        const mid = (lo + hi) / 2;
+        const lum = relLum(oklchToHex(mid, srcC, srcH));
+        oL = mid;
+        if (Math.abs(lum - targetLum) < 0.0001) break;
+        if (lum < targetLum) lo = mid; else hi = mid;
+      }
+      out.push(oklchToHex(oL, srcC, srcH) || "#000000");
+    }
+    return out;
+  }
+
+  if (rampType === "Material") {
+    const { h: srcH, c: srcC } = hexToHct(normalizeHex(hexIn));
+    const out = [];
+    for (let i = 0; i < N; i++) {
+      const targetLum = stepLum(i);
+      let lo = 0, hi = 100, tone = 50;
+      for (let j = 0; j < 40; j++) {
+        const mid = (lo + hi) / 2;
+        const lum = relLum(hctToHex(srcH, srcC, mid));
+        tone = mid;
+        if (Math.abs(lum - targetLum) < 0.0001) break;
+        if (lum < targetLum) lo = mid; else hi = mid;
+      }
+      out.push(hctToHex(srcH, srcC, tone) || "#000000");
+    }
+    return out;
+  }
+
+  return colorRampMaker(hexIn, rampLength, "Natural");
 }
 
 // 7. COLOR SYSTEM GENERATOR

@@ -23,7 +23,7 @@ const demoConfig = {
   roleSteps: 5,
   roleStepNames: ["Weakest", "Weak", "Base", "Strong", "Stronger"],
   colorSteps: 21,
-  rampType: "Balanced",
+  rampType: "Natural",
   roleMapping: "Contrast Based",
   colorStepNames: [],
   themes: [
@@ -32,7 +32,7 @@ const demoConfig = {
   ],
 };
 const roleMappingMethods = ["Contrast Based", "Manual Base Index"];
-const rampTypes = ["Linear", "Balanced", "Balanced (Natural)", "Balanced (Dynamic)", "Symmetric"];
+const rampTypes = ["Linear", "Uniform", "Natural", "Expressive", "Symmetric", "OKLCH", "Material"];
 
 // Simple hash-based cache: skip regeneration when config hasn't changed.
 let lastInputHash = null;
@@ -41,114 +41,157 @@ let cachedOutput = null;
 // ============================================================================
 // COLOR RAMP MAKER - Multiple methods
 // ============================================================================
-function colorRampMaker(hexIn, rampLength, rampType = "Balanced") {
+function colorRampMaker(hexIn, rampLength, rampType = "Natural") {
   const hue = hexToHue(hexIn);
   const satu = hexToSat(hexIn);
+  const N = rampLength;
 
   if (rampType === "Linear") {
-    const output = [];
-    for (let i = 0; i < rampLength; i++) {
-      const lightness = rampLength === 1 ? 50 : (i / (rampLength - 1)) * 100;
-      output.push(hslToHex(hue, satu, lightness) || "#000000");
-    }
-    return output.reverse();
+    // Uniform HSL-lightness steps. 100/(N+1) spacing avoids pure black and white.
+    const inc = 100 / (N + 1);
+    const out = [];
+    for (let i = 1; i <= N; i++) out.push(hslToHex(hue, satu, i * inc) || "#000000");
+    return out.reverse();
   }
 
-  if (rampType === "Balanced" || rampType === "Balanced (Natural)" || rampType === "Balanced (Dynamic)") {
-    // Space target luminances using cube-root (OKLAB-style) perceptual spacing.
-    // Fixed margins tMin/tMax keep endpoints consistent regardless of ramp length —
-    // short ramps (5 steps) get the same near-black/near-white anchors as long ones (21 steps).
-    const tMin = 0.02;
-    const tMax = 0.98;
-    const output = [];
+  // ─── Contrast-symmetric perceptual spacing ────────────────────────────────
+  // Steps are evenly spaced in log(L+0.05) space. This guarantees:
+  //   • contrast vs black at the lightest step  =  contrast vs white at the darkest step
+  //   • no pure white or black — C_max = 21·N/(N+1) approaches 21 but never reaches it
+  //   • no manual floor/ceiling constants needed
+  //
+  // Derivation: contrast_vs_black(L) = (L+0.05)/0.05
+  //             contrast_vs_white(L) = 1.05/(L+0.05)
+  // Symmetry holds when log(L_i+0.05) + log(L_{N-1-i}+0.05) = log(0.0525) for all i.
+  // Uniform spacing in u = log(L+0.05) satisfies this automatically.
+  const C_max = (21 * N) / (N + 1);
+  const uMax  = Math.log(0.05 * C_max);   // lightest step: contrast vs black = C_max
+  const uMin  = Math.log(1.05 / C_max);   // darkest  step: contrast vs white = C_max
 
-    const isNatural = rampType.includes("Natural") || rampType.includes("Dynamic");
-    const isDynamic = rampType.includes("Dynamic");
+  // Target WCAG luminance for step i  (i=0 → lightest, i=N-1 → darkest).
+  function stepLum(i) {
+    const u = N === 1 ? (uMax + uMin) / 2 : uMax - (i / (N - 1)) * (uMax - uMin);
+    return Math.exp(u) - 0.05;
+  }
 
-    for (let i = 1; i <= rampLength; i++) {
-      const t = rampLength === 1 ? (tMin + tMax) / 2 : tMin + ((tMax - tMin) * (i - 1)) / (rampLength - 1);
-      const targetLum = t ** 3;
-
-      let low = 0;
-      let high = 100;
-      let closestL = 50;
-
-      for (let j = 0; j < 30; j++) {
-        let mid = (low + high) / 2;
-
-        const searchS = isNatural ? satu * (1 - Math.pow(Math.abs(mid - 50) / 50, 1.5) * 0.4) : satu;
-        let searchH = hue;
-        if (isDynamic) {
-          const dist = (mid - 50) / 50;
-          const targetH = dist > 0 ? 60 : 240;
-          searchH = (hue + shortestHueDiff(hue, targetH) * Math.abs(dist) * 0.15 + 360) % 360;
-        }
-
-        let midHex = hslToHex(searchH, searchS, mid);
-        let midLum = relLum(midHex);
-        closestL = mid;
-        if (Math.abs(midLum - targetLum) < 0.0001) break;
-        if (midLum < targetLum) low = mid;
-        else high = mid;
-      }
-
-      let finalS = satu;
-      let finalH = hue;
-      if (isNatural) {
-        finalS = satu * (1 - Math.pow(Math.abs(closestL - 50) / 50, 1.5) * 0.4);
-      }
-      if (isDynamic) {
-        const dist = (closestL - 50) / 50;
-        const targetH = dist > 0 ? 60 : 240;
-        finalH = (hue + shortestHueDiff(hue, targetH) * Math.abs(dist) * 0.15 + 360) % 360;
-      }
-
-      output.push(hslToHex(finalH, finalS, closestL) || "#000000");
+  // Binary-search HSL lightness L that achieves targetLum, given per-L S and H functions.
+  function findL(targetLum, getS, getH) {
+    let lo = 0, hi = 100, L = 50;
+    for (let j = 0; j < 30; j++) {
+      const mid = (lo + hi) / 2;
+      const lum = relLum(hslToHex(getH(mid), getS(mid), mid));
+      L = mid;
+      if (Math.abs(lum - targetLum) < 0.0001) break;
+      if (lum < targetLum) lo = mid; else hi = mid;
     }
-    return output.reverse();
+    return L;
+  }
+
+  // Saturation taper: reduces chroma near pure-white and pure-black extremes.
+  const tapS = (L) => satu * (1 - Math.pow(Math.abs(L - 50) / 50, 1.5) * 0.4);
+
+  if (rampType === "Uniform") {
+    // Fixed H and S — numerically clean, predictable contrast values.
+    const out = [];
+    for (let i = 0; i < N; i++) {
+      const L = findL(stepLum(i), () => satu, () => hue);
+      out.push(hslToHex(hue, satu, L) || "#000000");
+    }
+    return out;
+  }
+
+  if (rampType === "Natural") {
+    // Saturation taper at extremes — reduces oversaturation in near-white/black steps.
+    // Best default for design systems.
+    const out = [];
+    for (let i = 0; i < N; i++) {
+      const L = findL(stepLum(i), tapS, () => hue);
+      out.push(hslToHex(hue, tapS(L), L) || "#000000");
+    }
+    return out;
+  }
+
+  if (rampType === "Expressive") {
+    // Saturation taper + hue shift toward warm (60°) at lights, cool (240°) at darks.
+    const shiftH = (L) => {
+      const d = (L - 50) / 50;
+      return (hue + shortestHueDiff(hue, d > 0 ? 60 : 240) * Math.abs(d) * 0.15 + 360) % 360;
+    };
+    const out = [];
+    for (let i = 0; i < N; i++) {
+      const L = findL(stepLum(i), tapS, shiftH);
+      out.push(hslToHex(shiftH(L), tapS(L), L) || "#000000");
+    }
+    return out;
   }
 
   if (rampType === "Symmetric") {
-    // Anchor the center step to the source color's own luminance, then space the ramp
-    // symmetrically outward in cube-root (perceptual) space to tMin/tMax.
-    // This guarantees the input color is the midpoint, monotonicity is preserved,
-    // and no post-hoc HSL shifting is needed.
-    const tMin = 0.02;
-    const tMax = 0.98;
+    // Input color anchored at the midpoint; ramp expands outward to the same
+    // contrast-symmetric endpoints used by the other methods.
     const srcLum = relLum(normalizeHex(hexIn)) || 0.18;
-    const srcT = Math.cbrt(srcLum);
-    const midIdx = Math.floor((rampLength - 1) / 2);
-    const output = [];
-
-    for (let i = 0; i < rampLength; i++) {
-      let t;
-      if (rampLength === 1 || midIdx === 0) {
-        t = i === 0 ? srcT : tMax;
-      } else if (i <= midIdx) {
-        t = tMin + ((srcT - tMin) * i) / midIdx;
-      } else {
-        t = srcT + ((tMax - srcT) * (i - midIdx)) / (rampLength - 1 - midIdx);
-      }
-      const targetLum = t ** 3;
-
-      let low = 0;
-      let high = 100;
-      let closestL = 50;
-      for (let j = 0; j < 30; j++) {
-        let mid = (low + high) / 2;
-        let midLum = relLum(hslToHex(hue, satu, mid));
-        closestL = mid;
-        if (Math.abs(midLum - targetLum) < 0.0001) break;
-        if (midLum < targetLum) low = mid;
-        else high = mid;
-      }
-      output.push(hslToHex(hue, satu, closestL) || "#000000");
+    const uSrc   = Math.log(srcLum + 0.05);
+    const mid    = Math.floor((N - 1) / 2);
+    const out    = [];
+    for (let i = 0; i < N; i++) {
+      let u;
+      if      (N === 1)  u = uSrc;
+      else if (i === 0)  u = uMax;
+      else if (i === N - 1) u = uMin;
+      else if (i <= mid && mid > 0) u = uMax - (uMax - uSrc) * i / mid;
+      else               u = uSrc - (uSrc - uMin) * (i - mid) / (N - 1 - mid);
+      const targetLum = Math.max(0.0001, Math.exp(Math.min(uMax, Math.max(uMin, u))) - 0.05);
+      const L = findL(targetLum, () => satu, () => hue);
+      out.push(hslToHex(hue, satu, L) || "#000000");
     }
-    return output.reverse();
+    return out;
   }
 
-  // Unknown rampType — fall back to Balanced so callers always get a full ramp.
-  return colorRampMaker(hexIn, rampLength, "Balanced");
+  if (rampType === "OKLCH") {
+    // Ramp in Oklab lightness, preserving input chroma and hue.
+    const { C: srcC, H: srcH } = hexToOklch(normalizeHex(hexIn));
+    const out = [];
+    for (let i = 0; i < N; i++) {
+      const targetLum = stepLum(i);
+      // Map WCAG luminance target → approximate Oklab L via cube root of relative lum
+      // Oklab L ≈ cbrt(Y) where Y is CIE luminance (not WCAG). WCAG Y = relLum * 100/100.
+      // We binary-search Oklab L that produces the target WCAG luminance.
+      let lo = 0, hi = 1, oL = 0.5;
+      for (let j = 0; j < 40; j++) {
+        const mid = (lo + hi) / 2;
+        const hex = oklchToHex(mid, srcC, srcH);
+        const lum = relLum(hex);
+        oL = mid;
+        if (Math.abs(lum - targetLum) < 0.0001) break;
+        if (lum < targetLum) lo = mid; else hi = mid;
+      }
+      out.push(oklchToHex(oL, srcC, srcH) || "#000000");
+    }
+    return out;
+  }
+
+  if (rampType === "Material") {
+    // Ramp using Google's HCT color space — tone 0-100 maps to WCAG luminance.
+    const { h: srcH, c: srcC } = hexToHct(normalizeHex(hexIn));
+    const out = [];
+    for (let i = 0; i < N; i++) {
+      const targetLum = stepLum(i);
+      // HCT tone is CIE L* which monotonically relates to Y (WCAG luminance).
+      // Binary-search tone to hit targetLum.
+      let lo = 0, hi = 100, tone = 50;
+      for (let j = 0; j < 40; j++) {
+        const mid = (lo + hi) / 2;
+        const hex = hctToHex(srcH, srcC, mid);
+        const lum = relLum(hex);
+        tone = mid;
+        if (Math.abs(lum - targetLum) < 0.0001) break;
+        if (lum < targetLum) lo = mid; else hi = mid;
+      }
+      out.push(hctToHex(srcH, srcC, tone) || "#000000");
+    }
+    return out;
+  }
+
+  return colorRampMaker(hexIn, rampLength, "Natural");
 }
 
 // ============================================================================

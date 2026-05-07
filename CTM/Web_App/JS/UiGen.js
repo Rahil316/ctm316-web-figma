@@ -161,11 +161,11 @@ function createColorsSection(colorRamps) {
               ${data.stepName} (${data.shortName})
             </div>
             <div class="flex gap-1 flex-wrap">
-              <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/90 text-[#212529] border border-black/10">
+              <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/90 text-[#1a1a1a] border border-black/10">
                 <span class="text-[10px] leading-none flex-shrink-0">☀️</span>
                 <span class="text-[10px] font-semibold leading-none whitespace-nowrap">${(data.contrast.light.ratio || 0).toFixed(2)} - ${data.contrast.light.rating}</span>
               </div>
-              <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-black/70 text-[#f8f9fa] border border-white/10">
+              <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-black/70 text-[#f0f0f0] border border-white/10">
                 <span class="text-[10px] leading-none flex-shrink-0">🌙</span>
                 <span class="text-[10px] font-semibold leading-none whitespace-nowrap">${(data.contrast.dark.ratio || 0).toFixed(2)} - ${data.contrast.dark.rating}</span>
               </div>
@@ -189,8 +189,8 @@ function createColorsSection(colorRamps) {
 function createThemeSection(colorTokens, theme) {
   const isDark = theme === "dark";
   const pillClass = isDark
-    ? "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-black/70 text-[var(--text-primary)] border border-white/10"
-    : "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/90 text-[var(--text-primary)] border border-black/10";
+    ? "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-black/70 text-[#f0f0f0] border border-white/10"
+    : "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-white/90 text-[#1a1a1a] border border-black/10";
   const pillIcon = isDark ? "🌙" : "☀️";
 
   // Create a container for all color groups (e.g., a div or DocumentFragment)
@@ -200,21 +200,21 @@ function createThemeSection(colorTokens, theme) {
   for (const [colorGroup, roles] of Object.entries(colorTokens)) {
     if (!roles || Object.keys(roles).length === 0) {
       const emptyDiv = document.createElement("div");
-      emptyDiv.className = `p-4 rounded-[8px] border border-[var(--border)] mb-4 ${isDark ? "bg-black" : "bg-[var(--bg-card)]"}`;
+      emptyDiv.className = `p-4 rounded-[8px] border border-[var(--border)] mb-4 ${isDark ? "bg-[#0d0d0d]" : "bg-[#f8f9fa]"}`;
       emptyDiv.innerHTML = `
-        <h4 class="text-[11px] font-bold tracking-[0.8px] mb-3 ${isDark ? "text-[var(--text-dim)]" : "text-[var(--text-muted)]"}">${colorGroup}</h4>
-        <p>No roles generated</p>`;
+        <h4 class="text-[11px] font-bold tracking-[0.8px] mb-3 ${isDark ? "text-white/40" : "text-black/40"}">${colorGroup}</h4>
+        <p class="text-[12px] ${isDark ? "text-white/60" : "text-black/60"}">No roles generated</p>`;
       container.appendChild(emptyDiv);
       continue;
     }
 
     // Main group container
     const groupDiv = document.createElement("div");
-    groupDiv.className = `p-4 rounded-[8px] border border-[var(--border)] mb-4 ${isDark ? "bg-black" : "bg-[var(--bg-card)]"}`;
+    groupDiv.className = `p-4 rounded-[8px] border border-[var(--border)] mb-4 ${isDark ? "bg-[#0d0d0d]" : "bg-[#f8f9fa]"}`;
 
     // Group title
     groupDiv.innerHTML = `
-    <h4 class="text-[14px] font-bold tracking-[0.5px] mb-3 ${isDark ? "text-[var(--text-dim)]" : "text-[var(--text-muted)]"}">${colorGroup}</h4>
+    <h4 class="text-[14px] font-bold tracking-[0.5px] mb-3 ${isDark ? "text-white/80" : "text-black/80"}">${colorGroup}</h4>
     `;
 
     // Iterate over each role inside the group using for...of on Object.entries
@@ -227,13 +227,13 @@ function createThemeSection(colorTokens, theme) {
 
       // Role sub‑heading
       const roleHeading = document.createElement("h5");
-      roleHeading.className = `text-[10px] font-semibold tracking-[0.6px] mb-2 ${isDark ? "text-[var(--text-dim)]" : "text-[var(--text-dim)]"}`;
+      roleHeading.className = `text-[10px] font-semibold tracking-[0.6px] mb-2 ${isDark ? "text-white/40" : "text-black/40"}`;
       roleHeading.textContent = displayRoleName;
       groupDiv.appendChild(roleHeading);
 
       // Grid container for color cards
       const grid = document.createElement("div");
-      grid.className = "grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]";
+      grid.className = "grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]";
 
       // Iterate over each variation (color) inside the role using for...in
       for (const variationKey in variations) {
@@ -302,8 +302,8 @@ function createThemeSection(colorTokens, theme) {
         // "Adjusted" warning if needed
         if (data.isAdjusted) {
           const adjustedBadge = document.createElement("div");
-          adjustedBadge.className = "text-[var(--warning)] font-bold text-[9px] tracking-[0.5px]";
-          adjustedBadge.textContent = "Adjusted";
+          adjustedBadge.className = "mt-1 px-1.5 py-0.5 rounded-[4px] bg-[var(--warning)]/20 text-[var(--warning)] font-bold text-[9px] tracking-[0.5px] w-fit border border-[var(--warning)]/30";
+          adjustedBadge.textContent = "ADJUSTED";
           content.appendChild(adjustedBadge);
         }
 
@@ -335,7 +335,7 @@ function createColorInputs(colorScheme, onUpdate) {
     const basicSection = createSection("Basic Settings", "basic-settings", true);
     basicSection.content.appendChild(createInput("name", "System Name", colorScheme.name));
     basicSection.content.appendChild(createInput("colorSteps", "Weight Count", colorScheme.colorSteps, "number"));
-    basicSection.content.appendChild(createInput("rampType", "Ramp Generation Mode", colorScheme.rampType || "Balanced", "select", rampTypes));
+    basicSection.content.appendChild(createInput("rampType", "Ramp Generation Mode", colorScheme.rampType || "Natural", "select", rampTypes));
     basicSection.content.appendChild(createInput("roleMapping", "Role Mapping Method", colorScheme.roleMapping || "Contrast Based", "select", roleMappingMethods));
     basicSection.content.appendChild(createColorInput("themes.0.bg", "Light Theme Background", colorScheme.themes[0].bg || "FFFFFF"));
     basicSection.content.appendChild(createColorInput("themes.1.bg", "Dark Theme Background", colorScheme.themes[1].bg || "000000"));
@@ -958,7 +958,7 @@ function parseSchemeFile(file, onValid) {
       if (!imported.colorSteps || isNaN(parseInt(imported.colorSteps))) {
         imported.colorSteps = demoConfig.colorSteps;
       }
-      if (!imported.rampType) imported.rampType = "Balanced";
+      if (!imported.rampType) imported.rampType = "Natural";
       if (!imported.roleMapping) imported.roleMapping = "Contrast Based";
       onValid(imported);
     } catch (err) {
